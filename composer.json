@@ -1,0 +1,15 @@
+{
+    "name": "fzb/fzb",
+    "description": "Class libraries for FZB Framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aaron Bishop",
+            "email": "aaron@foozbat.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"Fzb\\": "src/"}
+    }
+}
