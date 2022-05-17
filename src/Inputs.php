@@ -75,7 +75,7 @@ class Inputs implements ArrayAccess
     }
 
     // ArrayAccess Methods
-    public function offsetSet($input_name, $properties = null)
+    public function offsetSet($input_name, $properties = null): void
     {
         if (is_null($input_name)) {
             throw new InputDefinitionException('Invalid input parameters.');
@@ -86,6 +86,7 @@ class Inputs implements ArrayAccess
             //print "ROUTE: ".$_ENV['URL_ROUTE']."<br />";
 
             $path_string = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[1];
+            $path_string = explode('?', $path_string)[0];
             $path_string = ltrim($path_string, "/");
 
             //print_r($path);
@@ -127,7 +128,7 @@ class Inputs implements ArrayAccess
 
             $submitted_value = $input_value;
 
-            $filter_flags |= FILTER_NULL_ON_FAILURE;
+            array_push($filter_flags, FILTER_NULL_ON_FAILURE);
 
             // validate the input according to filter
             if ($input_validate != false) {
@@ -172,17 +173,17 @@ class Inputs implements ArrayAccess
         }
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->inputs[$offset]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->inputs[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         //$this->validate();
         return isset($this->inputs[$offset]['value'] ) ? $this->inputs[$offset]['value'] : null;
