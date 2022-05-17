@@ -152,7 +152,10 @@ class Renderer
 		$this->global_state['_REQUEST'] = $_REQUEST;
 		$this->global_state['_ENV'] 	= $_ENV;
 
-		unset($GLOBALS);		
+		//unset($GLOBALS);
+		foreach ($GLOBALS as $global => $val) {
+			unset($GLOBALS[$global]);
+		}
 		unset($_SERVER);
 		unset($_GET);
 		unset($_POST);
@@ -188,7 +191,10 @@ class Renderer
 		$_POST    = $this->global_state['_POST'];
 		$_GET     = $this->global_state['_GET'];
 		$_SERVER  = $this->global_state['_SERVER'];
-		$GLOBALS  = $this->global_state['GLOBALS'];
+		//$GLOBALS  = $this->global_state['GLOBALS'];
+		foreach ($this->global_state['GLOBALS'] as $global => $val) {
+			$GLOBALS[$global] = $val;
+		}
 
 		$this->global_state = null;
 /*
