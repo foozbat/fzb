@@ -26,7 +26,7 @@ class Database
     private $conn_options;
 
 	// CONSTRUCTOR //
-    public function __construct($options = array())
+    public function __construct(...$options)
     {
         if (isset($options['ini_file'])) {
             if (file_exists($options['ini_file'])) {
@@ -93,7 +93,12 @@ class Database
 
     function prepare($query)
 	{
+        $this->connection->prepare($query);
+    }
 
+    function execute(...$params)
+    {
+        $this->connection->execute($params);
     }
 
 	// executes a query and returns no rows
@@ -123,7 +128,12 @@ class Database
 	function last_insert_id()
 	{
 		return $connection->lastInsertId();
-	}   
+	}
+
+    function affected_rows()
+    {
+        return $connection->rowCount();
+    }
     
     function auto_query($table, $table_key, $table_key_value, $data_array)
 	{

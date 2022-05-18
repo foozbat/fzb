@@ -27,7 +27,7 @@ class Inputs implements ArrayAccess
     private $path_vars = array();
 
     // constructor can optionally receive an array of input definitions
-    public function __construct(array $inputs = null)
+    public function __construct(...$inputs)
     {
         // check to see if this is a websocket connection
         if (strpos($_SERVER['GATEWAY_INTERFACE'], 'websocketd-CGI') !== false) {

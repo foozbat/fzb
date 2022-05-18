@@ -9,13 +9,23 @@
 
 namespace Fzb;
 
+use Exception;
+
+class RouterException extends Exception { }
+
 class Router
 {
     private $url_route;
     private $modules = array();
 
-    function __construct($modules_dir)
+    function __construct($modules_dir = null)
     {
+        if ($modules_dir == null && defined('MODULES_DIR')) {
+            $modules_dir = MODULES_DIR;
+        }
+        if ($modules_dir == null) {
+            throw new RouterException("Modules directly not defined. Either define in app_settings or pass to Router on instantiation.");
+        }
         $this->determine_route();
         $this->find_modules($modules_dir);
     }

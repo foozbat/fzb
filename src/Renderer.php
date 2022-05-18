@@ -43,7 +43,7 @@ class Renderer
 		}
 
 		if ($this->template_dir == "" || $this->template_ext == "") {
-			die ("could not create renderer");
+			throw new RendererException("Renderer requires the templates directory and extension to be defined.");
 		}
 
 
@@ -58,7 +58,7 @@ class Renderer
 	public function assign($name, $value)
 	{
 		if (in_array($name, $this->reserved_var_names)) {
-			throw new RendererException("$name is a reserved Renderer variable name");
+			throw new RendererException("$name is a reserved Renderer variable name.");
 		}
 		$this->render_vars[$name] = $value;
 	}
@@ -323,6 +323,6 @@ function _load_tpl($template_file, $_vars)
 	if (file_exists($template_file)) {
 		require_once($template_file);
 	} else {
-		die("template not found");
+		throw new RendererException("Renderer could not find the specified template file.");
 	}
 }
