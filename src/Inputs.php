@@ -14,6 +14,7 @@
 namespace Fzb;
 
 use ArrayAccess;
+use Iterator;
 use Exception;
 
 // exceptions
@@ -21,7 +22,7 @@ class InputValidationException extends Exception { public $required_failures = a
 class InputDefinitionException extends Exception { }
 
 //
-class Inputs implements ArrayAccess
+class Inputs implements ArrayAccess, Iterator
 {
     private $inputs = array();
     private $path_vars = array();
@@ -56,10 +57,15 @@ class Inputs implements ArrayAccess
             if (is_array($inputs)) {
                 foreach ($inputs as $name => $properties) {
                     //$this->offsetSet($name, $properties);
-                    $this[$name] = $properties;
+                    $this->read_input($name, $properties);
                 }
             }
-        }        
+        }  
+    }
+
+    public function get_all_inputs()
+    {
+        return $this->inputs;
     }
 
     public function validate()
@@ -77,16 +83,23 @@ class Inputs implements ArrayAccess
             }
         }
 
-        if (sizeof($required_failures) > 0 || sizeof($validation_failures) > 0) {
+  /*      if (sizeof($required_failures) > 0 || sizeof($validation_failures) > 0) {
             $exception = new InputValidationException();
             $exception->required_failures = $required_failures;
             $exception->validation_failures = $validation_failures;
             throw $exception;
-        }
+        }*/
+
+        return array(
+            'input_required_error' => sizeof($required_failures) > 0,
+            'input_required_failures' => $required_failures,
+            'input_validation_error' => sizeof($validation_failures) > 0,
+            'input_validation_failures' => $validation_failures
+        );
+        
     }
 
-    // ArrayAccess Methods
-    public function offsetSet($input_name, $properties = null): void
+    private function read_input($input_name, $properties)
     {
         if (is_null($input_name)) {
             throw new InputDefinitionException('Invalid input parameters.');
@@ -109,7 +122,7 @@ class Inputs implements ArrayAccess
             $input_validate = $properties['validate'] ?? false;
             $input_sanitize = $properties['sanitize'] ?? false;
             $filter_options = $properties['filter_options'] ?? array();
-            $filter_flags   = $properties['filter_flags'] ?? array();
+            $filter_flags   = $properties['filter_flags'] ?? 0;
             $sanitize_flags = $properties['sanitize_flags'] ?? array();
             $input_value = null;
             $submitted_value = null;
@@ -125,10 +138,11 @@ class Inputs implements ArrayAccess
 
             $submitted_value = $input_value;
 
-            array_push($filter_flags, FILTER_NULL_ON_FAILURE);
+            $filter_flags |= FILTER_NULL_ON_FAILURE;
 
             // validate the input according to filter
             if ($input_validate != false) {
+                //print "VALIDATING $input_name<br />";
                 $input_value = filter_var(
                     $input_value, 
                     $input_validate,
@@ -170,6 +184,12 @@ class Inputs implements ArrayAccess
         }
     }
 
+    // ArrayAccess Methods
+    public function offsetSet($input_name, $properties = null): void
+    {
+        $this->read_input($input_name, $properties);
+    }
+
     public function offsetExists($offset): bool
     {
         return isset($this->inputs[$offset]);
@@ -185,4 +205,21 @@ class Inputs implements ArrayAccess
         //$this->validate();
         return isset($this->inputs[$offset]['value'] ) ? $this->inputs[$offset]['value'] : null;
     }    
+
+    // Iterator methods
+    public function current(): mixed {
+        return current($this->inputs)['value'];
+    }
+    public function key(): mixed {
+        return key($this->inputs);
+    }
+    public function next(): void {
+        next($this->inputs);
+    }
+    public function rewind(): void {
+        reset($this->inputs);
+    }
+    public function valid (): bool {
+        return key($this->inputs) !== null;
+    }
 }

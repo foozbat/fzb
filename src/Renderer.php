@@ -19,7 +19,7 @@ class Renderer
 	private $template_ext;
 
 	private $render_vars = array();
-	private $reserved_var_names = ['_vars', 'html'];
+	private $reserved_var_names = ['_vars', '_uri_path', 'html'];
 
 	private $global_state = array();
 
@@ -47,11 +47,13 @@ class Renderer
 		}
 
 		// register default render_vars;
+		$_base_path = "";
 		if (!$_ENV['URL_ROUTE']) {
-			$this->assign('_base_uri', $_SERVER['REQUEST_URI']);
+			$_base_path = $_SERVER['REQUEST_URI'];
 		} else {
-			$this->assign('_base_uri', explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0]);
+			$_base_path = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0];
 		}
+		$this->render_vars['_uri_path'] = ltrim($_base_path, "/");
 	}
 
 	// METHODS //
@@ -62,6 +64,15 @@ class Renderer
 			throw new RendererException("$name is a reserved Renderer variable name.");
 		}
 		$this->render_vars[$name] = $value;
+	}
+
+	public function assign_all($arr)
+	{
+		//echo "<pre>".var_dump($arr)."</pre>";
+
+		foreach ($arr as $name => $value) {
+			$this->assign($name, $value);
+		}
 	}
 
 	// possibly deprecate
