@@ -36,10 +36,21 @@ class Inputs implements ArrayAccess
             parse_str($_SERVER['QUERY_STRING'], $_GET);
         }
 
+        $this->get_path_var_values();
+
         $this->add_inputs($inputs);
     }
 
-    public function add_inputs($inputs)
+    private function get_path_var_values()
+    {
+        $path_string = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[1];
+        $path_string = explode('?', $path_string)[0];
+        $path_string = ltrim($path_string, "/");
+
+        $this->path_vars = explode("/", $path_string);
+    }
+    
+    private function add_inputs($inputs)
     {
         if (isset($inputs)) {
             if (is_array($inputs)) {
@@ -85,20 +96,6 @@ class Inputs implements ArrayAccess
             //print "URI: ".$_SERVER['REQUEST_URI']."<br />";
             //print "ROUTE: ".$_ENV['URL_ROUTE']."<br />";
 
-            $path_string = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[1];
-            $path_string = explode('?', $path_string)[0];
-            $path_string = ltrim($path_string, "/");
-
-            //print_r($path);
-
-            $path_var_values = explode("/", $path_string);
-            $path_var_names  = explode("/", $properties);
-
-            //print_r($path_var_values);
-
-            for ($i=0; $i<sizeof($path_var_names); $i++) {
-                $this->path_vars[$path_var_names[$i]] = $path_var_values[$i] ?? null;
-            }
 
             //print_r($this->path_vars);
             //print $path;
@@ -122,8 +119,8 @@ class Inputs implements ArrayAccess
                 $input_value = $_GET[$input_name];
             } else if ($input_type == 'POST' && isset($_POST[$input_name])) {
                 $input_value = $_POST[$input_name];
-            } else if ($input_type == 'PATH'&& isset($this->path_vars[$input_name])) {
-                $input_value = $this->path_vars[$input_name];
+            } else if ($input_type == 'PATH' && isset($this->path_vars[0])) {
+                $input_value = array_shift($this->path_vars);
             }
 
             $submitted_value = $input_value;

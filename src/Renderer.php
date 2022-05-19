@@ -18,14 +18,14 @@ class Renderer
 	private $template_dir;
 	private $template_ext;
 
-	private $render_vars;
+	private $render_vars = array();
 	private $reserved_var_names = ['_vars', 'html'];
 
 	private $global_state = array();
 
-	private $selects;
-	private $checks;
-	private $texts;
+	private $selects = array();
+	private $checks = array();
+	private $texts = array();
 
 	// CONSTRUCTOR //
 	function __construct($template_dir = "", $template_ext = "")
@@ -46,11 +46,12 @@ class Renderer
 			throw new RendererException("Renderer requires the templates directory and extension to be defined.");
 		}
 
-
-		$this->selects = array();
-		$this->checks = array();
-		$this->texts = array();
-		$this->render_vars = array();
+		// register default render_vars;
+		if (!$_ENV['URL_ROUTE']) {
+			$this->assign('_base_uri', $_SERVER['REQUEST_URI']);
+		} else {
+			$this->assign('_base_uri', explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0]);
+		}
 	}
 
 	// METHODS //
