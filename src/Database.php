@@ -16,14 +16,15 @@ namespace Fzb;
 use PDO;
 use Exception;
 
-class DatabaseConnectException extends Exception { }
+class DatabaseException extends Exception { }
 
 class Database
 {
 	// DATA MEMBERS //
     private $instance;
-    private $connection;
-    private $conn_options;
+    private $pdo;
+    private $pdo_options;
+    private $pdo_sth;
 
 	// CONSTRUCTOR //
     public function __construct(...$options)
@@ -32,7 +33,7 @@ class Database
             if (file_exists($options['ini_file'])) {
                 $ini_settings = parse_ini_file($options['ini_file'], true);
             } else {
-                throw new DatabaseConnectException("Could not find .ini with database credentials");
+                throw new DatabaseException("Could not find .ini with database credentials");
             }
             
 
@@ -42,10 +43,10 @@ class Database
         }
 
         if (!isset($options['driver']) || !isset($options['host']) || !isset($options['username']) || !isset($options['password'])) { 
-            throw new DatabaseConnectException("Database host, username, or password not specified");
+            throw new DatabaseException("Database host, username, or password not specified");
         }
 
-        $this->conn_options = $options;
+        $this->pdo_options = $options;
         
         $this->connect();
 
@@ -67,109 +68,171 @@ class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, //make the default fetch be an associative array
         ];
         
-        $dsn = $this->conn_options['driver'] . ":host=" . $this->conn_options['host'];
+        $dsn = $this->pdo_options['driver'] . ":host=" . $this->pdo_options['host'];
         
-        if (isset($this->conn_options['database'])) {
-            $dsn .= ';dbname=' . $this->conn_options['database'];
+        if (isset($this->pdo_options['database'])) {
+            $dsn .= ';dbname=' . $this->pdo_options['database'];
         }
-        if (isset($this->conn_options['port'])) {
-            $dsn .= ";port=" . $this->conn_options['port'];
+        if (isset($this->pdo_options['port'])) {
+            $dsn .= ";port=" . $this->pdo_options['port'];
         }
-        if (isset($conn_options['charset'])) {
-            $dsn .= ";charset=" . $this->conn_options['charset'];
+        if (isset($pdo_options['charset'])) {
+            $dsn .= ";charset=" . $this->pdo_options['charset'];
         }
         
         try {
-            $connection = new PDO($dsn, $this->conn_options['username'], $this->conn_options['password'], $options);
+            $this->pdo = new PDO($dsn, $this->pdo_options['username'], $this->pdo_options['password'], $options);
         } catch (\PDOException $e) {
            throw new DatabaseConnectException( $e->getMessage() );
         }
     }
 
-    public function disconnect()
+    public function disconnect(): void
     {
-        $this->connection = null;
+        $this->pdo = null;
     }
 
-    function prepare($query)
+    public function prepare($query): void
 	{
-        $this->connection->prepare($query);
+        // kill any existing sth, maybe add support for multiple sth's later
+        if ($this->pdo_sth != null) {
+            $this->finish();
+        }
+
+        $this->pdo_sth = $this->pdo->prepare($query);
     }
 
-    function execute(...$params)
+    public function execute(...$params): void
     {
-        $this->connection->execute($params);
+        $this->pdo_sth->execute($params);
+    }
+
+    public function finish(): void
+    {
+        $this->pdo_sth->closeCursor();
+        $this->pdo_sth = null;
+    }
+
+    // operates on a prepared statement
+    public function fetchrow_array()
+    {
+        return $this->pdo_sth->fetch(PDO::FETCH_NUM);
+    }
+
+    public function fetchrow_assoc()
+    {
+        return $this->pdo_sth->fetch(PDO::FETCH_ASSOC);
     }
 
 	// executes a query and returns no rows
-    /*function query($query)
+    public function query($query, ...$params): int
 	{
-        $connection->query($query);
-    }*/
+/*        print("query()<br />");
+        print($query);
+        print_r($params);
+*/
+        $sth = $this->pdo->prepare($query);
+        $sth->execute($params);
+
+        return $sth->rowCount();
+    }
 
  	// executes a query and returns the first row of the result as a normal array
-    function selectrow_array()
+    public function selectrow_array($query, ...$params): array
 	{
-        print "selectrow_array()<br />";
+        $sth = $this->pdo->prepare($query);
+        $sth->execute($params);
+
+        return $sth->fetch(PDO::FETCH_NUM);
     }
 
     // executes a query and returns the first row of the result as an associative array
-	function selectrow_assoc()
-    {
+	public function selectrow_assoc($query, ...$params): array
+	{
+        $sth = $this->pdo->prepare($query);
+        $sth->execute($params);
 
-	}
+        return $sth->fetch(PDO::FETCH_ASSOC);
+    }
 
     // execues a query and returns the first column of each row
-	function selectcol_array()
+	public function selectcol_array($query, ...$params): array
 	{
-    
+        $sth = $this->pdo->prepare($query);
+        $sth->execute($params);
+
+        return $sth->fetchAll(PDO::FETCH_COLUMN);
     }
 
-	function last_insert_id()
+	public function last_insert_id(): int
 	{
-		return $connection->lastInsertId();
+		return $pdo->lastInsertId();
 	}
 
-    function affected_rows()
+    // transactions
+    public function begin_transaction(): bool
     {
-        return $connection->rowCount();
+        return $this->pdo->beginTransaction();
     }
-    
-    function auto_query($table, $table_key, $table_key_value, $data_array)
+
+    public function commit(): bool
+    {
+        return $this->pdo->commit();
+    }
+
+    public function auto_query($table, $data_array, $table_key = null, $table_key_value = null)
 	{
-		/*$table           = mysql_escape_string($table);
-		$table_key       = mysql_escape_string($table_key);
-		$table_key_value = mysql_escape_string($table_key_value);
+        $table_found = false;
+        $tables = $this->selectrow_array("SHOW TABLES");
+        if (!in_array($table, $tables)) {
+            throw new Exception("auto_query: table '$table' does not exist.");
+        }
 
-		$query = "INSERT INTO `$table` SET ";
+        $query = "INSERT INTO `$table` SET ";
+        $row_exists = 0;
 
-		$row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = '$table_key_value'");
+        if ($table_key != null) {
+            $table_columns = $this->selectcol_array("EXPLAIN `$table`");
+            if (!in_array($table_key, $table_columns)) {
+                throw new Exception("auto_query: table key '$table_key' does not exist.");
+            }
 
-		if ($row_exists)
-			$query = "UPDATE `$table` SET ";
+            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = '$table_key_value'");
 
-		$query_columns = array();
-
-		$table_columns = $this->selectcol_array("EXPLAIN `$table`");
+            if ($row_exists) {
+                $query = "UPDATE `$table` SET ";
+            }
+        }
+        
+		$query_fields = array();
+		$query_values = array();
 
 		foreach ($data_array as $field => $value)
 		{
-			if ($field != 'id' && $field != 'last_updated')
-			{			
-				if ($value != 'NOW()')
-					$value = '"'.mysql_escape_string($value).'"';
-		
-				if (in_array($field, $table_columns))
-					array_push($query_columns, "$field = $value");
-			}
+            /*if ($value != 'NOW()')
+                $value = '"'.mysql_escape_string($value).'"';
+    
+            if (in_array($field, $table_columns))
+                array_push($query_columns, "$field = $value");*/
+            
+            array_push($query_fields, "$field = ?");
+            array_push($query_values, $value);
 		}
 
-		$query .= implode(", ", $query_columns);
+		$query .= implode(", ", $query_fields);
 
-		if ($row_exists)
-			$query .= " WHERE `$table_key` = '$table_key_value'";
-
-		return $query;*/
+		if ($row_exists) {
+			$query .= " WHERE `$table_key` = ?";
+            array_push($query_values, $table_key_value);
+        }
+/*
+        print("auto_query():<BR />");
+        print_r($query);
+        print("<Br />");
+        print_r($query_values);
+        print("<Br />");
+*/
+        $this->query($query, ...$query_values);
 	}
 }
 

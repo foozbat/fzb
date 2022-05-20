@@ -18,7 +18,6 @@ use Iterator;
 use Exception;
 
 // exceptions
-class InputValidationException extends Exception { public $required_failures = array(); public $validation_failures = array(); }
 class InputDefinitionException extends Exception { }
 
 //
@@ -37,12 +36,12 @@ class Inputs implements ArrayAccess, Iterator
             parse_str($_SERVER['QUERY_STRING'], $_GET);
         }
 
-        $this->get_path_var_values();
+        $this->read_path_var_values();
 
         $this->add_inputs($inputs);
     }
 
-    private function get_path_var_values()
+    private function read_path_var_values(): void
     {
         $path_string = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[1];
         $path_string = explode('?', $path_string)[0];
@@ -51,7 +50,7 @@ class Inputs implements ArrayAccess, Iterator
         $this->path_vars = explode("/", $path_string);
     }
     
-    private function add_inputs($inputs)
+    private function add_inputs($inputs): void
     {
         if (isset($inputs)) {
             if (is_array($inputs)) {
@@ -63,12 +62,7 @@ class Inputs implements ArrayAccess, Iterator
         }  
     }
 
-    public function get_all_inputs()
-    {
-        return $this->inputs;
-    }
-
-    public function validate()
+    public function get_validation_failures(): array
     {
         $validation_failures = array();
         $required_failures = array();
@@ -83,13 +77,6 @@ class Inputs implements ArrayAccess, Iterator
             }
         }
 
-  /*      if (sizeof($required_failures) > 0 || sizeof($validation_failures) > 0) {
-            $exception = new InputValidationException();
-            $exception->required_failures = $required_failures;
-            $exception->validation_failures = $validation_failures;
-            throw $exception;
-        }*/
-
         return array(
             'input_required_error' => sizeof($required_failures) > 0,
             'input_required_failures' => $required_failures,
@@ -99,20 +86,10 @@ class Inputs implements ArrayAccess, Iterator
         
     }
 
-    private function read_input($input_name, $properties)
+    private function read_input($input_name, $properties): void
     {
         if (is_null($input_name)) {
             throw new InputDefinitionException('Invalid input parameters.');
-        } else if ($input_name == '_path_scheme') {
-            //print getenv("SCRIPT_NAME");
-            
-            //print "URI: ".$_SERVER['REQUEST_URI']."<br />";
-            //print "ROUTE: ".$_ENV['URL_ROUTE']."<br />";
-
-
-            //print_r($this->path_vars);
-            //print $path;
-
         } else if (!is_array($properties) && $properties != null) {
             throw new InputDefinitionException('Cannot assign a value to an input directly, use an array to define input parameters.');
         } else {
@@ -142,7 +119,6 @@ class Inputs implements ArrayAccess, Iterator
 
             // validate the input according to filter
             if ($input_validate != false) {
-                //print "VALIDATING $input_name<br />";
                 $input_value = filter_var(
                     $input_value, 
                     $input_validate,
@@ -150,14 +126,10 @@ class Inputs implements ArrayAccess, Iterator
                 );
 
                 if ($input_validate == FILTER_VALIDATE_BOOLEAN) {
-                    //print "itsabool";
                     $input_value = $input_value ?? false;
-                    //print var_dump($input_value);
                 }
 
                 $input_validated = ($input_value !== null);
-
-                //print var_dump($input_validated);
             }
 
             // sanitize the input according to filter
@@ -172,14 +144,12 @@ class Inputs implements ArrayAccess, Iterator
             // probably add more advanced filtering and santization here
             //
 
+            // record final validated input
             $this->inputs[$input_name] = array(
                 'value' => $input_value,
                 'submitted_value' => $submitted_value,
                 'required' => $input_required,
                 'validated' => $input_validated,
-//                'options' => $filter_options,
-//                'validate' => $input_validate,
-//                'santize' => $input_sanitize
             );            
         }
     }
@@ -202,7 +172,6 @@ class Inputs implements ArrayAccess, Iterator
 
     public function offsetGet($offset): mixed
     {
-        //$this->validate();
         return isset($this->inputs[$offset]['value'] ) ? $this->inputs[$offset]['value'] : null;
     }    
 
