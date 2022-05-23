@@ -64,7 +64,7 @@ class Inputs implements ArrayAccess, Iterator
 
     public function get_validation_failures(): array
     {
-        $validation_failures = array();
+/*        $validation_failures = array();
         $required_failures = array();
 
         foreach ($this->inputs as $name => $properties) {
@@ -83,7 +83,7 @@ class Inputs implements ArrayAccess, Iterator
             'input_validation_error' => sizeof($validation_failures) > 0,
             'input_validation_failures' => $validation_failures
         );
-        
+*/        
     }
 
     private function read_input($input_name, $properties): void
@@ -132,6 +132,9 @@ class Inputs implements ArrayAccess, Iterator
                 $input_validated = ($input_value !== null);
             }
 
+            // check if required value was submitted or not
+            $input_submitted = ($submitted_value == null || $submitted_value == '') ;
+
             // sanitize the input according to filter
             if (isset($properties['sanitize'])) {
                 $input_value = filter_var(
@@ -145,16 +148,30 @@ class Inputs implements ArrayAccess, Iterator
             //
 
             // record final validated input
-            $this->inputs[$input_name] = array(
+/*            $this->inputs[$input_name] = array(
                 'value' => $input_value,
                 'submitted_value' => $submitted_value,
                 'required' => $input_required,
                 'validated' => $input_validated,
-            );            
+            );  */
+            $this->inputs[$input_name] = new InputObject(
+                name: $input_name,
+                value: $input_value,
+                submitted_value: $submitted_value,
+                required: $input_required,
+                submitted: $input_submitted,
+                validated: $input_validated,
+            );
         }
     }
 
+    public function request_method()
+    {
+        return $_SERVER['REQUEST_METHOD'];
+    }
+
     // ArrayAccess Methods
+
     public function offsetSet($input_name, $properties = null): void
     {
         $this->read_input($input_name, $properties);
@@ -177,7 +194,7 @@ class Inputs implements ArrayAccess, Iterator
 
     // Iterator methods
     public function current(): mixed {
-        return current($this->inputs)['value'];
+        return current($this->inputs);
     }
     public function key(): mixed {
         return key($this->inputs);
@@ -190,5 +207,53 @@ class Inputs implements ArrayAccess, Iterator
     }
     public function valid (): bool {
         return key($this->inputs) !== null;
+    }
+}
+
+class InputObject 
+{
+    private $name;
+    private $value;
+    private $submitted_value;
+    private $required;
+    private $submitted;
+    private $validated;
+
+    public function __construct(...$properties)
+    {
+        $this->name = $properties['name'];
+        $this->value = $properties['value'];
+        $this->submitted_value = $properties['submitted_value'];
+        $this->required = $properties['required'];
+        $this->submitted = $properties['submitted'];
+        $this->validated = $properties['validated'];
+    }
+
+    public function __toString()
+    {
+        if ($this->value == null)
+            return "";
+        else
+            return $this->value;
+    }
+
+    public function validated()
+    {
+        return $this->validated;
+    }
+
+    public function submitted()
+    {
+        return $this->submitted;
+    }
+
+    public function required()
+    {
+        return $this->required;
+    }
+
+    public function submitted_value()
+    {
+        return $this->submitted_value;
     }
 }

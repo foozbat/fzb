@@ -180,24 +180,24 @@ class Database
         return $this->pdo->commit();
     }
 
-    public function auto_query($table, $data_array, $table_key = null, $table_key_value = null)
+    public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null)
 	{
         $table_found = false;
         $tables = $this->selectrow_array("SHOW TABLES");
         if (!in_array($table, $tables)) {
-            throw new Exception("auto_query: table '$table' does not exist.");
+            throw new Exception("auto_insert_update: table '$table' does not exist.");
         }
 
         $query = "INSERT INTO `$table` SET ";
         $row_exists = 0;
 
-        if ($table_key != null) {
+        if ($table_key != null && $table_key_value != null) {
             $table_columns = $this->selectcol_array("EXPLAIN `$table`");
             if (!in_array($table_key, $table_columns)) {
-                throw new Exception("auto_query: table key '$table_key' does not exist.");
+                throw new Exception("auto_insert_update: table key '$table_key' does not exist.");
             }
 
-            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = '$table_key_value'");
+            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = ?", $table_key_value);
 
             if ($row_exists) {
                 $query = "UPDATE `$table` SET ";
@@ -209,12 +209,6 @@ class Database
 
 		foreach ($data_array as $field => $value)
 		{
-            /*if ($value != 'NOW()')
-                $value = '"'.mysql_escape_string($value).'"';
-    
-            if (in_array($field, $table_columns))
-                array_push($query_columns, "$field = $value");*/
-            
             array_push($query_fields, "$field = ?");
             array_push($query_values, $value);
 		}
@@ -225,13 +219,7 @@ class Database
 			$query .= " WHERE `$table_key` = ?";
             array_push($query_values, $table_key_value);
         }
-/*
-        print("auto_query():<BR />");
-        print_r($query);
-        print("<Br />");
-        print_r($query_values);
-        print("<Br />");
-*/
+
         $this->query($query, ...$query_values);
 	}
 }
