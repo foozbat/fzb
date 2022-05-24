@@ -9,6 +9,7 @@
 namespace Fzb;
 
 use Exception;
+use Fzb;
 
 class RendererException extends Exception { }
 
@@ -63,7 +64,16 @@ class Renderer
 		if (in_array($name, $this->reserved_var_names)) {
 			throw new RendererException("$name is a reserved Renderer variable name.");
 		}
-		$this->render_vars[$name] = $value;
+
+		if (is_array($value) || $value instanceof Fzb\Input) {
+			foreach ($value as $key => $var) {
+				$this->render_vars[$name][$key] = htmlspecialchars((string) $var);
+				//$this->render_vars[$name][$key] = (string) $var;
+			}
+		} else {
+			$this->render_vars[$name] = htmlspecialchars((string) $value);
+			//$this->render_vars[$name] = (string) $value;
+		}
 	}
 
 	public function assign_all($arr)
@@ -72,6 +82,23 @@ class Renderer
 
 		foreach ($arr as $name => $value) {
 			$this->assign($name, $value);
+		}
+	}
+
+	// assigns Fzb\InputObjects contained with in an Fzb\Input object to the renderer
+	//  extracting errors to separate variables for easy checking within a template
+	public function assign_inputs($inputs)
+	{
+		if ($inputs instanceof Fzb\Input) {
+			foreach ($inputs as $name => $input) {
+				$this->assign($name, (string) $input);
+				$this->assign($name."_submitted_value", $input->submitted_value());
+				$this->assign($name."_is_required", $input->is_required());
+				$this->assign($name."_is_missing", $input->is_missing());
+				$this->assign($name."_is_invalid", $input->is_invalid());
+			}
+		} else {
+			throw new RendererException("assign_inputs did not receive a valid Fzb\Input object.");
 		}
 	}
 

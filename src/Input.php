@@ -21,7 +21,7 @@ use Exception;
 class InputDefinitionException extends Exception { }
 
 //
-class Inputs implements ArrayAccess, Iterator
+class Input implements ArrayAccess, Iterator
 {
     private $inputs = array();
     private $path_vars = array();
@@ -86,6 +86,26 @@ class Inputs implements ArrayAccess, Iterator
 */        
     }
 
+    public function required_inputs_missing(): bool
+    {
+        foreach ($this->inputs as $input_name) {
+            if ($input_name->is_missing()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function inputs_invalid(): bool
+    {
+        foreach ($this->inputs as $input_name) {
+            if ($input_name->is_invalid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private function read_input($input_name, $properties): void
     {
         if (is_null($input_name)) {
@@ -110,12 +130,15 @@ class Inputs implements ArrayAccess, Iterator
             } else if ($input_type == 'POST' && isset($_POST[$input_name])) {
                 $input_value = $_POST[$input_name];
             } else if ($input_type == 'PATH' && isset($this->path_vars[0])) {
-                $input_value = array_shift($this->path_vars);
+                $input_value = urldecode( array_shift($this->path_vars) );
             }
 
             $submitted_value = $input_value;
 
             $filter_flags |= FILTER_NULL_ON_FAILURE;
+
+            // check if required value was submitted or not
+            $input_submitted = !($submitted_value == null || $submitted_value == '') ;
 
             // validate the input according to filter
             if ($input_validate != false) {
@@ -129,14 +152,12 @@ class Inputs implements ArrayAccess, Iterator
                     $input_value = $input_value ?? false;
                 }
 
-                $input_validated = ($input_value !== null);
+                $input_validated = ($input_submitted ? $input_value !== null: null);
             }
 
-            // check if required value was submitted or not
-            $input_submitted = ($submitted_value == null || $submitted_value == '') ;
 
             // sanitize the input according to filter
-            if (isset($properties['sanitize'])) {
+            if ($input_sanitize != false) {
                 $input_value = filter_var(
                     $input_value, 
                     $input_sanitize,
@@ -157,17 +178,40 @@ class Inputs implements ArrayAccess, Iterator
             $this->inputs[$input_name] = new InputObject(
                 name: $input_name,
                 value: $input_value,
+                type: $input_type,
                 submitted_value: $submitted_value,
                 required: $input_required,
                 submitted: $input_submitted,
+                validate: $input_validate != false,
                 validated: $input_validated,
             );
         }
     }
 
+    // Request method checking
     public function request_method()
     {
         return $_SERVER['REQUEST_METHOD'];
+    }
+
+    public function is_post()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'POST';
+    }
+
+    public function is_get()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'GET';
+    }
+
+    public function is_put()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'PUT';
+    }
+
+    public function is_delete()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'DELETE';
     }
 
     // ArrayAccess Methods
@@ -189,7 +233,7 @@ class Inputs implements ArrayAccess, Iterator
 
     public function offsetGet($offset): mixed
     {
-        return isset($this->inputs[$offset]['value'] ) ? $this->inputs[$offset]['value'] : null;
+        return isset($this->inputs[$offset]) ? $this->inputs[$offset] : null;
     }    
 
     // Iterator methods
@@ -214,18 +258,22 @@ class InputObject
 {
     private $name;
     private $value;
+    private $type;
     private $submitted_value;
     private $required;
     private $submitted;
+    private $validate;
     private $validated;
 
     public function __construct(...$properties)
     {
         $this->name = $properties['name'];
         $this->value = $properties['value'];
+        $this->type = $properties['type'];
         $this->submitted_value = $properties['submitted_value'];
         $this->required = $properties['required'];
         $this->submitted = $properties['submitted'];
+        $this->validate = $properties['validate'];
         $this->validated = $properties['validated'];
     }
 
@@ -237,19 +285,19 @@ class InputObject
             return $this->value;
     }
 
-    public function validated()
+    public function is_invalid(): bool
     {
-        return $this->validated;
+        return $this->validate == true && $this->validated === false;
     }
 
-    public function submitted()
+    public function is_missing(): bool
     {
-        return $this->submitted;
+        return $this->required == true && $this->submitted === false;
     }
 
-    public function required()
+    public function is_required(): bool
     {
-        return $this->required;
+        return $this->required == true;
     }
 
     public function submitted_value()
