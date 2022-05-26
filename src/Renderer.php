@@ -68,29 +68,36 @@ class Renderer
 		if (is_array($value) || $value instanceof Fzb\Input) {
 			foreach ($value as $key => $var) {
 				$this->render_vars[$name][$key] = htmlspecialchars((string) $var);
-				//$this->render_vars[$name][$key] = (string) $var;
 			}
 		} else {
 			$this->render_vars[$name] = htmlspecialchars((string) $value);
-			//$this->render_vars[$name] = (string) $value;
 		}
 	}
 
+	// flattens an associative array and assigns to render vars with key name as var name
 	public function assign_all($arr)
 	{
-		//echo "<pre>".var_dump($arr)."</pre>";
-
-		foreach ($arr as $name => $value) {
-			$this->assign($name, $value);
+		if ($arr instanceof Fzb\Input) {
+			$this->assign_inputs($arr);
+		} else if (is_array($arr)) {
+			foreach ($arr as $name => $value) {
+				if (is_int($name)) {
+					throw new RendererException("assign_all: must pass an associative array or input object");
+				}
+				$this->assign($name, $value);
+			}
 		}
 	}
 
 	// assigns Fzb\InputObjects contained with in an Fzb\Input object to the renderer
 	//  extracting errors to separate variables for easy checking within a template
-	public function assign_inputs($inputs)
+	public function assign_inputs($input)
 	{
-		if ($inputs instanceof Fzb\Input) {
-			foreach ($inputs as $name => $input) {
+		if ($input instanceof Fzb\Input) {
+			$this->assign('input_required_error', $input->required_inputs_missing());
+			$this->assign('input_validation_error', $input->inputs_invalid());
+
+			foreach ($input as $name => $input) {
 				$this->assign($name, (string) $input);
 				$this->assign($name."_submitted_value", $input->submitted_value());
 				$this->assign($name."_is_required", $input->is_required());
@@ -102,20 +109,6 @@ class Renderer
 		}
 	}
 
-	// possibly deprecate
-	public function define_loop($name)
-	{
-		$this->render_vars[$name] = array();
-	}
-
-	// possibly deprecate
-	public function add_loop_row($name, $value)
-	{
-		if (!isset($this->render_vars[$name])) {
-			$this->render_vars[$name] = array();
-		}
-		array_push($this->render_vars[$name], $value);
-	}
 
 	// renders and displays a specified page
 	public function display($page)
@@ -160,7 +153,7 @@ class Renderer
 
 		// restore the state after sandbox
 		$this->restore_global_state();
-		//error_reporting(E_ALL);
+		error_reporting(E_ALL);
 
 		//$bm->end_bench();
 	}
@@ -203,11 +196,6 @@ class Renderer
 		unset($_SESSION);
 		unset($_REQUEST);
 		unset($_ENV);
-/*
-		print "SANDBOXED:<br /><pre>";
-		var_dump($this->global_state);
-		print "</pre>";
-*/
 	}
 
 	private function restore_global_state()
@@ -236,11 +224,6 @@ class Renderer
 		}
 
 		$this->global_state = null;
-/*
-		print "RESTORED:<br /><pre>";
-		var_dump($GLOBALS);
-		print "</pre>";
-*/
 	}
 
 	// SELECT, CHECK, RADIO AUTOCOMPLETION

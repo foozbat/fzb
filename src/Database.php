@@ -24,7 +24,7 @@ class Database
     private $instance;
     private $pdo;
     private $pdo_options;
-    private $pdo_sth;
+    private $pdo_sth = null;
 
 	// CONSTRUCTOR //
     public function __construct(...$options)
@@ -36,10 +36,7 @@ class Database
                 throw new DatabaseException("Could not find .ini with database credentials");
             }
             
-
             $options = $ini_settings['database'];
-
-            //print_r($options);
         }
 
         if (!isset($options['driver']) || !isset($options['host']) || !isset($options['username']) || !isset($options['password'])) { 
@@ -104,6 +101,9 @@ class Database
 
     public function execute(...$params): void
     {
+        if ($this->pdo_sth == null) {
+            throw new DatabaseException("Cannot execute without preparing a query.");
+        }
         $this->pdo_sth->execute($params);
     }
 
@@ -114,27 +114,32 @@ class Database
     }
 
     // operates on a prepared statement
-    public function fetchrow_array()
+    public function fetchrow_array(): array
     {
+        if ($this->pdo_sth == null) {
+            throw new DatabaseException("Cannot fetch without executing a prepared query.");
+        }
         return $this->pdo_sth->fetch(PDO::FETCH_NUM);
     }
 
-    public function fetchrow_assoc()
+    public function fetchrow_assoc(): array
     {
+        if ($this->pdo_sth == null) {
+            throw new DatabaseException("Cannot fetch execute without executing a prepared query.");
+        }
+
         return $this->pdo_sth->fetch(PDO::FETCH_ASSOC);
     }
 
 	// executes a query and returns no rows
     public function query($query, ...$params): int
 	{
-/*        print("query()<br />");
-        print($query);
-        print_r($params);
-*/
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
+        $row_count = $sth->rowCount();
+        $sth = null;
 
-        return $sth->rowCount();
+        return $row_count;
     }
 
  	// executes a query and returns the first row of the result as a normal array
@@ -180,7 +185,7 @@ class Database
         return $this->pdo->commit();
     }
 
-    public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null)
+    public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null): int
 	{
         $table_found = false;
         $tables = $this->selectrow_array("SHOW TABLES");
@@ -220,7 +225,7 @@ class Database
             array_push($query_values, $table_key_value);
         }
 
-        $this->query($query, ...$query_values);
+        return $this->query($query, ...$query_values);
 	}
 }
 
