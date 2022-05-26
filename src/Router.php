@@ -16,7 +16,7 @@ class RouterException extends Exception { }
 class Router
 {
     private $url_route;
-    private $modules = array();
+    private $routes = array();
 
     function __construct($modules_dir = null)
     {
@@ -26,52 +26,51 @@ class Router
         if ($modules_dir == null) {
             throw new RouterException("Modules directly not defined. Either define in app_settings or pass to Router on instantiation.");
         }
+
+        if (!is_null(fzb_get_router())) {
+            throw new RouterException("A router has already been instantiated.  Cannot create more than one instance");
+        }
+
+        $this->find_routes($modules_dir);
         $this->determine_route();
-        $this->find_modules($modules_dir);
+
+        $GLOBALS['FZB_ROUTER_OBJECT'] = $this;
     }
 
     // routes to the proper module based on uri path
     public function route()
     {
         // match the determined module to a found module from file system   
-        foreach($this->modules as $module => $path) {
-            if($module == $this->url_route) {
+        foreach($this->routes as $route => $path) {
+            if($route == $this->url_route) {
                 require_once($path);
                 return;
             }
         }
 
-        require_once($this->modules["main"]);
+        require_once($this->routes["main"]);
         return;
     }
 
     private function determine_route()
     {
-        // get the first element of the path and exclude params
-        $local_path = getenv("SCRIPT_NAME");
-        $local_path = str_replace("index.php", "", $local_path);
+        $filename = explode("/", $_SERVER['SCRIPT_NAME']);
+        $filename = end($filename);
+        $route_string = explode($filename."/", $_SERVER['PHP_SELF']);
+        $route_string = end($route_string);
 
-        if(strpos($_SERVER['REQUEST_URI'] , $local_path) === 0)
-            $route_string = substr($_SERVER['REQUEST_URI'] , strlen($local_path)).'';
+        $route_components = explode("/", $route_string);
 
-        $route_string = explode("/", $route_string)[0];
-        $route_string = explode("?", $route_string)[0];     
-        
-        $this->url_route = $route_string;
-
-        $_ENV['URL_ROUTE'] = $route_string;
-    }
-
-    // recursively flatten all found modules into an array of [module/name] => 'path'
-    private function find_modules($parent_dir, $prefix='')
-    {
-        foreach (scandir($parent_dir) as $file) {
-            if ($file != '.' && $file != '..' && preg_match('/\.php$/', $file)) {
-                list($module, $ext) = explode('.', $file);
-                $this->modules[($prefix ? $prefix."/" : '').$module] = $parent_dir."/".$file;
+        while (count($route_components) > 0) {
+            $search = join("/", $route_components);
+            if (array_key_exists($search, $this->routes)) {
+                $this->url_route = $search;
+                break;
             }
+            array_pop($route_components);
         }
-        return;
+
+        //$_ENV['URL_ROUTE'] = $this->url_route;
     }
 
     public function get_route()
@@ -79,20 +78,25 @@ class Router
         return $this->url_route;
     }
 
-    /* recursive version
-    private function find_modules($parent_dir, $prefix='')
+    public function get_app_path()
+    {
+        return explode($this->url_route, $_SERVER['REQUEST_URI'], 2)[0];
+    }
+
+    // recursively searches for controllers in the specified directory and automagically generates route strings
+    private function find_routes($parent_dir, $prefix='')
     {
         foreach (scandir($parent_dir) as $file) {
-            if ($file != '.' && $file != '..' && ) {
+            if ($file != '.' && $file != '..') {
                 if (is_dir($parent_dir.'/'.$file)) {
-                    $this->find_modules($parent_dir.'/'.$file, ($prefix ? $prefix."/" : '').$file);
+                    $this->find_routes($parent_dir.'/'.$file, ($prefix ? $prefix."/" : '').$file);
                 } else if (preg_match('/\.php$/', $file)) {
                     list($module, $ext) = explode('.', $file);
-                    $this->modules[($prefix ? $prefix."/" : '').$module] = $parent_dir."/".$file;
+                    $this->routes[($prefix ? $prefix."/" : '').$module] = $parent_dir."/".$file;
                 }
             }
         }
-    } */
+    }
 
 
 };

@@ -29,6 +29,14 @@ class Database
 	// CONSTRUCTOR //
     public function __construct(...$options)
     {
+        if (sizeof($options) == 0) {
+            $config = fzb_get_config();
+            if (is_null($config)) {
+                throw new DatabaseException("Database connection info not specified. Either set in constructor or configure in a .ini file.");
+            }
+            $options = $config->get_settings('database');
+        }
+
         if (isset($options['ini_file'])) {
             if (file_exists($options['ini_file'])) {
                 $ini_settings = parse_ini_file($options['ini_file'], true);
@@ -39,15 +47,19 @@ class Database
             $options = $ini_settings['database'];
         }
 
-        if (!isset($options['driver']) || !isset($options['host']) || !isset($options['username']) || !isset($options['password'])) { 
-            throw new DatabaseException("Database host, username, or password not specified");
+        if (isset($options['sqlite'])) {
+            $options['username'] = null;
+            $options['password'] = null;
+        } else if (!isset($options['driver']) || !isset($options['host']) || !isset($options['username']) || !isset($options['password'])) {
+            throw new DatabaseException("Database connection info not specified.");
         }
-
-        $this->pdo_options = $options;
         
+        $this->pdo_options = $options;
         $this->connect();
 
-        $GLOBALS['FZB_DATABASE_OBJECT'] = $this;
+        if (!isset($GLOBALS['FZB_DATABASE_OBJECT'])) {
+            $GLOBALS['FZB_DATABASE_OBJECT'] = $this;
+        }
     }
 
     // DESTRUCTOR //
@@ -65,7 +77,12 @@ class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, //make the default fetch be an associative array
         ];
         
-        $dsn = $this->pdo_options['driver'] . ":host=" . $this->pdo_options['host'];
+        $dsn = "";
+        if (isset($this->pdo_options['sqlite'])) {
+            $dsn = "sqlite:".$this->pdo_options['sqlite'];
+        } else {
+            $dsn = $this->pdo_options['driver'] . ":host=" . $this->pdo_options['host'];
+        }
         
         if (isset($this->pdo_options['database'])) {
             $dsn .= ';dbname=' . $this->pdo_options['database'];
@@ -76,11 +93,11 @@ class Database
         if (isset($pdo_options['charset'])) {
             $dsn .= ";charset=" . $this->pdo_options['charset'];
         }
-        
+
         try {
             $this->pdo = new PDO($dsn, $this->pdo_options['username'], $this->pdo_options['password'], $options);
         } catch (\PDOException $e) {
-           throw new DatabaseConnectException( $e->getMessage() );
+           throw new DatabaseException( $e->getMessage() );
         }
     }
 
@@ -114,7 +131,7 @@ class Database
     }
 
     // operates on a prepared statement
-    public function fetchrow_array(): array
+    public function fetchrow_array(): mixed
     {
         if ($this->pdo_sth == null) {
             throw new DatabaseException("Cannot fetch without executing a prepared query.");
@@ -122,7 +139,7 @@ class Database
         return $this->pdo_sth->fetch(PDO::FETCH_NUM);
     }
 
-    public function fetchrow_assoc(): array
+    public function fetchrow_assoc(): mixed
     {
         if ($this->pdo_sth == null) {
             throw new DatabaseException("Cannot fetch execute without executing a prepared query.");
@@ -143,7 +160,7 @@ class Database
     }
 
  	// executes a query and returns the first row of the result as a normal array
-    public function selectrow_array($query, ...$params): array
+    public function selectrow_array($query, ...$params): mixed
 	{
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -152,7 +169,7 @@ class Database
     }
 
     // executes a query and returns the first row of the result as an associative array
-	public function selectrow_assoc($query, ...$params): array
+	public function selectrow_assoc($query, ...$params): mixed
 	{
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -161,7 +178,7 @@ class Database
     }
 
     // execues a query and returns the first column of each row
-	public function selectcol_array($query, ...$params): array
+	public function selectcol_array($query, ...$params): mixed
 	{
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);

@@ -20,7 +20,7 @@ class Renderer
 	private $template_ext;
 
 	private $render_vars = array();
-	private $reserved_var_names = ['_vars', '_uri_path', 'html'];
+	private $reserved_var_names = ['_vars', '_base_path', 'html'];
 
 	private $global_state = array();
 
@@ -49,12 +49,18 @@ class Renderer
 
 		// register default render_vars;
 		$_base_path = "";
-		if (!$_ENV['URL_ROUTE']) {
+		if (!isset($_ENV['URL_ROUTE'])) {
 			$_base_path = $_SERVER['REQUEST_URI'];
 		} else {
 			$_base_path = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0];
 		}
-		$this->render_vars['_uri_path'] = ltrim($_base_path, "/");
+
+		$base_path = "";
+		$router = fzb_get_router();
+		if(!is_null($router)) {
+			$base_path = $router->get_app_path();
+		}
+		$this->render_vars['_base_path'] = ltrim($_base_path, "/");
 	}
 
 	// METHODS //

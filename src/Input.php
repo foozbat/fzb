@@ -43,7 +43,15 @@ class Input implements ArrayAccess, Iterator
 
     private function read_path_var_values(): void
     {
-        $path_string = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[1];
+        // determine the route or script name to separate from path vars
+        $url_route = $_SERVER['SCRIPT_FILENAME'];
+        $router = fzb_get_router();
+        if (!is_null($router)) {
+            $url_route = $router->get_route();
+        }
+
+        // separate out the path vars
+        $path_string = explode($url_route, $_SERVER['REQUEST_URI'], 2)[1];
         $path_string = explode('?', $path_string)[0];
         $path_string = ltrim($path_string, "/");
 
