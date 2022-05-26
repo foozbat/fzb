@@ -41,6 +41,8 @@ class Renderer
 			$this->template_ext = $template_ext;
 		} else if (defined('TEMPLATE_EXT')) {
 			$this->template_ext = TEMPLATE_EXT;
+		} else {
+			$this->template_ext = ".tpl.php";
 		}
 
 		if ($this->template_dir == "" || $this->template_ext == "") {
