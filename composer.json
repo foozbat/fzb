@@ -10,6 +10,7 @@
         }
     ],
     "autoload": {
-        "psr-4": {"Fzb\\": "src/"}
+        "psr-4": {"Fzb\\": "src/"},
+        "files": ["fzb_helpers.php"]
     }
 }
