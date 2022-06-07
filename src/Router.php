@@ -15,7 +15,7 @@ class RouterException extends Exception { }
 
 class Router
 {
-    private $url_route;
+    private $url_route = "/";
     private $routes = array();
 
     function __construct($modules_dir = null)
@@ -49,17 +49,20 @@ class Router
         }
 
         require_once($this->routes["main"]);
-        return;
     }
 
     private function determine_route()
     {
+        /*
         $filename = explode("/", $_SERVER['SCRIPT_NAME']);
         $filename = end($filename);
         $route_string = explode($filename."/", $_SERVER['PHP_SELF']);
         $route_string = end($route_string);
 
         $route_components = explode("/", $route_string);
+*/
+
+        $route_components = explode("/", ltrim($_SERVER['PATH_INFO'], "/"));
 
         while (count($route_components) > 0) {
             $search = join("/", $route_components);
@@ -69,8 +72,6 @@ class Router
             }
             array_pop($route_components);
         }
-
-        //$_ENV['URL_ROUTE'] = $this->url_route;
     }
 
     public function get_route()

@@ -35,6 +35,8 @@ class Renderer
 			$this->template_dir = $template_dir;
 		} else if (defined('TEMPLATES_DIR')) {
 			$this->template_dir = TEMPLATES_DIR;
+		} else {
+			$this->template_dir = "/templates";
 		}
 
 		if ($template_ext != "") {
