@@ -58,7 +58,12 @@ class Input implements ArrayAccess, Iterator
         $this->path_vars = explode("/", $path_string);
     */
 
-        $path_string = explode($url_route, $_SERVER['PATH_INFO'], 2)[1];
+        if ($url_route) {
+            $path_string = explode($url_route, $_SERVER['PATH_INFO'], 2)[1];
+        } else {
+            $path_string = $_SERVER['PATH_INFO'];
+        }
+        
         $this->path_vars = explode("/", ltrim($path_string, '/'));
     }
     
