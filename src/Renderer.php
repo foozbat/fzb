@@ -60,9 +60,9 @@ class Renderer
 		}
 
 		$base_path = "";
-		$router = fzb_get_router();
+		$router = get_router();
 		if(!is_null($router)) {
-			$base_path = $router->get_app_path();
+			$base_path = $router->get_app_base_path();
 		}
 		$this->render_vars['_base_path'] = ltrim($_base_path, "/");
 	}

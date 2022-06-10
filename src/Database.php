@@ -57,15 +57,16 @@ class Database
         $this->pdo_options = $options;
         $this->connect();
 
-        if (!isset($GLOBALS['FZB_DATABASE_OBJECT'])) {
-            $GLOBALS['FZB_DATABASE_OBJECT'] = $this;
-        }
+        set_database($this);
     }
 
     // DESTRUCTOR //
     public function __destruct()
     {
         $this->disconnect();
+        if ($GLOBALS['FZB_DATABASE_OBJECT'] == $this) {
+            $GLOBALS['FZB_DATABASE_OBJECT'] = null;
+        }
     }
 
     // METHODS //

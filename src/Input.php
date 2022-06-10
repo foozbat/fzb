@@ -44,7 +44,7 @@ class Input implements ArrayAccess, Iterator
     private function read_path_var_values(): void
     {
         // determine the route or script name to separate from path vars
-        $router = fzb_get_router();
+        $router = get_router();
         $path_string = "";
         if (isset($_SERVER['PATH_INFO'])) {
             if (!is_null($router)) {

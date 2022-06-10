@@ -29,7 +29,12 @@ class Config
             throw new ConfigException("Configuration file not specified.");
         }
 
-        $GLOBALS['FZB_SETTINGS_OBJECT'] = $this;
+        register_config($this);
+    }
+
+    public function __destruct()
+    {
+        unregister_config($this);
     }
 
     public function get_settings($section)

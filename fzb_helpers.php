@@ -10,22 +10,68 @@ function myhelper() : void
 
 function fzb_self() : string
 {
-    
+
 }
 
-// DEPENDENCY INJECTION
+// DEPENDENCY INJECTION //
 
-function fzb_get_config(): ?Config
+function get_config(): ?Config
 {
     return $GLOBALS['FZB_SETTINGS_OBJECT'] ?? null;
 }
 
-function fzb_get_database(): ?Database
+function get_database(): ?Database
 {
     return $GLOBALS['FZB_DATABASE_OBJECT'] ?? null;
 }
 
-function fzb_get_router(): ?Router
+function get_router(): ?Router
 {
     return $GLOBALS['FZB_ROUTER_OBJECT'] ?? null;
+}
+
+////
+
+function register_config(Config $config): void
+{
+    if (!get_config()) {
+        $GLOBALS['FZB_CONFIG_OBJECT'] = $config;
+    }
+}
+
+function register_database(Database $database): void
+{
+    if (!get_database()) {
+        $GLOBALS['FZB_DATABASE_OBJECT'] = $database;
+    }
+}
+
+function register_router(Router $router): void
+{
+    if (!get_router()) {
+        $GLOBALS['FZB_ROUTER_OBJECT'] = $router;
+    }
+}
+
+////
+
+function unregister_config(Config $config): void
+{
+    if (get_config() == $config) {
+        $GLOBALS['FZB_CONFIG_OBJECT'] = null;
+    }
+}
+
+function unregister_database(Database $database): void
+{
+    if (get_database() == $database) {
+        $GLOBALS['FZB_DATABASE_OBJECT'] = null;
+    }
+}
+
+function unregister_router(Router $router): void
+{
+    if (get_router() == $router) {
+        $GLOBALS['FZB_ROUTER_OBJECT'] = null;
+    }
 }

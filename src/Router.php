@@ -27,14 +27,19 @@ class Router
             throw new RouterException("Modules directly not defined. Either define in app_settings or pass to Router on instantiation.");
         }
 
-        if (!is_null(fzb_get_router())) {
+        if (!is_null(get_router())) {
             throw new RouterException("A router has already been instantiated.  Cannot create more than one instance");
         }
 
         $this->find_routes($modules_dir);
         $this->determine_route();
 
-        $GLOBALS['FZB_ROUTER_OBJECT'] = $this;
+        register_router($this);
+    }
+
+    function __destruct()
+    {
+        unregister_router($this);
     }
 
     // routes to the proper module based on uri path
@@ -53,15 +58,6 @@ class Router
 
     private function determine_route()
     {
-        /*
-        $filename = explode("/", $_SERVER['SCRIPT_NAME']);
-        $filename = end($filename);
-        $route_string = explode($filename."/", $_SERVER['PHP_SELF']);
-        $route_string = end($route_string);
-
-        $route_components = explode("/", $route_string);
-*/
-
         $route_components = explode("/", ltrim($_SERVER['PATH_INFO'], "/"));
 
         while (count($route_components) > 0) {
@@ -79,7 +75,12 @@ class Router
         return $this->url_route;
     }
 
-    public function get_app_path()
+    public function get_all_routes()
+    {
+        return $this->routes;
+    }
+
+    public function get_app_base_path()
     {
         return explode($this->url_route, $_SERVER['REQUEST_URI'], 2)[0];
     }
