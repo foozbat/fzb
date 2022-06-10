@@ -30,7 +30,7 @@ class Database
     public function __construct(...$options)
     {
         if (sizeof($options) == 0) {
-            $config = fzb_get_config();
+            $config = get_config();
             if (is_null($config)) {
                 throw new DatabaseException("Database connection info not specified. Either set in constructor or configure in a .ini file.");
             }
