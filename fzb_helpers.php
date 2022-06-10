@@ -17,7 +17,7 @@ function fzb_self() : string
 
 function get_config(): ?Config
 {
-    return $GLOBALS['FZB_SETTINGS_OBJECT'] ?? null;
+    return $GLOBALS['FZB_CONFIG_OBJECT'] ?? null;
 }
 
 function get_database(): ?Database
