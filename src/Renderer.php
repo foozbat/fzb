@@ -88,7 +88,7 @@ class Renderer
 	public function assign_all($arr)
 	{
 		if ($arr instanceof Fzb\Input) {
-			$this->assign_inputs($arr);
+			$this->assign_input($arr);
 		} else if (is_array($arr)) {
 			foreach ($arr as $name => $value) {
 				if (is_int($name)) {
@@ -101,21 +101,21 @@ class Renderer
 
 	// assigns Fzb\InputObjects contained with in an Fzb\Input object to the renderer
 	//  extracting errors to separate variables for easy checking within a template
-	public function assign_inputs($input)
+	public function assign_input($input)
 	{
 		if ($input instanceof Fzb\Input) {
-			$this->assign('input_required_error', $input->required_inputs_missing());
-			$this->assign('input_validation_error', $input->inputs_invalid());
+			$this->assign('input_required_error', $input->is_missing());
+			$this->assign('input_validation_error', $input->is_invalid());
 
-			foreach ($input as $name => $input) {
-				$this->assign($name, (string) $input);
-				$this->assign($name."_submitted_value", $input->submitted_value());
-				$this->assign($name."_is_required", $input->is_required());
-				$this->assign($name."_is_missing", $input->is_missing());
-				$this->assign($name."_is_invalid", $input->is_invalid());
+			foreach ($input as $name => $input_obj) {
+				$this->assign($name, (string) $input_obj);
+				$this->assign($name."_submitted_value", $input_obj->submitted_value());
+				$this->assign($name."_is_required", $input_obj->is_required());
+				$this->assign($name."_is_missing", $input_obj->is_missing());
+				$this->assign($name."_is_invalid", $input_obj->is_invalid());
 			}
 		} else {
-			throw new RendererException("assign_inputs did not receive a valid Fzb\Input object.");
+			throw new RendererException("assign_input did not receive a valid Fzb\Input object.");
 		}
 	}
 

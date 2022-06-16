@@ -37,17 +37,16 @@ class Input implements ArrayAccess, Iterator
         }
 
         $this->read_path_var_values();
-
-        $this->add_inputs($inputs);
+        $this->read_all_inputs($inputs);
     }
 
     private function read_path_var_values(): void
     {
-        // determine the route or script name to separate from path vars
         $router = get_router();
         $path_string = "";
         if (isset($_SERVER['PATH_INFO'])) {
             if (!is_null($router)) {
+                // remove url route from path string
                 $path_string = explode($router->get_route(), $_SERVER['PATH_INFO'], 2)[1];
             } else {
                 $path_string = $_SERVER['PATH_INFO'];
@@ -57,7 +56,7 @@ class Input implements ArrayAccess, Iterator
         }
     }
     
-    private function add_inputs($inputs): void
+    private function read_all_inputs($inputs): void
     {
         if (isset($inputs)) {
             if (is_array($inputs)) {
@@ -93,7 +92,7 @@ class Input implements ArrayAccess, Iterator
 */        
     }
 
-    public function required_inputs_missing(): bool
+    public function is_missing(): bool
     {
         foreach ($this->inputs as $input_name) {
             if ($input_name->is_missing()) {
@@ -103,7 +102,7 @@ class Input implements ArrayAccess, Iterator
         return false;
     }
 
-    public function inputs_invalid(): bool
+    public function is_invalid(): bool
     {
         foreach ($this->inputs as $input_name) {
             if ($input_name->is_invalid()) {
@@ -113,13 +112,13 @@ class Input implements ArrayAccess, Iterator
         return false;
     }
 
-    private function read_input($input_name, $properties): void
+    private function read_input($input_name, $properties = []): void
     {
         if (is_null($input_name)) {
             throw new InputDefinitionException('Invalid input parameters.');
-        } else if (!is_array($properties) && $properties != null) {
+        } /*else if (!is_array($properties) && $properties != null) {
             throw new InputDefinitionException('Cannot assign a value to an input directly, use an array to define input parameters.');
-        } else {
+        } */else {
             // set default values
             $input_required = $properties['required'] ?? false;
             $input_type     = $properties['type'] ?? 'GET';
