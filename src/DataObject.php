@@ -21,7 +21,7 @@ abstract class DataObject
 
     function __construct()
     {
-        $this->db = fzb_get_database();
+        $this->db = get_database();
         if (is_null($this->db)) {
             throw new Exception("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
         }

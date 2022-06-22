@@ -59,12 +59,15 @@ class Renderer
 			$_base_path = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0];
 		}
 
-		$base_path = "";
+		/*$base_path = "";
 		$router = get_router();
 		if(!is_null($router)) {
 			$base_path = $router->get_app_base_path();
-		}
-		$this->render_vars['_base_path'] = ltrim($_base_path, "/");
+		}*/
+
+		$base_path = get_router()->get_app_base_path() ?? "";
+
+		$this->render_vars['_base_path'] = ltrim($base_path, "/");
 	}
 
 	// METHODS //
