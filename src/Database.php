@@ -206,16 +206,17 @@ class Database
         $table_found = false;
         $tables = $this->selectrow_array("SHOW TABLES");
         if (!in_array($table, $tables)) {
-            throw new Exception("auto_insert_update: table '$table' does not exist.");
+            throw new DatabaseException("auto_insert_update: table '$table' does not exist.");
         }
+
+        $table_columns = $this->selectcol_array("EXPLAIN `$table`");
 
         $query = "INSERT INTO `$table` SET ";
         $row_exists = 0;
 
         if ($table_key != null && $table_key_value != null) {
-            $table_columns = $this->selectcol_array("EXPLAIN `$table`");
             if (!in_array($table_key, $table_columns)) {
-                throw new Exception("auto_insert_update: table key '$table_key' does not exist.");
+                throw new DatabaseException("auto_insert_update: table key '$table_key' does not exist.");
             }
 
             $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = ?", $table_key_value);
@@ -230,6 +231,9 @@ class Database
 
 		foreach ($data_array as $field => $value)
 		{
+            if (!in_array($field, $table_columns)) {
+                throw new DatabaseException("auto_insert_update: table column '$field' does not exist.");
+            }
             array_push($query_fields, "$field = ?");
             array_push($query_values, $value);
 		}
