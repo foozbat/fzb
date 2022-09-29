@@ -47,9 +47,14 @@ class Database
             $options = $ini_settings['database'];
         }
 
-        if (isset($options['sqlite'])) {
-            $options['username'] = null;
-            $options['password'] = null;
+        if (isset($options['driver'])) {
+            if ($options['driver'] == 'sqlite') {
+                if (!isset($options['file'])) {
+                    throw new DatabaseException("SQLite Db file not specified.");
+                }
+                $options['username'] = null;
+                $options['password'] = null;
+            }
         } else if (!isset($options['driver']) || !isset($options['host']) || !isset($options['username']) || !isset($options['password'])) {
             throw new DatabaseException("Database connection info not specified.");
         }
@@ -77,8 +82,8 @@ class Database
         ];
         
         $dsn = "";
-        if (isset($this->pdo_options['sqlite'])) {
-            $dsn = "sqlite:".$this->pdo_options['sqlite'];
+        if ($this->pdo_options['driver'] == 'sqlite') {
+            $dsn = "sqlite:".$this->pdo_options['file'];
         } else {
             $dsn = $this->pdo_options['driver'] . ":host=" . $this->pdo_options['host'];
         }
@@ -187,7 +192,7 @@ class Database
 
 	public function last_insert_id(): int
 	{
-		return $pdo->lastInsertId();
+		return $this->pdo->lastInsertId();
 	}
 
     // transactions
@@ -247,5 +252,10 @@ class Database
 
         return $this->query($query, ...$query_values);
 	}
+
+    public function get_column_names($table)
+    {
+        return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
+    }
 }
 
