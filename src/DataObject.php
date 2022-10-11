@@ -1,9 +1,9 @@
 <?php
 /* 
-	file:         database.class.php
-	type:         Class Definition
-	written by:   Aaron Bishop
-	description:  
+    file:         database.class.php
+    type:         Class Definition
+    written by:   Aaron Bishop
+    description:  
         This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
     usage:
         Instantiate with $inputs = new Database('type', 'hostname','username','password','database');
@@ -14,6 +14,8 @@
 namespace Fzb;
 
 use Exception;
+
+class DataObjectException extends Exception { }
 
 abstract class DataObject
 {
@@ -40,7 +42,7 @@ abstract class DataObject
     {
         $db = get_database();
         if (is_null($db)) {
-            throw new Exception("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
+            throw new DataObjectException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
         }
         return $db;
     }
@@ -122,8 +124,9 @@ abstract class DataObject
     {
         $ret_arr = array();
         $cls = get_called_class();
+        $table = $cls::table();
 
-        $cls::db()->prepare("SELECT * FROM `".$cls::__table__."`");
+        $cls::db()->prepare("SELECT * FROM `$table`");
         $cls::db()->execute();
 
         while ($row = $cls::db()->fetchrow_assoc())
@@ -132,5 +135,43 @@ abstract class DataObject
         }
 
         return $ret_arr;
+    }
+
+    static function get_by(...$params)
+    {
+        $ret_arr = array();
+        $cls = get_called_class();
+        $table = $cls::table();
+
+        $query = "SELECT * FROM `$table`";
+        
+        if (sizeof($params) > 0)
+        {
+            $table_columns = $cls::db()->get_column_names($table);
+            $query_fields = array();
+            $query_values = array();
+
+            foreach ($params as $field => $value)
+            {
+                if (!in_array($field, $table_columns)) {
+                    throw new DataObjectException("Table column '$field' does not exist.");
+                }
+                array_push($query_fields, "$field = ?");
+                array_push($query_values, $value);
+            }
+
+            if (sizeof($query_values) > 0)
+                $query .= " WHERE ".implode(" AND ", $query_fields);
+        }
+
+        $cls::db()->prepare($query);
+        $cls::db()->execute(...$query_values);
+
+        while ($row = $cls::db()->fetchrow_assoc())
+        {
+            array_push($ret_arr, new $cls(...$row));
+        }
+
+        return $ret_arr;        
     }
 }

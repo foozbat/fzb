@@ -1,10 +1,10 @@
 <?php
 /* 
-	file:         Config.php
-	type:         Class Definition
-	written by:   Aaron Bishop
-	date:         
-	description:  reads config from an .ini file
+    file:         Config.php
+    type:         Class Definition
+    written by:   Aaron Bishop
+    date:         
+    description:  reads config from an .ini file
 */
 
 namespace Fzb;

@@ -1,9 +1,9 @@
 <?php
 /* 
-	file:         database.class.php
-	type:         Class Definition
-	written by:   Aaron Bishop
-	description:  
+    file:         database.class.php
+    type:         Class Definition
+    written by:   Aaron Bishop
+    description:  
         This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
     usage:
         Instantiate with $inputs = new Database('type', 'hostname','username','password','database');

@@ -1,9 +1,9 @@
 <?php
 /* 
-	file:         input.class.php
-	type:         Class Definition
-	written by:   Aaron Bishop
-	description:  
+    file:         input.class.php
+    type:         Class Definition
+    written by:   Aaron Bishop
+    description:  
         This class contains provides an interface to safely handle inputs from get/post/path with validation and santization.
     usage:
         Instantiate with $inputs = new Input();

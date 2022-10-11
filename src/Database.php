@@ -1,9 +1,9 @@
 <?php
 /* 
-	file:         database.class.php
-	type:         Class Definition
-	written by:   Aaron Bishop
-	description:  
+    file:         database.class.php
+    type:         Class Definition
+    written by:   Aaron Bishop
+    description:  
         This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
     usage:
         Instantiate with $inputs = new Database('type', 'hostname','username','password','database');
@@ -20,13 +20,13 @@ class DatabaseException extends Exception { }
 
 class Database
 {
-	// DATA MEMBERS //
+    // DATA MEMBERS //
     private $instance;
     private $pdo;
     private $pdo_options;
     private $pdo_sth = null;
 
-	// CONSTRUCTOR //
+    // CONSTRUCTOR //
     public function __construct(...$options)
     {
         if (sizeof($options) == 0) {
@@ -111,7 +111,7 @@ class Database
     }
 
     public function prepare($query): void
-	{
+    {
         // kill any existing sth, maybe add support for multiple sth's later
         if ($this->pdo_sth != null) {
             $this->finish();
@@ -152,9 +152,9 @@ class Database
         return $this->pdo_sth->fetch(PDO::FETCH_ASSOC);
     }
 
-	// executes a query and returns no rows
+    // executes a query and returns no rows
     public function query($query, ...$params): int
-	{
+    {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
         $row_count = $sth->rowCount();
@@ -163,9 +163,9 @@ class Database
         return $row_count;
     }
 
- 	// executes a query and returns the first row of the result as a normal array
+    // executes a query and returns the first row of the result as a normal array
     public function selectrow_array($query, ...$params): mixed
-	{
+    {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
 
@@ -173,8 +173,8 @@ class Database
     }
 
     // executes a query and returns the first row of the result as an associative array
-	public function selectrow_assoc($query, ...$params): mixed
-	{
+    public function selectrow_assoc($query, ...$params): mixed
+    {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
 
@@ -182,18 +182,18 @@ class Database
     }
 
     // execues a query and returns the first column of each row
-	public function selectcol_array($query, ...$params): mixed
-	{
+    public function selectcol_array($query, ...$params): mixed
+    {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
 
         return $sth->fetchAll(PDO::FETCH_COLUMN);
     }
 
-	public function last_insert_id(): int
-	{
-		return $this->pdo->lastInsertId();
-	}
+    public function last_insert_id(): int
+    {
+        return $this->pdo->lastInsertId();
+    }
 
     // transactions
     public function begin_transaction(): bool
@@ -207,7 +207,7 @@ class Database
     }
 
     public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null): int
-	{
+    {
         $table_found = false;
         $tables = $this->selectrow_array("SHOW TABLES");
         if (!in_array($table, $tables)) {
@@ -231,27 +231,27 @@ class Database
             }
         }
         
-		$query_fields = array();
-		$query_values = array();
+        $query_fields = array();
+        $query_values = array();
 
-		foreach ($data_array as $field => $value)
-		{
+        foreach ($data_array as $field => $value)
+        {
             if (!in_array($field, $table_columns)) {
                 throw new DatabaseException("auto_insert_update: table column '$field' does not exist.");
             }
             array_push($query_fields, "$field = ?");
             array_push($query_values, $value);
-		}
+        }
 
-		$query .= implode(", ", $query_fields);
+        $query .= implode(", ", $query_fields);
 
-		if ($row_exists) {
-			$query .= " WHERE `$table_key` = ?";
+        if ($row_exists) {
+            $query .= " WHERE `$table_key` = ?";
             array_push($query_values, $table_key_value);
         }
 
         return $this->query($query, ...$query_values);
-	}
+    }
 
     public function get_column_names($table)
     {
