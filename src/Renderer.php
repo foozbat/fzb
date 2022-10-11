@@ -78,26 +78,37 @@ class Renderer
             throw new RendererException("$name is a reserved Renderer variable name.");
         }
 
-        if (is_array($value) || $value instanceof Fzb\Input) {
+		if ($value instanceof Fzb\Input) {
+			$this->assign_input($name, $value);
+		} else if (is_array($value)) {
+			foreach ($value as $key => $var) {
+				$this->render_vars[$name][$key] = $var;
+			}
+		}
+
+        /*if (is_array($value) || $value instanceof Fzb\Input) {
             foreach ($value as $key => $var) {
-                $this->render_vars[$name][$key] = htmlspecialchars((string) $var);
+                //$this->render_vars[$name][$key] = htmlspecialchars((string) $var);
+				$this->render_vars[$name][$key] = $var;
             }
-        } else {
-            $this->render_vars[$name] = htmlspecialchars((string) $value);
-        }
+        } else {*/
+            //$this->render_vars[$name] = htmlspecialchars((string) $value);
+            $this->render_vars[$name] = $value;
+        //}
     }
 
     // flattens an associative array and assigns to render vars with key name as var name
     public function assign_all($arr)
     {
-        if ($arr instanceof Fzb\Input) {
-            $this->assign_input($arr);
-        } else if (is_array($arr)) {
+        if (is_array($arr)) {
             foreach ($arr as $name => $value) {
                 if (is_int($name)) {
                     throw new RendererException("assign_all: must pass an associative array or input object");
-                }
-                $this->assign($name, $value);
+                } else if ($arr instanceof Fzb\Input) {
+					$this->assign_input($name, $value);
+				} else {
+					$this->assign($name, $value);
+				}
             }
         }
     }
@@ -346,6 +357,14 @@ class Renderer
             echo "checked";
         }
     }
+}
+
+class RenderVar
+{
+	static function from_obj($obj)
+	{
+		return new RenderVar();
+	}
 }
 
 // helper function to isolate the template scope from the rest of the class

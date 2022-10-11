@@ -15,6 +15,12 @@ function fzb_self() : string
 
 // DEPENDENCY INJECTION //
 
+
+function get_dependency($dependency)
+{
+    return $GLOBALS['FZB_DEPENDENCIES'][$dependency] ?? null;
+}
+
 function get_config(): ?Config
 {
     return $GLOBALS['FZB_CONFIG_OBJECT'] ?? null;
