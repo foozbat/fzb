@@ -6,6 +6,12 @@
     description:  This class contains handles the assignment of render variables and the displaying of templates
 */
 
+/*
+    TODO: 
+        handle HTML-safe, HTML-unsafe assignment of render vars
+        refactor assigning of inputs
+*/
+
 namespace Fzb;
 
 use Exception;
@@ -52,21 +58,7 @@ class Renderer
         }
 
         // register default render_vars;
-        $_base_path = "";
-        if (!isset($_ENV['URL_ROUTE'])) {
-            $_base_path = $_SERVER['REQUEST_URI'];
-        } else {
-            $_base_path = explode($_ENV['URL_ROUTE'], $_SERVER['REQUEST_URI'], 2)[0];
-        }
-
-        /*$base_path = "";
-        $router = get_router();
-        if(!is_null($router)) {
-            $base_path = $router->get_app_base_path();
-        }*/
-
         $base_path = get_router()->get_app_base_path() ?? "";
-
         $this->render_vars['_base_path'] = ltrim($base_path, "/");
     }
 
