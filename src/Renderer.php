@@ -78,23 +78,15 @@ class Renderer
             throw new RendererException("$name is a reserved Renderer variable name.");
         }
 
-		if ($value instanceof Fzb\Input) {
-			$this->assign_input($name, $value);
-		} else if (is_array($value)) {
-			foreach ($value as $key => $var) {
-				$this->render_vars[$name][$key] = $var;
-			}
-		}
-
-        /*if (is_array($value) || $value instanceof Fzb\Input) {
+        if ($value instanceof Fzb\Input) {
+            $this->assign_input($value);
+        } else if (is_array($value)) {
             foreach ($value as $key => $var) {
-                //$this->render_vars[$name][$key] = htmlspecialchars((string) $var);
-				$this->render_vars[$name][$key] = $var;
+                $this->render_vars[$name][$key] = $var;
             }
-        } else {*/
-            //$this->render_vars[$name] = htmlspecialchars((string) $value);
-            $this->render_vars[$name] = $value;
-        //}
+        }
+
+        $this->render_vars[$name] = $value;
     }
 
     // flattens an associative array and assigns to render vars with key name as var name
@@ -105,10 +97,10 @@ class Renderer
                 if (is_int($name)) {
                     throw new RendererException("assign_all: must pass an associative array or input object");
                 } else if ($arr instanceof Fzb\Input) {
-					$this->assign_input($name, $value);
-				} else {
-					$this->assign($name, $value);
-				}
+                    $this->assign_input($name, $value);
+                } else {
+                    $this->assign($name, $value);
+                }
             }
         }
     }
@@ -361,10 +353,10 @@ class Renderer
 
 class RenderVar
 {
-	static function from_obj($obj)
-	{
-		return new RenderVar();
-	}
+    static function from_obj($obj)
+    {
+        return new RenderVar();
+    }
 }
 
 // helper function to isolate the template scope from the rest of the class

@@ -134,7 +134,7 @@ abstract class DataObject
             array_push($ret_arr, new $cls(...$row));
         }
 
-        return $ret_arr;
+        return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
     }
 
     static function get_by(...$params)
@@ -172,6 +172,6 @@ abstract class DataObject
             array_push($ret_arr, new $cls(...$row));
         }
 
-        return $ret_arr;        
+        return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;      
     }
 }
