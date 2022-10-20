@@ -216,7 +216,6 @@ class Database
 
         $table_columns = $this->get_column_names($table);
 
-        $query = '';
         $row_exists = 0;
 
         if ($table_key != null && $table_key_value != null) {
@@ -227,16 +226,13 @@ class Database
             $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM $table WHERE $table_key = ?", $table_key_value);
         }
         
-        //$query_fields = array();
-        //$query_values = array();
-
+        $query = '';
         $insert_fields = array();
         $insert_qmarks = array();
         $update_fields = array();
         $query_values  = array();
 
-        foreach ($data_array as $field => $value)
-        {
+        foreach ($data_array as $field => $value) {
             if (!in_array($field, $table_columns)) {
                 throw new DatabaseException("auto_insert_update: table column '$field' does not exist.");
             }
@@ -245,9 +241,6 @@ class Database
             array_push($insert_qmarks, "?");
             array_push($update_fields, "$field = ?");
             array_push($query_values, $value);
-
-            //array_push($query_fields, "$field = ?");
-            //array_push($query_values, $value);
         }
 
         if ($row_exists) {
