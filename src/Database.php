@@ -208,15 +208,15 @@ class Database
 
     public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null): int
     {
-        $table_found = false;
-        $tables = $this->selectrow_array("SHOW TABLES");
+        $tables = $this->get_tables();
+
         if (!in_array($table, $tables)) {
             throw new DatabaseException("auto_insert_update: table '$table' does not exist.");
         }
 
-        $table_columns = $this->selectcol_array("EXPLAIN `$table`");
+        $table_columns = $this->get_column_names($table);
 
-        $query = "INSERT INTO `$table` SET ";
+        $query = '';
         $row_exists = 0;
 
         if ($table_key != null && $table_key_value != null) {
@@ -224,30 +224,37 @@ class Database
                 throw new DatabaseException("auto_insert_update: table key '$table_key' does not exist.");
             }
 
-            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM `$table` WHERE `$table_key` = ?", $table_key_value);
-
-            if ($row_exists) {
-                $query = "UPDATE `$table` SET ";
-            }
+            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM $table WHERE $table_key = ?", $table_key_value);
         }
         
-        $query_fields = array();
-        $query_values = array();
+        //$query_fields = array();
+        //$query_values = array();
+
+        $insert_fields = array();
+        $insert_qmarks = array();
+        $update_fields = array();
+        $query_values  = array();
 
         foreach ($data_array as $field => $value)
         {
             if (!in_array($field, $table_columns)) {
                 throw new DatabaseException("auto_insert_update: table column '$field' does not exist.");
             }
-            array_push($query_fields, "$field = ?");
+
+            array_push($insert_fields, $field);
+            array_push($insert_qmarks, "?");
+            array_push($update_fields, "$field = ?");
             array_push($query_values, $value);
+
+            //array_push($query_fields, "$field = ?");
+            //array_push($query_values, $value);
         }
 
-        $query .= implode(", ", $query_fields);
-
         if ($row_exists) {
-            $query .= " WHERE `$table_key` = ?";
+            $query = "UPDATE $table SET ".implode(", ", $update_fields)." WHERE $table_key = ?";
             array_push($query_values, $table_key_value);
+        } else {
+            $query = "INSERT INTO $table (".implode(", ", $insert_fields).") VALUES (".implode(", ", $insert_qmarks).")";
         }
 
         return $this->query($query, ...$query_values);
@@ -255,7 +262,26 @@ class Database
 
     public function get_column_names($table)
     {
-        return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
+        if ($this->pdo_options["driver"] == "mysql")
+            $table_columns = $this->selectcol_array("EXPLAIN `$table`");
+        else if ($this->pdo_options["driver"] == "sqlite")
+            $table_columns = $this->selectcol_array("SELECT name FROM pragma_table_info('$table')");
+        else if ($this->pdo_options["driver"] == "pgsql")
+            return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
+        else
+            throw new DatabaseException("Database driver not supported.");
+    }
+
+    public function get_tables()
+    {
+        if ($this->pdo_options["driver"] == "mysql")
+            return $this->selectrow_array("SHOW TABLES");
+        else if ($this->pdo_options["driver"] == "sqlite")
+            return $this->selectrow_array("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        else if ($this->pdo_options["driver"] == "pgsql")
+            return $this->selectrow_array("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'information_schema' AND schemaname != 'pg_catalog'");
+        else
+            throw new DatabaseException("Database driver not supported.");
     }
 }
 
