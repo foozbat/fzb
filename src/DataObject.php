@@ -14,13 +14,16 @@
 namespace Fzb;
 
 use Exception;
+use Iterator;
 
 class DataObjectException extends Exception { }
 
-abstract class DataObject
+abstract class DataObject implements Iterator
 {
     const __primary_key__ = 'id';
     const __table__ = '';
+
+    protected $__iter__ = 0;
 
     public function __construct(...$params)
     {
@@ -113,7 +116,7 @@ abstract class DataObject
 
     function load()
     {
-        $query = "SELECT * FROM `".$this::__table__."` WHERE `".$this::__primary_key__."`=?";
+        $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
         $data = $this->db()->selectrow_assoc($query, $this::__primary_key__);
 
@@ -126,7 +129,7 @@ abstract class DataObject
         $cls = get_called_class();
         $table = $cls::table();
 
-        $cls::db()->prepare("SELECT * FROM `$table`");
+        $cls::db()->prepare("SELECT * FROM $table");
         $cls::db()->execute();
 
         while ($row = $cls::db()->fetchrow_assoc())
@@ -134,7 +137,10 @@ abstract class DataObject
             array_push($ret_arr, new $cls(...$row));
         }
 
-        return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+        if (sizeof($ret_arr) == 0)
+            return null;
+        else
+            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;   
     }
 
     static function get_by(...$params)
@@ -143,7 +149,7 @@ abstract class DataObject
         $cls = get_called_class();
         $table = $cls::table();
 
-        $query = "SELECT * FROM `$table`";
+        $query = "SELECT * FROM $table";
         
         if (sizeof($params) > 0)
         {
@@ -172,6 +178,16 @@ abstract class DataObject
             array_push($ret_arr, new $cls(...$row));
         }
 
-        return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;      
+        if (sizeof($ret_arr) == 0)
+            return null;
+        else
+            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;      
     }
+
+    // iterator methods
+    public function current(): mixed { return $this; }
+    public function next(): void     { $this->__iter__++; }
+    public function valid(): bool    { return $this->__iter__ == 0; }
+    public function key(): mixed     { return $this->__iter__; }
+    public function rewind(): void   { $this->__iter__ = 0; }
 }

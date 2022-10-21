@@ -256,9 +256,9 @@ class Database
     public function get_column_names($table)
     {
         if ($this->pdo_options["driver"] == "mysql")
-            $table_columns = $this->selectcol_array("EXPLAIN `$table`");
+            return $this->selectcol_array("EXPLAIN $table");
         else if ($this->pdo_options["driver"] == "sqlite")
-            $table_columns = $this->selectcol_array("SELECT name FROM pragma_table_info('$table')");
+            return $this->selectcol_array("SELECT name FROM pragma_table_info('$table')");
         else if ($this->pdo_options["driver"] == "pgsql")
             return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
         else
