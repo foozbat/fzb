@@ -23,7 +23,6 @@ class Renderer
 {
     // DATA MEMBERS //
     private $template_dir;
-    private $template_ext;
 
     private $render_vars = array();
     private $reserved_var_names = ['_vars', '_base_path', 'html'];
@@ -35,9 +34,9 @@ class Renderer
     private $texts = array();
 
     // CONSTRUCTOR //
-    function __construct($template_dir = "", $template_ext = "")
+    function __construct($template_dir = null)
     {
-        if ($template_dir != "") {
+        if ($template_dir !== null) {
             $this->template_dir = $template_dir;
         } else if (defined('TEMPLATES_DIR')) {
             $this->template_dir = TEMPLATES_DIR;
@@ -45,20 +44,16 @@ class Renderer
             $this->template_dir = "/templates";
         }
 
-        if ($template_ext != "") {
-            $this->template_ext = $template_ext;
-        } else if (defined('TEMPLATE_EXT')) {
-            $this->template_ext = TEMPLATE_EXT;
-        } else {
-            $this->template_ext = "tpl.php";
-        }
-
-        if ($this->template_dir == "" || $this->template_ext == "") {
+        if ($this->template_dir == "") {
             throw new RendererException("Renderer requires the templates directory and extension to be defined.");
         }
 
         // register default render_vars;
-        $base_path = get_router()->get_app_base_path() ?? "";
+        if (get_router() !== null)
+            $base_path = get_router()->get_app_base_path() ?? "";
+        else
+            $base_path = "";
+
         $this->render_vars['_base_path'] = ltrim($base_path, "/");
     }
 
@@ -89,7 +84,7 @@ class Renderer
                 if (is_int($name)) {
                     throw new RendererException("assign_all: must pass an associative array or input object");
                 } else if ($arr instanceof Fzb\Input) {
-                    $this->assign_input($name, $value);
+                    $this->assign_input($value);
                 } else {
                     $this->assign($name, $value);
                 }
@@ -119,7 +114,7 @@ class Renderer
 
 
     // renders and displays a specified page
-    public function display($page)
+    public function display($template_file)
     {
         //global $settings;
 
@@ -131,17 +126,15 @@ class Renderer
         //}
 
         // do rendering
-        $this->render($page);
+        $this->render($template_file);
 
         // send buffered output to the browser
         ob_end_flush();
     }
 
     // internal function for the rendering of pages.  do not call this function directly!  use display()
-    private function render($page)
+    private function render($template_file)
     {
-        //$bm = new Benchmark('rendering');
-
         // send nifty no cache headers
         // probably change this
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -149,28 +142,26 @@ class Renderer
         header('Cache-Control: post-check=0, pre-check=0', FALSE);
         header('Pragma: no-cache');
 
-        error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
-
-        $template_file = $this->template_dir.'/'.$page.'.'.$this->template_ext;
-
         // sandbox the application state to limit rogue template damage
+        error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+        $err_handler = set_error_handler(null);
         $this->sandbox_global_state();
 
         // call helper functions to isolate scope of template from this class
-        _load_tpl($template_file, $this->render_vars);
+        _load_tpl($this->template_dir.'/'.$template_file, $this->render_vars);
 
         // restore the state after sandbox
         $this->restore_global_state();
+        if ($err_handler !== null)
+            set_error_handler($err_handler);
         error_reporting(E_ALL);
-
-        //$bm->end_bench();
     }
 
     // renders the page and returns output as a string instead of sending to the browser
-    public function render_as_string($page)
+    public function render_as_string($template_file)
     {
         ob_start();
-        $this->render($page);
+        $this->render($template_file);
         return ob_get_clean();
     }
 
@@ -182,15 +173,15 @@ class Renderer
 
     private function sandbox_global_state()
     {
-        $this->global_state['GLOBALS']    = $GLOBALS;
-        $this->global_state['_SERVER']    = $_SERVER;
-        $this->global_state['_GET']        = $_GET;
-        $this->global_state['_POST']    = $_POST;
-        $this->global_state['_FILES']    = $_FILES;
-        $this->global_state['_COOKIE']    = $_COOKIE;
-        $this->global_state['_SESSION'] = $_SESSION;
-        $this->global_state['_REQUEST'] = $_REQUEST;
-        $this->global_state['_ENV']     = $_ENV;
+        if (isset($GLOBALS))  $this->global_state['GLOBALS']  = $GLOBALS;
+        if (isset($_SERVER))  $this->global_state['_SERVER']  = $_SERVER;
+        if (isset($_GET))     $this->global_state['_GET']     = $_GET;
+        if (isset($_POST))    $this->global_state['_POST']    = $_POST;
+        if (isset($_FILES))   $this->global_state['_FILES']   = $_FILES;
+        if (isset($_COOKIE))  $this->global_state['_COOKIE']  = $_COOKIE;
+        if (isset($_SESSION)) $this->global_state['_SESSION'] = $_COOKIE;
+        if (isset($_REQUEST)) $this->global_state['_REQUEST'] = $_REQUEST;
+        if (isset($_ENV))     $this->global_state['_ENV']     = $_ENV;
 
         //unset($GLOBALS);
         foreach ($GLOBALS as $global => $val) {
@@ -218,17 +209,20 @@ class Renderer
         GLOBAL $_SERVER;
         GLOBAL $GLOBALS;
 
-        $_ENV     = $this->global_state['_ENV'];
-        $_REQUEST = $this->global_state['_REQUEST'];
-        $_SESSION = $this->global_state['_SESSION'];
-        $_COOKIE  = $this->global_state['_COOKIE'];
-        $_FILES      = $this->global_state['_FILES'];
-        $_POST    = $this->global_state['_POST'];
-        $_GET     = $this->global_state['_GET'];
-        $_SERVER  = $this->global_state['_SERVER'];
+        if (isset($this->global_state['_ENV']))     $_ENV     = $this->global_state['_ENV'];
+        if (isset($this->global_state['_REQUEST'])) $_REQUEST = $this->global_state['_REQUEST'];
+        if (isset($this->global_state['_SESSION'])) $_SESSION = $this->global_state['_SESSION'];
+        if (isset($this->global_state['_COOKIE']))  $_COOKIE  = $this->global_state['_COOKIE'];
+        if (isset($this->global_state['_FILES']))   $_FILES      = $this->global_state['_FILES'];
+        if (isset($this->global_state['_POST']))    $$_POST    = $this->global_state['_POST'];
+        if (isset($this->global_state['_GET']))     $_GET     = $this->global_state['_GET'];
+        if (isset($this->global_state['_SERVER']))  $_SERVER  = $this->global_state['_SERVER'];
+        
         //$GLOBALS  = $this->global_state['GLOBALS'];
-        foreach ($this->global_state['GLOBALS'] as $global => $val) {
-            $GLOBALS[$global] = $val;
+        if (isset($this->global_state['GLOBALS'])) {
+            foreach ($this->global_state['GLOBALS'] as $global => $val) {
+                $GLOBALS[$global] = $val;
+            }
         }
 
         $this->global_state = null;
