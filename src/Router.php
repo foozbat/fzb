@@ -3,7 +3,6 @@
     file:         router.class.php
     type:         Class Definition
     written by:   Aaron Bishop
-    date:         
     description:  handles routing to app controllers and routes based on URL paths
 */
 
@@ -17,29 +16,40 @@ class Router
 {
     private $controller_route = "/";
     private $controllers = array();
+    private $controller_exists = false;
+    private $default_controller = null;
 
     private $routes = array();
     private $route_path;
 
+    private $route_prefix = "";
+
     private $variable_regex = "[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*";
 
-    function __construct($controllers_dir = null)
+    function __construct($controllers_dir = null, $default_controller = null)
     {
-        if ($controllers_dir == null && defined('CONTROLLERS_DIR')) {
-            $controllers_dir = CONTROLLERS_DIR;
-        }
-        if ($controllers_dir == null) {
-            throw new RouterException("Controllers directory not defined. Either define in app_settings or pass to Router on instantiation.");
-        }
-
-        if (!is_null(get_router())) {
+        // I'm a singleton
+        if (!is_null(get_router()))
             throw new RouterException("A router has already been instantiated.  Cannot create more than one instance");
-        }
+
+        // validate controllers directory
+        if ($controllers_dir == null && defined('CONTROLLERS_DIR'))
+            $controllers_dir = CONTROLLERS_DIR;
+        if (!is_dir($controllers_dir))
+            throw new RouterException("Controllers directory does not exist.");
+
+        // set default controller, if any
+        if ($default_controller == null && defined('DEFAULT_CONTROLLER'))
+            $this->default_controller = DEFAULT_CONTROLLER;
+        else if ($default_controller != null)
+            $this->default_controller = $default_controller;
 
         $this->route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
 
-        $this->find_controllers($controllers_dir);
-        $this->determine_controller();
+        if ($controllers_dir) {
+            $this->find_controllers($controllers_dir);
+            $this->determine_controller();
+        }
 
         register_router($this);
     }
@@ -49,17 +59,16 @@ class Router
         unregister_router($this);
     }
 
-    // returns path to the proper controller based on uri path
-    public function get_controller_path()
+    public function controller_exists(): bool
     {
-        // match the determined controller to a found controller from file system   
-        foreach($this->controllers as $controller => $path) {
-            if($controller == $this->controller_route) {
-                return $path;
-            }
-        }
+        return $this->controller_exists;
+    }
 
-        return $this->controllers["main"];
+    // returns path to the proper controller based on uri path
+    public function get_controller()
+    {
+        if ($this->controller_exists)
+            return $this->controllers[$this->controller_route];
     }
 
     public function get(...$params)
@@ -114,7 +123,7 @@ class Router
 
         foreach ($path as $route_string) {
 /*
-            print("route def:".$route_string."\n");
+            print("route def: ".$route_string."\n");
             print("path ".$this->route_path."\n");
 
             print("\n");
@@ -123,6 +132,14 @@ class Router
             //print_r($route_func);
             print("\n");
 */
+            if (!str_starts_with($route_string, '/'))
+                $route_string = '/'.$route_string;
+
+            if ($this->route_prefix != '')
+                $route_string = $this->route_prefix . $route_string;
+
+            //print($route_string."<br/>");
+
             if (isset($this->routes[$route_string]))
                 throw new RouterException("Attempting to redefine route \"$route_string\"");
 
@@ -133,7 +150,7 @@ class Router
         }
     }
 
-    public function route()
+    public function route(): bool
     {
         //print("<pre>");
         //print("ROUTING...\n");
@@ -141,6 +158,8 @@ class Router
 
         foreach ($this->routes as $route_string => $route)
         {
+            $route_string = rtrim($route_string, '/');
+
             //print("CHECKING route: $route_string\n");
 
             $route_regex = preg_replace("/\{(.*?)\}/i", "(.*?)", $route_string);
@@ -150,14 +169,11 @@ class Router
             
             $is_match = preg_match($route_regex, $this->route_path);
 
-            if (!in_array($_SERVER['REQUEST_METHOD'], $route['method']))
-                return;
-
             //print("match? $is_match\n");
             $route_vars = array();
             $route_var_vals = array();
 
-            if ($is_match) {
+            if ($is_match && in_array($_SERVER['REQUEST_METHOD'], $route['method'])) {
                 $rslt1 = array();
                 $rslt2 = array();
                 preg_match_all($route_regex, $route_string, $rslt1);
@@ -185,14 +201,29 @@ class Router
                 */
                 
                 call_user_func($route['func'], ...$route_vars);
-                return;
+                return true;
             }
         }
+
+        return false;
+    }
+
+    public function use_prefix($prefix)
+    {
+        if (!str_starts_with($prefix, '/'))
+            $prefix = '/'.$prefix;
+
+        $this->route_prefix = $prefix;
+    }
+
+    public function use_controller_prefix()
+    {
+        $this->use_prefix($this->controller_route);
     }
 
     private function determine_controller()
     {
-        $route_components = explode("/", ltrim($this->route_path, '/'));
+        $route_components = explode("/", $this->route_path);
 
         while (count($route_components) > 0) {
             $search = join("/", $route_components);
@@ -201,6 +232,12 @@ class Router
                 break;
             }
             array_pop($route_components);
+        }
+
+        foreach($this->controllers as $controller => $path) {
+            if($controller == $this->controller_route) {
+                $this->controller_exists = true;
+            }
         }
     }
 
@@ -220,19 +257,20 @@ class Router
     }
 
     // recursively searches for controllers in the specified directory and automagically generates route strings
-    private function find_controllers($parent_dir, $prefix='')
+    private function find_controllers($parent_dir, $prefix='/')
     {
         foreach (scandir($parent_dir) as $file) {
             if ($file != '.' && $file != '..') {
-                if (is_dir($parent_dir.'/'.$file)) {
-                    $this->find_controllers($parent_dir.'/'.$file, ($prefix ? $prefix."/" : '').$file);
-                } else if (preg_match('/\.php$/', $file)) {
+                if (is_dir($parent_dir.'/'.$file))
+                    $this->find_controllers($parent_dir.'/'.$file, $prefix.$file."/");
+                else if (preg_match('/\.php$/', $file)) {
                     list($controller, $ext) = explode('.', $file);
-                    $this->controllers[($prefix ? $prefix."/" : '').$controller] = $parent_dir."/".$file;
+                    $this->controllers[($prefix ? $prefix : '/').$controller] = $parent_dir."/".$file;
                 }
             }
         }
+
+        if ($prefix == '/' && $this->default_controller != null)
+            $this->controllers['/'] = $parent_dir.'/'.$this->default_controller;
     }
-
-
 };

@@ -4,11 +4,10 @@
     type:         Class Definition
     written by:   Aaron Bishop
     description:  
-        This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
+        Simple ORM.  Maps a classes public and private members to a specified database table.
+        Provides functionality to write and retrieve objects to/from the DB.
     usage:
-        Instantiate with $inputs = new Database('type', 'hostname','username','password','database');
-        Define inputs with 
-        Access inputs with $inputs['myinput']
+        extend DataObject
 */
 
 namespace Fzb;
