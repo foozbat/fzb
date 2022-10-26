@@ -1,10 +1,13 @@
 <?php
-/* 
-    file:         router.class.php
-    type:         Class Definition
-    written by:   Aaron Bishop
-    description:  handles routing to app controllers and routes based on URL paths
-*/
+/**
+ * Class Router
+ * 
+ * Handles routing to app controllers (.php files) and routes (callbacks) based on URL paths
+ * 
+ * usage: Instantiate with $router = new Fzb\Router()
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
 
 namespace Fzb;
 
@@ -14,19 +17,26 @@ class RouterException extends Exception { }
 
 class Router
 {
-    private $controller_route = "/";
-    private $controllers = array();
-    private $controller_exists = false;
-    private $default_controller = null;
+    private string $controller_route = '/';
+    private array $controllers = array();
+    private bool $controller_exists = false;
+    private string $default_controller;
 
-    private $routes = array();
-    private $route_path;
+    private array $routes = array();
+    private string $route_path;
 
-    private $route_prefix = "";
+    private string $route_prefix = "";
 
-    private $variable_regex = "[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*";
+    const variable_regex = "[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*";
 
-    function __construct($controllers_dir = null, $default_controller = null)
+    /**
+     * Constructor, implements singleton pattern
+     *
+     * @param string|null $controllers_dir
+     * @param string|null $default_controller
+     * @throws RouterException
+     */
+    function __construct(string $controllers_dir = null, string $default_controller = null)
     {
         // I'm a singleton
         if (!is_null(get_router()))
@@ -54,48 +64,83 @@ class Router
         register_router($this);
     }
 
+    /**
+     * Destructor
+     */
     function __destruct()
     {
         unregister_router($this);
     }
 
+    // CONTROLLER METHODS
+
+    /**
+     * Identifies if a controller exists for the requested URI path
+     *
+     * @return boolean
+     */
     public function controller_exists(): bool
     {
         return $this->controller_exists;
     }
 
-    // returns path to the proper controller based on uri path
-    public function get_controller()
+    /**
+     * Returns path to the proper controller based on uri path
+     *
+     * @return string absolute path to the controller .php file
+     */
+    public function get_controller(): string
     {
         if ($this->controller_exists)
             return $this->controllers[$this->controller_route];
+        else
+            throw new RouterException("A controller could not be found for the specified URI path.  Specify a default controller to prevent this error.");
     }
 
-    public function get(...$params)
+    /**
+     * Determines which controller to use based on the leading elements in the request URI path
+     *
+     * @return void
+     */
+    private function determine_controller(): void
     {
-        $func = array_pop($params);
-        $this->add(method: 'GET', path: $params, func: $func);
+        $route_components = explode("/", $this->route_path);
+
+        while (count($route_components) > 0) {
+            $search = join("/", $route_components);
+            if (array_key_exists($search, $this->controllers)) {
+                $this->controller_route = $search;
+                break;
+            }
+            array_pop($route_components);
+        }
+
+        foreach($this->controllers as $controller => $path) {
+            if($controller == $this->controller_route) {
+                $this->controller_exists = true;
+            }
+        }
     }
 
-    public function post(...$params)
+    /**
+     * GEts the URI path of the current controller
+     *
+     * @return string URI path of the current controller
+     */
+    public function get_controller_path(): string
     {
-        $func = array_pop($params);
-        $this->add(method: 'POST', path: $params, func: $func);
+        if ($this->controller_exists)
+        return $this->controller_route;
     }
-
-    public function put(...$params)
-    {
-        $func = array_pop($params);
-        $this->add(method: 'PUT', path: $params, func: $func);
-    }
-
-    public function delete(...$params)
-    {
-        $func = array_pop($params);
-        $this->add(method: 'DELETE', path: $params, func: $func);
-    }
-
-    public function add($method='GET', $path=null, $func=null)
+    /**
+     * Adds a new route to the router
+     *
+     * @param mixed $method HTTP request method or methods as either a string or array of strings
+     * @param mixed $path endpoint path as either a string or array of strings, can contain {variables} to pass to the route callback
+     * @param callable $func callback function to be executed for the route endpoint
+     * @return void
+     */
+    public function add(mixed $method = 'GET', mixed $path = null, callable $func = null): void
     {
         /*
         $route_string = array_shift($params);
@@ -150,6 +195,59 @@ class Router
         }
     }
 
+    /**
+     * Alias for add method for GET endpoints
+     *
+     * @param mixed ...$params one or more strings specifying endpoints followed by the route callback
+     * @return void
+     */
+    public function get(mixed ...$params): void
+    {
+        $func = array_pop($params);
+        $this->add(method: 'GET', path: $params, func: $func);
+    }
+
+    /**
+     * Alias for add method for POST endpoints
+     *
+     * @param mixed ...$params one or more strings specifying endpoints followed by the route callback
+     * @return void
+     */
+    public function post(mixed ...$params): void
+    {
+        $func = array_pop($params);
+        $this->add(method: 'POST', path: $params, func: $func);
+    }
+
+    /**
+     * Alias for add method for PUT endpoints
+     *
+     * @param mixed ...$params one or more strings specifying endpoints followed by the route callback
+     * @return void
+     */
+    public function put(mixed ...$params): void
+    {
+        $func = array_pop($params);
+        $this->add(method: 'PUT', path: $params, func: $func);
+    }
+
+    /**
+     * Alias for add method for DELETE endpoints
+     *
+     * @param mixed ...$params one or more strings specifying endpoints followed by the route callback
+     * @return void
+     */
+    public function delete(mixed ...$params): void
+    {
+        $func = array_pop($params);
+        $this->add(method: 'DELETE', path: $params, func: $func);
+    }
+
+    /**
+     * Routes to the endpoint specified in the request URI path
+     *
+     * @return boolean true if route is found, false if route is not found
+     */   
     public function route(): bool
     {
         //print("<pre>");
@@ -208,7 +306,13 @@ class Router
         return false;
     }
 
-    public function use_prefix($prefix)
+    /**
+     * Allows a prefix to be used for all endpoints after calling
+     * 
+     * @param string $prefix prefix to be prepended to all endpoints
+     * @return void
+     */
+    public function use_prefix(string $prefix): void
     {
         if (!str_starts_with($prefix, '/'))
             $prefix = '/'.$prefix;
@@ -216,48 +320,34 @@ class Router
         $this->route_prefix = $prefix;
     }
 
-    public function use_controller_prefix()
+    /**
+     * Alias for use_prefix() that uses the specified controller as the route prefix
+     *
+     * @return void
+     */
+    public function use_controller_prefix(): void
     {
         $this->use_prefix($this->controller_route);
     }
 
-    private function determine_controller()
-    {
-        $route_components = explode("/", $this->route_path);
-
-        while (count($route_components) > 0) {
-            $search = join("/", $route_components);
-            if (array_key_exists($search, $this->controllers)) {
-                $this->controller_route = $search;
-                break;
-            }
-            array_pop($route_components);
-        }
-
-        foreach($this->controllers as $controller => $path) {
-            if($controller == $this->controller_route) {
-                $this->controller_exists = true;
-            }
-        }
-    }
-
-    public function get_route()
-    {
-        return $this->controller_route;
-    }
-
-    public function get_all_routes()
-    {
-        return $this->routes;
-    }
-
+    /**
+     * Gets the pase path of the application. For use when application is in a subdirectory of the webroot
+     *
+     * @return void
+     */
     public function get_app_base_path()
     {
         return explode($this->controller_route, $_SERVER['REQUEST_URI'], 2)[0];
     }
 
-    // recursively searches for controllers in the specified directory and automagically generates route strings
-    private function find_controllers($parent_dir, $prefix='/')
+    /**
+     * Recursively searches for controllers in the specified directory and automagically generates route strings
+     *
+     * @param string $parent_dir Initially the controllers root dir
+     * @param string $prefix used internally to handle subdirectory paths
+     * @return void
+     */
+    private function find_controllers(string $parent_dir, string $prefix = '/')
     {
         foreach (scandir($parent_dir) as $file) {
             if ($file != '.' && $file != '..') {
@@ -273,4 +363,4 @@ class Router
         if ($prefix == '/' && $this->default_controller != null)
             $this->controllers['/'] = $parent_dir.'/'.$this->default_controller;
     }
-};
+}

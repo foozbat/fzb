@@ -1,15 +1,16 @@
 <?php
-/* 
-    file:         input.class.php
-    type:         Class Definition
-    written by:   Aaron Bishop
-    description:  
-        This class contains provides an interface to safely handle inputs from get/post/path with validation and santization.
-    usage:
-        Instantiate with $inputs = new Input();
-        Define inputs with 
-        Access inputs with $inputs['myinput']
-*/
+/**
+ * Class Input
+ * 
+ * This class contains provides an interface to safely handle inputs from get/post/path with validation and santization.
+ * Analogous to request object in other frameworks, but with a focus on inputs
+ * 
+ * usage: Instantiate with $input = new Input();
+ *        Constructor is passed a list of inputs to define, along with validation requirements
+ *        Inputs can be accessed by referencing the object as an array, i.e. $input['myinput']
+ * 
+ * @todo refactor entire class.  I am not happy with it's implementation.
+ */
 
 namespace Fzb;
 
@@ -26,8 +27,12 @@ class Input implements ArrayAccess, Iterator
     private $inputs = array();
     private $path_vars = array();
 
-    // constructor can optionally receive an array of input definitions
-    public function __construct(...$inputs)
+    /**
+     * Constructor
+     *
+     * @param mixed ...$inputs optionally receive an array of input definitions
+     */
+    public function __construct(mixed ...$inputs)
     {
         // check to see if this is a websocket connection
         if (strpos($_SERVER['GATEWAY_INTERFACE'], 'websocketd-CGI') !== false) {
@@ -68,6 +73,7 @@ class Input implements ArrayAccess, Iterator
         }  
     }
 
+    // TODO: remove or refactor
     public function get_validation_failures(): array
     {
 /*        $validation_failures = array();

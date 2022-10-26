@@ -1,50 +1,51 @@
 <?php
-/* 
-    file:         renderer.class.php
-    type:         Class Definition
-    written by:   Aaron Bishop
-    description:  This class contains handles the assignment of render variables and the displaying of templates
-*/
+/**
+ * Class Fzb\Renderer
+ * 
+ * Renders a PHP template to the output buffer and flushed to the browser or returned as a string.
+ * Templates use raw PHP, but execute in a sandboxed environment.
+ * 
+ * usage: Instantiate with $renderer = new Fzb\Renderer()
+ * 
+ * @author  Aaron Bishop (github.com/foozbat)
+ */
 
-/*
-    TODO: 
-        handle HTML-safe, HTML-unsafe assignment of render vars
-        refactor assigning of inputs
-*/
+ // TODO: handle HTML-safe, HTML-unsafe assignment of render vars
+ // TODO: refactor assigning of inputs
 
 namespace Fzb;
 
 use Exception;
-use Fzb;
 
 class RendererException extends Exception { }
 
 class Renderer
 {
     // DATA MEMBERS //
-    private $template_dir;
+    private string $templates_dir;
 
-    private $render_vars = array();
-    private $reserved_var_names = ['_vars', '_base_path', 'html'];
+    private array $render_vars = array();
+    private array $reserved_var_names = ['_vars', '_base_path', 'html'];
 
-    private $global_state = array();
+    private array $global_state = array();
 
-    private $selects = array();
-    private $checks = array();
-    private $texts = array();
-
-    // CONSTRUCTOR //
-    function __construct($template_dir = null)
+    /**
+     * Constructor
+     *
+     * @param string|null $templates_dir Directory that holds all templates
+     * @throws RendererException if the templates directory is not specified in the constructor or by define()
+     */
+    function __construct(string $templates_dir = null)
     {
-        if ($template_dir !== null) {
-            $this->template_dir = $template_dir;
+        if ($templates_dir !== null) {
+            $this->templates_dir = $templates_dir;
         } else if (defined('TEMPLATES_DIR')) {
-            $this->template_dir = TEMPLATES_DIR;
+            $this->templates_dir = TEMPLATES_DIR;
         } else {
-            $this->template_dir = "/templates";
+            $this->templates_dir = "/templates";
         }
 
-        if ($this->template_dir == "") {
+        if ($this->templates_dir == "") {
             throw new RendererException("Renderer requires the templates directory and extension to be defined.");
         }
 
@@ -57,15 +58,21 @@ class Renderer
         $this->render_vars['_base_path'] = ltrim($base_path, "/");
     }
 
-    // METHODS //
-
-    public function assign($name, $value)
+    /**
+     * Assigns data to the renderer as a render var
+     *
+     * @param string $name Unique identifier for render variable
+     * @param mixed $value Data to be assigned to the render variable
+     * @throws RendererException if the specified var name is reserved
+     * @return void
+     */
+    public function assign(string $name, mixed $value)
     {
         if (in_array($name, $this->reserved_var_names)) {
             throw new RendererException("$name is a reserved Renderer variable name.");
         }
 
-        if ($value instanceof Fzb\Input) {
+        if ($value instanceof Input) {
             $this->assign_input($value);
         } else if (is_array($value)) {
             foreach ($value as $key => $var) {
@@ -76,14 +83,20 @@ class Renderer
         $this->render_vars[$name] = $value;
     }
 
-    // flattens an associative array and assigns to render vars with key name as var name
-    public function assign_all($arr)
+    /**
+     * Flattens an associative array and assigns to render vars with key name as var name
+     *
+     * @param mixed $arr Array to be assigned as render vars
+     * @throws RendererException if the method is not passed an associative array or Input object
+     * @return void
+     */
+    public function assign_all(mixed $arr)
     {
         if (is_array($arr)) {
             foreach ($arr as $name => $value) {
                 if (is_int($name)) {
-                    throw new RendererException("assign_all: must pass an associative array or input object");
-                } else if ($arr instanceof Fzb\Input) {
+                    throw new RendererException("assign_all: Must pass an associative array or Input object");
+                } else if ($arr instanceof Input) {
                     $this->assign_input($value);
                 } else {
                     $this->assign($name, $value);
@@ -92,11 +105,17 @@ class Renderer
         }
     }
 
-    // assigns Fzb\InputObjects contained with in an Fzb\Input object to the renderer
-    //  extracting errors to separate variables for easy checking within a template
-    public function assign_input($input)
+    /**
+     * Assigns InputObjects contained with in an Input object to the renderer
+     * extracting errors to separate variables for easy checking within a template
+     * 
+     * @param Input $input Input object to be assigned as render vars
+     * @throws RendererException if method is not passed a Input object
+     * @return void
+     */
+    public function assign_input(Input $input)
     {
-        if ($input instanceof Fzb\Input) {
+        if ($input instanceof Input) {
             $this->assign('input_required_error', $input->is_missing());
             $this->assign('input_validation_error', $input->is_invalid());
 
@@ -108,32 +127,43 @@ class Renderer
                 $this->assign($name."_is_invalid", $input_obj->is_invalid());
             }
         } else {
-            throw new RendererException("assign_input did not receive a valid Fzb\Input object.");
+            throw new RendererException("assign_input did not receive a valid Input object.");
         }
     }
 
-
-    // renders and displays a specified page
-    public function display($template_file)
+    /**
+     * Renders and displays a specified page
+     *
+     * @param string $template_file Template to be rendered
+     * @return void
+     */
+    public function display(string $template_file)
     {
-        //global $settings;
-
-        // start output buffering
-        //if ($settings->get_value('use_gzip')) {
-        //    ob_start('ob_gzhandler');
-        //} else {
-            ob_start();
-        //}
-
-        // do rendering
+        ob_start();
         $this->render($template_file);
-
-        // send buffered output to the browser
         ob_end_flush();
     }
 
-    // internal function for the rendering of pages.  do not call this function directly!  use display()
-    private function render($template_file)
+    /**
+     * Renders the template and returns output as a string instead of sending to the browser
+     *
+     * @param string $template_file Template to be rendered
+     * @return string Rendered HTML string
+     */
+    public function render_as_string(string $template_file): string
+    {
+        ob_start();
+        $this->render($template_file);
+        return ob_get_clean();
+    }
+
+    /**
+     * Internal method for the rendering of pages.
+     *
+     * @param string $template_file Template to be rendered
+     * @return void
+     */
+    private function render(string $template_file)
     {
         // send nifty no cache headers
         // probably change this
@@ -148,7 +178,7 @@ class Renderer
         $this->sandbox_global_state();
 
         // call helper functions to isolate scope of template from this class
-        _load_tpl($this->template_dir.'/'.$template_file, $this->render_vars);
+        _load_tpl($this->templates_dir.'/'.$template_file, $this->render_vars);
 
         // restore the state after sandbox
         $this->restore_global_state();
@@ -157,20 +187,23 @@ class Renderer
         error_reporting(E_ALL);
     }
 
-    // renders the page and returns output as a string instead of sending to the browser
-    public function render_as_string($template_file)
-    {
-        ob_start();
-        $this->render($template_file);
-        return ob_get_clean();
-    }
-
-    public function redirect($location)
+    /**
+     * Send HTTP redirect header
+     * Application should not send any more output to the browser after calling
+     *
+     * @param string $location
+     * @return void
+     */
+    public function redirect(string $location)
     {
         header("Location: $location");
-        exit;
     }
 
+    /**
+     * Sandboxes default global vars so that rogue templates cannot access them
+     *
+     * @return void
+     */
     private function sandbox_global_state()
     {
         if (isset($GLOBALS))  $this->global_state['GLOBALS']  = $GLOBALS;
@@ -183,7 +216,6 @@ class Renderer
         if (isset($_REQUEST)) $this->global_state['_REQUEST'] = $_REQUEST;
         if (isset($_ENV))     $this->global_state['_ENV']     = $_ENV;
 
-        //unset($GLOBALS);
         foreach ($GLOBALS as $global => $val) {
             unset($GLOBALS[$global]);
         }
@@ -197,6 +229,11 @@ class Renderer
         unset($_ENV);
     }
 
+    /**
+     * Restores default global vars after rendering of template is complete
+     *
+     * @return void
+     */
     private function restore_global_state()
     {
         GLOBAL $_ENV;
@@ -218,142 +255,32 @@ class Renderer
         if (isset($this->global_state['_GET']))     $_GET     = $this->global_state['_GET'];
         if (isset($this->global_state['_SERVER']))  $_SERVER  = $this->global_state['_SERVER'];
         
-        //$GLOBALS  = $this->global_state['GLOBALS'];
         if (isset($this->global_state['GLOBALS'])) {
             foreach ($this->global_state['GLOBALS'] as $global => $val) {
                 $GLOBALS[$global] = $val;
             }
         }
 
-        $this->global_state = null;
-    }
-
-    // SELECT, CHECK, RADIO AUTOCOMPLETION
-    public function define_select($name)
-    {
-        $this->selects[$name] = array();
-    }
-
-    public function add_select_items($name, $array)
-    {
-        foreach ($array as $value => $text) {
-            $this->selects[$name][$value] = array($text, 0);
-        }
-    }
-
-    public function add_select_item($name, $value, $text, $selected=0)
-    {
-        $this->selects[$name][$value] = array($text, $selected);
-    }
-
-    public function add_text_item($name, $value)
-    {
-        $this->texts[$name] = $value;
-    }
-
-    public function set_selected($name, $selected)
-    {
-        if (is_array($selected)) {
-            foreach($selected as $x) {
-                if (isset($this->selects[$name][$x])) {
-                    $this->selects[$name][$x][1] = 1;
-                }
-            }
-        }
-        else {
-            if (isset($this->selects[$name][$selected])) {
-                $this->selects[$name][$selected][1] = 1;
-            }
-        }
-    }
-
-    /*function autoselect($name, $selected, $query)
-    {
-        global $db;
-
-        $this->defineselect($name);
-
-        $sth = $db->prepare($query);
-        $sth->execute();
-
-        while ($cols = $sth->fetchrow_array())
-        {
-            $this->addselectitem($name, $cols[0], $cols[1], ($selected == $cols[0] ? 1 : 0));
-        }
-    }*/
-
-    private function select_box($name, $size=0, $multiple=0, $extraparams='')
-    {
-        if (isset($this->selects[$name])) {
-            echo '<select name="'.htmlspecialchars($name).'"';
-            if ($multiple) {
-                echo ' multiple';
-            }
-            if ($size) {
-                echo ' size='.$size;
-            }
-            echo " $extraparams>\n";
-
-            foreach($this->selects[$name] as $value => $data) {
-                list($text, $selected) = $data;
-                echo '<option value="'.htmlspecialchars($value).'"';
-                if ($selected) {
-                    echo ' selected';
-                }
-                echo '>'.htmlspecialchars($text)."</option>\n";
-            }
-            echo "</select>\n";
-        }
-    }
-
-    private function text_box($name, $size=20, $extraparams='')
-    {
-        if (isset($this->texts[$name])) {
-            $text = $this->texts[$name];
-        } else {
-            $text = '';
-        }
-
-        echo '<input type="text" name="'.$name.'" size="'.$size.'" value="'.$text.'" '.$extraparams.'>';
-    }
-
-    private function text_area($name, $cols=40, $rows=5, $extraparams='')
-    {
-        if (isset($this->texts[$name])) {
-            $text = $this->texts[$name];
-        } else {
-            $text = '';
-        }
-
-        echo '<textarea name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'" '.$extraparams.'>';
-        echo $text;
-        echo '</textarea>';
-    }
-
-    private function checkbox_checked($value) {
-        if ($value) {
-            echo "checked";
-        }
+        $this->global_state = array();
     }
 }
 
-class RenderVar
-{
-    static function from_obj($obj)
-    {
-        return new RenderVar();
-    }
-}
-
-// helper function to isolate the template scope from the rest of the class
-function _load_tpl($template_file, $_vars)
+/**
+ * Helper function to isolate the template scope from the rest of the class
+ *
+ * @param string $_template_file
+ * @param array $_vars
+ * @throws RendererException if the specified template file could not be found
+ * @return void
+ */
+function _load_tpl(string $_template_file, array $_vars)
 {
     // create a local variable for each render var
     extract($_vars, EXTR_SKIP);
     unset($_vars);
 
-    if (file_exists($template_file)) {
-        require_once($template_file);
+    if (file_exists($_template_file)) {
+        require_once($_template_file);
     } else {
         throw new RendererException("Renderer could not find the specified template file.");
     }

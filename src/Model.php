@@ -1,30 +1,37 @@
 <?php
-/* 
-    file:         database.class.php
-    type:         Class Definition
-    written by:   Aaron Bishop
-    description:  
-        Simple ORM.  Maps a classes public and private members to a specified database table.
-        Provides functionality to write and retrieve objects to/from the DB.
-    usage:
-        extend DataObject
-*/
+/**
+ * Class Model
+ * 
+ * Simple ORM.  Maps a class's public and private members to a specified database table.
+ * Provides functionality to write and retrieve objects to/from the DB.
+ * Allows raw access to the database if desired.
+ * 
+ * usage: class MyModel extends Fzb\Model
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
+
 
 namespace Fzb;
 
 use Exception;
 use Iterator;
 
-class DataObjectException extends Exception { }
+class ModelException extends Exception { }
 
-abstract class DataObject implements Iterator
+abstract class Model implements Iterator
 {
     const __primary_key__ = 'id';
     const __table__ = '';
 
-    protected $__iter__ = 0;
+    protected int $__iter__ = 0;
 
-    public function __construct(...$params)
+    /**
+     * Constructor
+     *
+     * @param mixed ...$params values to set model members variables to upon creation
+     */
+    public function __construct(mixed ...$params)
     {
         // if a primary key is passed to constructor, set primary key member
         if (isset($params[self::__primary_key__]))
@@ -40,16 +47,28 @@ abstract class DataObject implements Iterator
         }
     }
 
-    static function db()
+    /**
+     * Gets the current Database object
+     *
+     * @todo Add support for multiple concurrent databases
+     * 
+     * @return Database current Database object
+     */
+    static function db(): Database
     {
         $db = get_database();
         if (is_null($db)) {
-            throw new DataObjectException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
+            throw new ModelException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
         }
         return $db;
     }
 
-    static function table()
+    /**
+     * Gets the table associated with the model
+     *
+     * @return string database table used by the model
+     */
+    static function table(): string
     {
         $cls = get_called_class();
         $table = $cls::__table__;
@@ -64,12 +83,12 @@ abstract class DataObject implements Iterator
         return $table;
     }
 
-    function test_get_class_vars()
-    {
-        return get_class_vars(__CLASS__);
-    }
-
-    function get_model_vars()
+    /**
+     * Gets a list of all of the models public and private member variables
+     *
+     * @return array list of all public and private member variables
+     */
+    function get_model_vars(): array
     {
         $table_columns = $this->db()->get_column_names($this->table());
 
@@ -86,7 +105,13 @@ abstract class DataObject implements Iterator
         return $arr;
     }
 
-    function set_model_data($data)
+    /**
+     * Sets public and private member variables to the values passed as an associative array
+     *
+     * @param array $data data to set class members to
+     * @return void
+     */
+    function set_model_data(array $data): void
     {
         $arr = $this->get_model_vars();
 
@@ -99,30 +124,52 @@ abstract class DataObject implements Iterator
         }
     }
 
-    function save()
+    /**
+     * Saves the model's current data to the database
+     *
+     * @return bool if save was successful or not
+     */
+    function save(): bool
     {
         $data = $this->get_model_vars();
 
-        $this->db()->auto_insert_update(
+        $rows_affected = $this->db()->auto_insert_update(
             $this::__table__, 
             $data, 
             $this::__primary_key__ ?? null,
             $data[$this::__primary_key__] ?? null
         );
 
-        $this->{$this::__primary_key__} = $this->db()->last_insert_id();
+        if (!isset($data[$this::__primary_key__]))
+            $this->{$this::__primary_key__} = $this->db()->last_insert_id();
+
+        return $rows_affected > 0;
     }
 
-    function load()
+    /**
+     * Loads a model's data from the database
+     *
+     * @return bool if load was successful or not
+     */
+    function load(): bool
     {
         $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
         $data = $this->db()->selectrow_assoc($query, $this::__primary_key__);
 
-        $this->set_model_data($data);
+        if ($data === false)
+            return false;
+        else
+            $this->set_model_data($data);
+        return true;
     }
 
-    static function get_all()
+    /**
+     * Gets all model objects stored in DB
+     *
+     * @return mixed a single or array of model objects or null
+     */
+    static function get_all(): mixed
     {
         $ret_arr = array();
         $cls = get_called_class();
@@ -142,7 +189,13 @@ abstract class DataObject implements Iterator
             return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;   
     }
 
-    static function get_by(...$params)
+    /**
+     * Gets model objects by where .. and clause of specified parameters
+     *
+     * @param mixed ...$params variadic parameters to be checked
+     * @return mixed a single or array of model objects or null
+     */
+    static function get_by(mixed ...$params): mixed
     {
         $ret_arr = array();
         $cls = get_called_class();
@@ -159,7 +212,7 @@ abstract class DataObject implements Iterator
             foreach ($params as $field => $value)
             {
                 if (!in_array($field, $table_columns)) {
-                    throw new DataObjectException("Table column '$field' does not exist.");
+                    throw new ModelException("Table column '$field' does not exist.");
                 }
                 array_push($query_fields, "$field = ?");
                 array_push($query_values, $value);

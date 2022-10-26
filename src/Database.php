@@ -1,13 +1,18 @@
 <?php
-/* 
-    file:         database.class.php
-    type:         Class Definition
-    written by:   Aaron Bishop
-    description:  
-        This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
-    usage:
-        
-*/
+/**
+ * Class Database
+ * 
+ * This class is a wrapper for PDO to reduce boilerplate and provide a cleaner, more Perl DBI-like interface.
+ * Fully supports MySQL, PostgreSQL, and SQLite.
+ * Partially supports the remainder of PDO supported database engines.
+ * 
+ * usage: Instantiate with $db = new Fzb\Database()
+ *         can specify connection info manually to the constructor,
+ *         specify a .ini file of connection info,
+ *         or from a Fzb\Config object
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
 
 namespace Fzb;
 
@@ -18,14 +23,17 @@ class DatabaseException extends Exception { }
 
 class Database
 {
-    // DATA MEMBERS //
     private $instance;
     private $pdo;
     private $pdo_options;
     private $pdo_sth = null;
 
-    // CONSTRUCTOR //
-    public function __construct(...$options)
+    /**
+     * Constructor
+     *
+     * @param mixed ...$options connection options
+     */
+    public function __construct(mixed ...$options)
     {
         if (sizeof($options) == 0) {
             $config = get_config();
@@ -63,14 +71,21 @@ class Database
         register_database($this);
     }
 
-    // DESTRUCTOR //
+    /**
+     * Destructor
+     */
     public function __destruct()
     {
         $this->disconnect();
         unregister_database($this);
     }
 
-    // METHODS //
+    /**
+     * Connects to database using provided connection info
+     *
+     * @throws DatabaseException if connection could not be established
+     * @return void
+     */
     public function connect()
     {
         $options = [
@@ -103,12 +118,23 @@ class Database
         }
     }
 
+    /**
+     * Disconnects from the database
+     *
+     * @return void
+     */
     public function disconnect(): void
     {
         $this->pdo = null;
     }
 
-    public function prepare($query): void
+    /**
+     * Prepares a query statement
+     *
+     * @param string $query query to be executed
+     * @return void
+     */
+    public function prepare(string $query): void
     {
         // kill any existing sth, maybe add support for multiple sth's later
         if ($this->pdo_sth != null) {
@@ -118,7 +144,13 @@ class Database
         $this->pdo_sth = $this->pdo->prepare($query);
     }
 
-    public function execute(...$params): void
+    /**
+     * Executes a prepared statement
+     *
+     * @param mixed ...$params variadic parameters to be used in prepared statement
+     * @return void
+     */
+    public function execute(mixed ...$params): void
     {
         if ($this->pdo_sth == null) {
             throw new DatabaseException("Cannot execute without preparing a query.");
@@ -126,13 +158,22 @@ class Database
         $this->pdo_sth->execute($params);
     }
 
+    /**
+     * Closes the current database cursor
+     *
+     * @return void
+     */
     public function finish(): void
     {
         $this->pdo_sth->closeCursor();
         $this->pdo_sth = null;
     }
 
-    // operates on a prepared statement
+    /**
+     * Fetches the result of an executed statement as a regular array
+     *      *
+     * @return mixed array of results or null
+     */
     public function fetchrow_array(): mixed
     {
         if ($this->pdo_sth == null) {
@@ -141,6 +182,11 @@ class Database
         return $this->pdo_sth->fetch(PDO::FETCH_NUM);
     }
 
+    /**
+     * Fetches the result of an executed statement as an associative array
+     *
+     * @return mixed associative array of results or null
+     */
     public function fetchrow_assoc(): mixed
     {
         if ($this->pdo_sth == null) {
@@ -150,8 +196,15 @@ class Database
         return $this->pdo_sth->fetch(PDO::FETCH_ASSOC);
     }
 
-    // executes a query and returns no rows
-    public function query($query, ...$params): int
+    // 
+    /**
+     * Prepares and executes a query
+     *
+     * @param string $query query to be executed
+     * @param mixed ...$params parameters to be bound to prepared statement
+     * @return integer rows affected
+     */
+    public function query(string $query, mixed ...$params): int
     {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -161,8 +214,14 @@ class Database
         return $row_count;
     }
 
-    // executes a query and returns the first row of the result as a normal array
-    public function selectrow_array($query, ...$params): mixed
+    /**
+     * Executes a query and returns the first row of the result as a normal array
+     *
+     * @param string $query query to be executed
+     * @param mixed ...$params parameters to be bound to prepared statement
+     * @return mixed query results as array or null
+     */
+    public function selectrow_array(string $query, mixed ...$params): mixed
     {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -170,8 +229,14 @@ class Database
         return $sth->fetch(PDO::FETCH_NUM);
     }
 
-    // executes a query and returns the first row of the result as an associative array
-    public function selectrow_assoc($query, ...$params): mixed
+    /**
+     * Executes a query and returns the first row of the result as an associative array
+     *
+     * @param string $query query to be executed
+     * @param mixed ...$params parameters to be bound to prepared statement
+     * @return mixed query results as associative array or null
+     */
+    public function selectrow_assoc(string $query, mixed ...$params): mixed
     {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -179,8 +244,14 @@ class Database
         return $sth->fetch(PDO::FETCH_ASSOC);
     }
 
-    // execues a query and returns the first column of each row
-    public function selectcol_array($query, ...$params): mixed
+    /**
+     * Execues a query and returns the first column of each row
+     *
+     * @param string $query query to be executed
+     * @param mixed ...$params parameters to be bound to prepared statement
+     * @return mixed query results as array or null
+     */
+    public function selectcol_array(string $query, mixed ...$params): mixed
     {
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
@@ -188,23 +259,47 @@ class Database
         return $sth->fetchAll(PDO::FETCH_COLUMN);
     }
 
+    /**
+     * Last insert ID
+     *
+     * @return integer last insert ID
+     */
     public function last_insert_id(): int
     {
         return $this->pdo->lastInsertId();
     }
 
-    // transactions
+    /**
+     * Begin transatction
+     *
+     * @return boolean success
+     */
     public function begin_transaction(): bool
     {
         return $this->pdo->beginTransaction();
     }
 
+    /**
+     * Commits a transaction
+     *
+     * @return boolean
+     */
     public function commit(): bool
     {
         return $this->pdo->commit();
     }
 
-    public function auto_insert_update($table, $data_array, $table_key = null, $table_key_value = null): int
+    /**
+     * A query builder which attempts to insert or update data into a specified table based on 
+     * provided primary key and primary key value.
+     *
+     * @param string $table table to insert/update into
+     * @param array $data_array associative array of data to be inserted
+     * @param mixed $table_key table primary key
+     * @param mixed $table_key_value table primary key value (for updates)
+     * @return integer
+     */
+    public function auto_insert_update(string $table, array $data_array, mixed $table_key = null, mixed $table_key_value = null): int
     {
         $tables = $this->get_tables();
 
@@ -251,7 +346,13 @@ class Database
         return $this->query($query, ...$query_values);
     }
 
-    public function get_column_names($table)
+    /**
+     * Gets the column names of a specified table
+     *
+     * @param string $table table to be checked
+     * @return mixed array of column names or null
+     */
+    public function get_column_names(string $table): mixed
     {
         if ($this->pdo_options["driver"] == "mysql")
             return $this->selectcol_array("EXPLAIN $table");
@@ -263,7 +364,12 @@ class Database
             throw new DatabaseException("Database driver not supported.");
     }
 
-    public function get_tables()
+    /**
+     * Gets a list of tables in the current database
+     *
+     * @return mixed array of table names or null
+     */
+    public function get_tables(): mixed
     {
         if ($this->pdo_options["driver"] == "mysql")
             return $this->selectrow_array("SHOW TABLES");
