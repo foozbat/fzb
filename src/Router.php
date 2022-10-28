@@ -23,9 +23,9 @@ class Router
     private string $default_controller;
 
     private array $routes = array();
-    private string $route_path;
-
     private string $route_prefix = "";
+
+    private static $instance = null;
 
     const variable_regex = "[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*";
 
@@ -39,37 +39,35 @@ class Router
     function __construct(string $controllers_dir = null, string $default_controller = null)
     {
         // I'm a singleton
-        if (!is_null(get_router()))
+        if (self::$instance !== null)
             throw new RouterException("A router has already been instantiated.  Cannot create more than one instance");
+        else
+            self::$instance = $this;
 
         // validate controllers directory
         if ($controllers_dir == null && defined('CONTROLLERS_DIR'))
             $controllers_dir = CONTROLLERS_DIR;
-        if (!is_dir($controllers_dir))
-            throw new RouterException("Controllers directory does not exist.");
+        if (!is_dir($controllers_dir) && $controllers_dir !== null)
+            throw new RouterException("Specified controllers directory does not exist.");
 
         // set default controller, if any
         if ($default_controller == null && defined('DEFAULT_CONTROLLER'))
             $this->default_controller = DEFAULT_CONTROLLER;
-        else if ($default_controller != null)
+        else if ($default_controller !== null)
             $this->default_controller = $default_controller;
 
-        $this->route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
-
-        if ($controllers_dir) {
+        if ($controllers_dir !== null && $default_controller !== null) {
             $this->find_controllers($controllers_dir);
             $this->determine_controller();
         }
-
-        register_router($this);
     }
 
-    /**
-     * Destructor
-     */
-    function __destruct()
+    public static function get_instance()
     {
-        unregister_router($this);
+        if (self::$instance === null)
+            self::$instance = new Router();
+        
+        return self::$instance;
     }
 
     // CONTROLLER METHODS
@@ -104,7 +102,8 @@ class Router
      */
     private function determine_controller(): void
     {
-        $route_components = explode("/", $this->route_path);
+        $route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
+        $route_components = explode("/", $route_path);
 
         while (count($route_components) > 0) {
             $search = join("/", $route_components);
@@ -169,7 +168,6 @@ class Router
         foreach ($path as $route_string) {
 /*
             print("route def: ".$route_string."\n");
-            print("path ".$this->route_path."\n");
 
             print("\n");
             print_r($method);
@@ -253,6 +251,7 @@ class Router
         //print("<pre>");
         //print("ROUTING...\n");
         //print_r($this->routes);
+        $route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
 
         foreach ($this->routes as $route_string => $route)
         {
@@ -265,7 +264,7 @@ class Router
 
             //print("regex: $route_regex\n");
             
-            $is_match = preg_match($route_regex, $this->route_path);
+            $is_match = preg_match($route_regex, $route_path);
 
             //print("match? $is_match\n");
             $route_vars = array();
@@ -275,7 +274,7 @@ class Router
                 $rslt1 = array();
                 $rslt2 = array();
                 preg_match_all($route_regex, $route_string, $rslt1);
-                preg_match_all($route_regex, $this->route_path, $rslt2);
+                preg_match_all($route_regex, $route_path, $rslt2);
 
                 if (sizeof($rslt1) != sizeof($rslt2))
                     throw new RouterException("Route parameter mismatch.");
