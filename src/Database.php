@@ -29,7 +29,7 @@ class Database
     private $pdo_sth = null;
 
     private static $instances = array();
-    private static $active_instance_id = 0;
+    private static $active_instance_id = null;
 
     private $instance_id = 0;
 
@@ -84,6 +84,10 @@ class Database
         } else {
             $this->instance_id = array_push(self::$instances, $this) - 1;
         }
+
+        if (self::$active_instance_id === null) {
+            self::$active_instance_id = $this->instance_id;
+        }
     }
 
     /**
@@ -97,7 +101,23 @@ class Database
         if ($instance_id === null)
             $instance_id = self::$active_instance_id;
         
+        print("active instance is $instance_id\n");
         return self::$instances[$instance_id] ?? null;
+    }
+
+    /**
+     * Sets the active database instance.
+     *
+     * @param integer $instance_id
+     * @return void
+     */
+    public static function set_active_db(int $instance_id): void
+    {
+        if (array_key_exists($instance_id, self::$instances)) {
+            self::$active_instance_id = $instance_id;
+        } else {
+            throw new DatabaseException("Specified DB instance does not exist.");
+        }
     }
 
     /**
