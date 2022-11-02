@@ -47,7 +47,7 @@ class Input implements ArrayAccess, Iterator
 
     private function read_path_var_values(): void
     {
-        $router = get_router();
+        $router = Router::get_instance();
         $path_string = "";
         if (isset($_SERVER['PATH_INFO'])) {
             if (!is_null($router)) {

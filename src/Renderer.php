@@ -50,8 +50,9 @@ class Renderer
         }
 
         // register default render_vars;
-        if (get_router() !== null)
-            $base_path = get_router()->get_app_base_path() ?? "";
+        $router = Router::get_instance();
+        if ($router !== null)
+            $base_path = $router->get_app_base_path() ?? "";
         else
             $base_path = "";
 

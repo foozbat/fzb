@@ -370,4 +370,14 @@ class Router
     {
         return explode($this->controller_route, $_SERVER['REQUEST_URI'], 2)[0];
     }
+
+    /**
+     * Returns the current route
+     *
+     * @return void
+     */
+    public function get_route()
+    {
+        return $this->controller_route;
+    }
 }
