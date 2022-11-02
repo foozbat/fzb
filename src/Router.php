@@ -62,7 +62,12 @@ class Router
         }
     }
 
-    public static function get_instance()
+    /**
+     * interface for retrieving the Router singleton
+     *
+     * @return Router Router instance
+     */
+    public static function get_instance(): Router
     {
         if (self::$instance === null)
             self::$instance = new Router();
@@ -72,6 +77,30 @@ class Router
 
     // CONTROLLER METHODS
 
+    /**
+     * Recursively searches for controllers in the specified directory and automagically generates route strings
+     *
+     * @param string $parent_dir Initially the controllers root dir
+     * @param string $prefix used internally to handle subdirectory paths
+     * @return void
+     */
+    private function find_controllers(string $parent_dir, string $prefix = '/')
+    {
+        foreach (scandir($parent_dir) as $file) {
+            if ($file != '.' && $file != '..') {
+                if (is_dir($parent_dir.'/'.$file))
+                    $this->find_controllers($parent_dir.'/'.$file, $prefix.$file."/");
+                else if (preg_match('/\.php$/', $file)) {
+                    list($controller, $ext) = explode('.', $file);
+                    $this->controllers[($prefix ? $prefix : '/').$controller] = $parent_dir."/".$file;
+                }
+            }
+        }
+
+        if ($prefix == '/' && $this->default_controller != null)
+            $this->controllers['/'] = $parent_dir.'/'.$this->default_controller;
+    }
+    
     /**
      * Identifies if a controller exists for the requested URI path
      *
@@ -131,6 +160,9 @@ class Router
         if ($this->controller_exists)
         return $this->controller_route;
     }
+
+    // ROUTER METHODS
+
     /**
      * Adds a new route to the router
      *
@@ -337,29 +369,5 @@ class Router
     public function get_app_base_path()
     {
         return explode($this->controller_route, $_SERVER['REQUEST_URI'], 2)[0];
-    }
-
-    /**
-     * Recursively searches for controllers in the specified directory and automagically generates route strings
-     *
-     * @param string $parent_dir Initially the controllers root dir
-     * @param string $prefix used internally to handle subdirectory paths
-     * @return void
-     */
-    private function find_controllers(string $parent_dir, string $prefix = '/')
-    {
-        foreach (scandir($parent_dir) as $file) {
-            if ($file != '.' && $file != '..') {
-                if (is_dir($parent_dir.'/'.$file))
-                    $this->find_controllers($parent_dir.'/'.$file, $prefix.$file."/");
-                else if (preg_match('/\.php$/', $file)) {
-                    list($controller, $ext) = explode('.', $file);
-                    $this->controllers[($prefix ? $prefix : '/').$controller] = $parent_dir."/".$file;
-                }
-            }
-        }
-
-        if ($prefix == '/' && $this->default_controller != null)
-            $this->controllers['/'] = $parent_dir.'/'.$this->default_controller;
     }
 }

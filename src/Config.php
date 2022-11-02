@@ -17,6 +17,8 @@ class Config
 {
     private $config;
 
+    private static $instance = null;
+
     /**
      * Constructor
      *
@@ -25,6 +27,12 @@ class Config
      */
     public function __construct(mixed ...$params)
     {
+        // I'm a singleton
+        if (self::$instance !== null)
+            throw new ConfigException("A config has already been instantiated.  Cannot create more than one instance.");
+        else
+            self::$instance = $this;
+    
         if (isset($params['ini_file'])) {
             if (file_exists($params['ini_file'])) {
                 $this->config = parse_ini_file($params['ini_file'], true);
@@ -34,16 +42,19 @@ class Config
         } else {
             throw new ConfigException("Configuration file not specified.");
         }
-
-        register_config($this);
     }
 
     /**
-     * Destructor
+     * interface for retrieving the Config singleton
+     *
+     * @return Config Config instance
      */
-    public function __destruct()
+    public static function get_instance(): Config
     {
-        unregister_config($this);
+        if (self::$instance === null)
+            throw new ConfigException("Config instance could not be loaded.  Instantiate a new Config object.");
+        
+        return self::$instance;
     }
 
     /**

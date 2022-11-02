@@ -28,6 +28,11 @@ class Database
     private $pdo_options;
     private $pdo_sth = null;
 
+    private static $instances = array();
+    private static $active_instance_id = 0;
+
+    private $instance_id = 0;
+
     /**
      * Constructor
      *
@@ -36,8 +41,9 @@ class Database
     public function __construct(mixed ...$options)
     {
         if (sizeof($options) == 0) {
-            $config = get_config();
-            if (is_null($config)) {
+            try {
+                $config = Config::get_instance();
+            } catch (Exception $e) {
                 throw new DatabaseException("Database connection info not specified. Either set in constructor or configure in a .ini file.");
             }
             $options = $config->get_settings('database');
@@ -68,16 +74,30 @@ class Database
         $this->pdo_options = $options;
         $this->connect();
 
-        register_database($this);
+        // save myself in the array of instances
+        if (isset($options['id'])) {
+            if (isset(self::$instances[$options['id']])) {
+                throw new DatabaseException("Cannot redeclare a specified instance of Fzb\Databse");
+            }
+            self::$instances[$options['id']] = $this;
+            $this->instance_id = $options['id'];
+        } else {
+            $this->instance_id = array_push(self::$instances, $this) - 1;
+        }
     }
 
     /**
-     * Destructor
+     * Retrieves the default or specified instance
+     *
+     * @param integer $instance_num
+     * @return Database
      */
-    public function __destruct()
+    public static function get_instance(?int $instance_id = null): ?Database
     {
-        $this->disconnect();
-        unregister_database($this);
+        if ($instance_id === null)
+            $instance_id = self::$active_instance_id;
+        
+        return self::$instances[$instance_id] ?? null;
     }
 
     /**

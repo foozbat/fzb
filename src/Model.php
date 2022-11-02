@@ -24,6 +24,7 @@ abstract class Model implements Iterator
     const __primary_key__ = 'id';
     const __table__ = '';
 
+    private $__db_id__ = 0;
     protected int $__iter__ = 0;
 
     /**
@@ -56,7 +57,7 @@ abstract class Model implements Iterator
      */
     static function db(): Database
     {
-        $db = get_database();
+        $db = Database::get_instance();
         if (is_null($db)) {
             throw new ModelException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
         }
