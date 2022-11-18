@@ -21,7 +21,12 @@ class Redis
 
     const CHUNK_SIZE = 1024;
 
-    function __construct()
+    private static $instances = array();
+    private static $active_instance_id = null;
+
+    private $instance_id = 0;
+
+    function __construct(mixed ...$options)
     {
         /**
          *  @todo add connection parameters
@@ -34,9 +39,48 @@ class Redis
         if (!$success) {
             throw new RedisException("Could not connect to Redis server.");
         }
+
+        // save myself in the array of instances
+        if (isset($options['id'])) {
+            if (isset(self::$instances[$options['id']])) {
+                throw new RedisException("Cannot redeclare a specified instance of Fzb\Databse");
+            }
+            self::$instances[$options['id']] = $this;
+            $this->instance_id = $options['id'];
+        } else {
+            $this->instance_id = array_push(self::$instances, $this) - 1;
+        }
+
+        if (self::$active_instance_id === null) {
+            self::$active_instance_id = $this->instance_id;
+        }        
+    }
+
+    /**
+     * Retrieves the default or specified instance
+     *
+     * @param integer $instance_num
+     * @return Redis
+     */
+    public static function get_instance(?int $instance_id = null): ?Redis
+    {
+        if ($instance_id === null)
+            $instance_id = self::$active_instance_id;
+        
+        return self::$instances[$instance_id] ?? null;
     }
 
     function __destruct()
+    {
+        $this->disconnect();
+    }
+
+    /**
+     * Disconnects from the Redis server
+     *
+     * @return void
+     */
+    function disconnect()
     {
         socket_close($this->socket);
     }

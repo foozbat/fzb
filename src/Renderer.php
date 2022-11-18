@@ -168,10 +168,11 @@ class Renderer
     {
         // send nifty no cache headers
         // probably change this
+        /*
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
         header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Cache-Control: post-check=0, pre-check=0', FALSE);
-        header('Pragma: no-cache');
+        header('Pragma: no-cache');*/
 
         // sandbox the application state to limit rogue template damage
         error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
@@ -251,8 +252,8 @@ class Renderer
         if (isset($this->global_state['_REQUEST'])) $_REQUEST = $this->global_state['_REQUEST'];
         if (isset($this->global_state['_SESSION'])) $_SESSION = $this->global_state['_SESSION'];
         if (isset($this->global_state['_COOKIE']))  $_COOKIE  = $this->global_state['_COOKIE'];
-        if (isset($this->global_state['_FILES']))   $_FILES      = $this->global_state['_FILES'];
-        if (isset($this->global_state['_POST']))    $$_POST    = $this->global_state['_POST'];
+        if (isset($this->global_state['_FILES']))   $_FILES   = $this->global_state['_FILES'];
+        if (isset($this->global_state['_POST']))    $_POST    = $this->global_state['_POST'];
         if (isset($this->global_state['_GET']))     $_GET     = $this->global_state['_GET'];
         if (isset($this->global_state['_SERVER']))  $_SERVER  = $this->global_state['_SERVER'];
         

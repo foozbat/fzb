@@ -101,7 +101,6 @@ class Database
         if ($instance_id === null)
             $instance_id = self::$active_instance_id;
         
-        print("active instance is $instance_id\n");
         return self::$instances[$instance_id] ?? null;
     }
 
