@@ -7,7 +7,7 @@
  * usage: Instantiate with $router = new Fzb\Router()
  * 
  * @author Aaron Bishop (github.com/foozbat)
- */
+ */ 
 
 namespace Fzb;
 
