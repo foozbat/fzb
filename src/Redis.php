@@ -17,9 +17,12 @@ class RedisException extends Exception { }
 
 class Redis
 {
+    const REDIS_PORT = 6379;
+    const CHUNK_SIZE = 1024;
+    
     private $socket;
 
-    const CHUNK_SIZE = 1024;
+    private string $last_cmd;
 
     private static $instances = array();
     private static $active_instance_id = null;
@@ -32,9 +35,16 @@ class Redis
          *  @todo add connection parameters
          */
 
-        // UNIX domain socket
+        if (!isset($options['host'])) {
+            throw new RedisExcpetion("Did not specify Redis host name");
+        }
+
+        if (!isset($options['port'])) {
+            $options['port'] = $this::REDIS_PORT;
+        }
+
         $this->socket = socket_create(AF_INET, SOCK_STREAM , SOL_TCP);
-        $success = socket_connect($this->socket, '127.0.0.1', 6379);
+        $success = socket_connect($this->socket, $options['host'], $options['port']);
 
         if (!$success) {
             throw new RedisException("Could not connect to Redis server.");
@@ -101,54 +111,33 @@ class Redis
     }
 
     /**
-     * Sets a key to a value
-     *
-     * @param string $key
-     * @param string $value
-     * @return boolean success (OK)
-     */
-    public function set(string $key, string $value): bool
-    {
-        $resp = $this->cmd('SET', $key, $value);
-        
-        if ($resp != "OK") {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Gets a specified key
-     *
-     * @param string $key
-     * @return mixed key value
-     */
-    public function get(string $key): mixed
-    {
-        $resp = $this->cmd('GET', $key);
-
-        return $resp;
-    }
-
-    /**
      * Executes a Redis command and returns the response
      *
-     * @param [type] ...$args "COMMAND", "param", "param"...
+     * @param mixed ...$args "COMMAND", "param", "param"...
      * @return mixed response
      */
-    public function cmd(...$args): mixed
+    public function cmd(mixed ...$args): mixed
     {
         $cmd = "";
 
         $cmd .= "*".sizeof($args)."\r\n";
         foreach ($args as $arg) {
-            $arg = $this->sanitize($arg);
+            //$arg = $this->sanitize($arg);
             $cmd .= "$".strlen($arg)."\r\n".$arg."\r\n";
         }
 
+        $this->last_cmd = implode(' ', $args);
+        $this->last_cmd_raw = $cmd;
+
         socket_write($this->socket, $cmd, strlen($cmd));
 
-        return $this->get_response();
+        $resp = $this->get_response();
+
+        if ($resp instanceof RedisError) {
+            throw new RedisException("Redis error: $resp.");
+        }
+
+        return $resp;
     }
 
     /**
@@ -182,8 +171,6 @@ class Redis
      */
     public function parse_response(string &$response_str, $elements=1): mixed
     {
-        // yes, this function could probably be optimized....
-
         $ret = array();
 
         while ($elements > 0) {
@@ -204,8 +191,10 @@ class Redis
             // * array (length)
             if ($prefix  == ":") {
                 array_push($ret, (int) $value);
-            } else if ($prefix  == "+" || $prefix  == "-") {
+            } else if ($prefix  == "+") {
                 array_push($ret, $value);
+            } else if ($prefix  == "-") {
+                array_push($ret, new RedisError($value));
             } else if ($prefix  == "$") {
                 if ($value == "-1") {
                     array_push($ret, null);
@@ -242,5 +231,150 @@ class Redis
          */
 
         return $string;
+    }
+
+    /**
+     * Redis Command Aliases
+     */
+
+    /**
+     * Sets a key to a value
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return boolean success (OK)
+     */
+    public function set(string $key, mixed $value): bool
+    {
+        $resp = $this->cmd('SET', $key, $value);
+        
+        if ($resp != "OK") {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Gets a specified key
+     *
+     * @param string $key
+     * @return mixed key value
+     */
+    public function get(string $key): mixed
+    {
+        $resp = $this->cmd('GET', $key);
+
+        return $resp;
+    }
+
+    /**
+     * Wrapper for Redis HSET using PHP arrays
+     *
+     * @param string $key key to insert
+     * @param array $data associative array of hash data to insert
+     * @return integer number of fields inserted
+     */
+    public function hset(string $key, array $data): int
+    {
+        $args = array();
+        
+        foreach ($data as $k => $v) {
+            array_push($args, $k);
+            array_push($args, $v);
+        }
+
+        var_dump($args);
+
+        $resp = $this->cmd('HSET', $key, ...$args);
+        var_dump($this->last_cmd_raw);
+        return $resp;
+    }
+
+    /**
+     * Wrapper for Redis HGET
+     *
+     * @param string $key key of Redis hash
+     * @param string $field field to get from Redis hash
+     * @return string|null value of field if set
+     */
+    public function hget(string $key, string $field): ?string
+    {
+        $resp = $this->cmd('HGET', $key, $field);
+        return $resp;
+    }
+
+    /**
+     * Wrapper for Redis HGETALL
+     *
+     * @param string $key key of Redis hash
+     * @return mixed|null Redis hash data as an associative array or null
+     */
+    public function hgetall(string $key): mixed
+    {
+        $resp = $this->cmd('HGETALL', $key);
+
+        if (sizeof($resp) == 0) {
+            return false;
+        }
+
+        $ret = array();
+
+        for ($i=0; $i<sizeof($resp); $i += 2) {
+            $ret[$resp[$i]] = $resp[$i+1];
+        }
+
+        return $ret;        
+    }
+
+    /**
+     * Wrapper for Redis HKEYS
+     *
+     * @param string $key key of Redis hash
+     * @return mixed 
+     */
+    public function hkeys(string $key): mixed
+    {
+        $ret = $this->cmd('HKEYS', $key);
+        return sizeof($ret) > 0 ? $ret : false;
+    }
+
+    /**
+     * Wrapper for Redis HDEL
+     *
+     * @param string $key key of Redis hash
+     * @param [type] ...$fields fields to delete from hash
+     * @return integer number of fields deleted
+     */
+    public function hdel(string $key, ...$fields): int
+    {
+        return $this->cmd('HDEL', $key, ...$fields);
+    }
+
+    /**
+     * Deletes all fields from a Redis hash
+     *
+     * @param string $key key of Redis hash
+     * @return int number of fields deleted 
+     */
+    public function hdelall(string $key): int
+    {
+        $fields = $this->hkeys($key);
+
+        return $this->hdel($key, ...$fields);
+    }
+}
+
+class RedisError
+{
+    private string $error;
+
+    function __construct(string $error)
+    {
+        $this->error = $error;
+    }
+
+    public function __toString()
+    {
+        return $this->error;
     }
 }
