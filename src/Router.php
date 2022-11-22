@@ -17,6 +17,7 @@ class RouterException extends Exception { }
 
 class Router
 {
+    private string $route_path = '/';
     private string $controller_route = '/';
     private array $controllers = array();
     private bool $controller_exists = false;
@@ -131,8 +132,23 @@ class Router
      */
     private function determine_controller(): void
     {
-        $route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
-        $route_components = explode("/", $route_path);
+        /*var_dump($_SERVER['REQUEST_URI']);
+        var_dump($_SERVER['QUERY_STRING']);
+        var_dump($_SERVER['PHP_SELF']);
+        var_dump($_SERVER['SCRIPT_NAME']);*/
+        
+        //$route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
+        
+        // get the route path
+        $count = 1;
+        $base_path = str_replace($_SERVER['SCRIPT_NAME'], '', $_SERVER['PHP_SELF']);
+        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
+        $route_path = str_replace($base_path, '', $route_path, $count);
+        $this->route_path = rtrim($route_path, '/');
+        //$route_path = ltrim($route_path, '/');
+
+        //print("ROUTE PATH: $this->route_path<br/>");
+        $route_components = explode("/", $this->route_path);
 
         while (count($route_components) > 0) {
             $search = join("/", $route_components);
@@ -296,7 +312,7 @@ class Router
 
             //print("regex: $route_regex\n");
             
-            $is_match = preg_match($route_regex, $route_path);
+            $is_match = preg_match($route_regex, $this->route_path);
 
             //print("match? $is_match\n");
             $route_vars = array();
@@ -306,7 +322,7 @@ class Router
                 $rslt1 = array();
                 $rslt2 = array();
                 preg_match_all($route_regex, $route_string, $rslt1);
-                preg_match_all($route_regex, $route_path, $rslt2);
+                preg_match_all($route_regex, $this->route_path, $rslt2);
 
                 if (sizeof($rslt1) != sizeof($rslt2))
                     throw new RouterException("Route parameter mismatch.");
