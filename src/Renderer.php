@@ -40,7 +40,7 @@ class Renderer
         if ($templates_dir !== null) {
             $this->templates_dir = $templates_dir;
         } else if (defined('TEMPLATES_DIR')) {
-            $this->templates_dir = TEMPLATES_DIR;
+            $this->templates_dir = constant('TEMPLATES_DIR');
         } else {
             $this->templates_dir = "/templates";
         }

@@ -47,13 +47,13 @@ class Router
 
         // validate controllers directory
         if ($controllers_dir == null && defined('CONTROLLERS_DIR'))
-            $controllers_dir = CONTROLLERS_DIR;
+            $controllers_dir = constant('CONTROLLERS_DIR');
         if (!is_dir($controllers_dir) && $controllers_dir !== null)
             throw new RouterException("Specified controllers directory does not exist.");
 
         // set default controller, if any
         if ($default_controller == null && defined('DEFAULT_CONTROLLER'))
-            $this->default_controller = DEFAULT_CONTROLLER;
+            $this->default_controller = constant('DEFAULT_CONTROLLER');
         else if ($default_controller !== null)
             $this->default_controller = $default_controller;
 
@@ -380,9 +380,9 @@ class Router
     /**
      * Gets the pase path of the application. For use when application is in a subdirectory of the webroot
      *
-     * @return void
+     * @return string
      */
-    public function get_app_base_path()
+    public function get_app_base_path(): string
     {
         return explode($this->controller_route, $_SERVER['REQUEST_URI'], 2)[0];
     }
@@ -390,9 +390,9 @@ class Router
     /**
      * Returns the current route
      *
-     * @return void
+     * @return string
      */
-    public function get_route()
+    public function get_route(): string
     {
         return $this->controller_route;
     }

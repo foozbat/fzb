@@ -18,7 +18,7 @@ class RedisException extends Exception { }
 class Redis
 {
     const REDIS_PORT = 6379;
-    const CHUNK_SIZE = 1024;
+    const CHUNK_SIZE = 4096;
     
     private $socket;
 
@@ -36,7 +36,7 @@ class Redis
          */
 
         if (!isset($options['host'])) {
-            throw new RedisExcpetion("Did not specify Redis host name");
+            throw new RedisException("Did not specify Redis host name");
         }
 
         if (!isset($options['port'])) {

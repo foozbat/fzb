@@ -96,6 +96,7 @@ class Input implements ArrayAccess, Iterator
             'input_validation_failures' => $validation_failures
         );
 */        
+        return array();
     }
 
     public function is_missing(): bool
