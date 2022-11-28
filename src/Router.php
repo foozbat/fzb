@@ -299,7 +299,6 @@ class Router
         //print("<pre>");
         //print("ROUTING...\n");
         //print_r($this->routes);
-        $route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
 
         foreach ($this->routes as $route_string => $route)
         {
@@ -345,6 +344,14 @@ class Router
                 print("\n");
                 */
                 
+                $refl = new \ReflectionFunction($route['func']);
+                $func_params = $refl->getParameters();
+
+                foreach ($func_params as $param) {
+                    $params[$param->getName()] = $param->getType();
+                }
+
+
                 call_user_func($route['func'], ...$route_vars);
                 return true;
             }

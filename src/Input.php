@@ -18,14 +18,11 @@ use ArrayAccess;
 use Iterator;
 use Exception;
 
-// exceptions
-class InputDefinitionException extends Exception { }
+class InputException extends Exception { }
 
-//
 class Input implements ArrayAccess, Iterator
 {
     private $inputs = array();
-    private $path_vars = array();
 
     /**
      * Constructor
@@ -41,26 +38,9 @@ class Input implements ArrayAccess, Iterator
             parse_str($_SERVER['QUERY_STRING'], $_GET);
         }
 
-        $this->read_path_var_values();
         $this->read_all_inputs($inputs);
     }
-
-    private function read_path_var_values(): void
-    {
-        $router = Router::get_instance();
-        $path_string = "";
-        if (isset($_SERVER['PATH_INFO'])) {
-            if (!is_null($router)) {
-                // remove url route from path string
-                $path_string = explode($router->get_route(), $_SERVER['PATH_INFO'], 2)[1];
-            } else {
-                $path_string = $_SERVER['PATH_INFO'];
-            }
-
-            $this->path_vars = explode("/", ltrim($path_string, '/'));
-        }
-    }
-    
+  
     private function read_all_inputs($inputs): void
     {
         if (isset($inputs)) {
@@ -70,7 +50,7 @@ class Input implements ArrayAccess, Iterator
                     $this->read_input($name, $properties);
                 }
             }
-        }  
+        }
     }
 
     // TODO: remove or refactor
@@ -119,31 +99,31 @@ class Input implements ArrayAccess, Iterator
         return false;
     }
 
-    private function read_input($input_name, $properties = []): void
+    private function read_input($input_name, mixed $properties): void
     {
         if (is_null($input_name)) {
-            throw new InputDefinitionException('Invalid input parameters.');
-        } /*else if (!is_array($properties) && $properties != null) {
-            throw new InputDefinitionException('Cannot assign a value to an input directly, use an array to define input parameters.');
-        } */else {
+            throw new InputException('Invalid input parameters.');
+        } else {
+            if (!is_array($properties)) {
+                $properties = array('value' => $properties);
+            }
+
             // set default values
             $input_required = $properties['required'] ?? false;
-            $input_type     = $properties['type'] ?? 'GET';
+            $input_type     = $properties['type'] ?? 'var';
             $input_validate = $properties['validate'] ?? false;
             $input_sanitize = $properties['sanitize'] ?? false;
             $filter_options = $properties['filter_options'] ?? array();
             $filter_flags   = $properties['filter_flags'] ?? 0;
             $sanitize_flags = $properties['sanitize_flags'] ?? array();
-            $input_value = null;
+            $input_value    = $properties['value'] ?? null;
             $submitted_value = null;
             $input_validated = null;
 
-            if ($input_type == 'GET' && isset($_GET[$input_name])) {
+            if (strtolower($input_type) == 'get' && isset($_GET[$input_name])) {
                 $input_value = $_GET[$input_name];
-            } else if ($input_type == 'POST' && isset($_POST[$input_name])) {
+            } else if (strtolower($input_type) == 'post' && isset($_POST[$input_name])) {
                 $input_value = $_POST[$input_name];
-            } else if ($input_type == 'PATH' && isset($this->path_vars[0])) {
-                $input_value = urldecode( array_shift($this->path_vars) );
             }
 
             $submitted_value = $input_value;
@@ -182,12 +162,6 @@ class Input implements ArrayAccess, Iterator
             //
 
             // record final validated input
-/*            $this->inputs[$input_name] = array(
-                'value' => $input_value,
-                'submitted_value' => $submitted_value,
-                'required' => $input_required,
-                'validated' => $input_validated,
-            );  */
             $this->inputs[$input_name] = new InputObject(
                 name: $input_name,
                 value: $input_value,
