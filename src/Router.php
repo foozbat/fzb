@@ -21,6 +21,7 @@ class Router
     private string $controller_route = '/';
     private array $controllers = array();
     private bool $controller_exists = false;
+    private string $controllers_dir;
     private string $default_controller;
 
     private array $routes = array();
@@ -45,22 +46,40 @@ class Router
         else
             self::$instance = $this;
 
+        // set controllers dir, if any specified, otherwise project root
+        if ($controllers_dir !== null) {
+            $this->controllers_dir = $controllers_dir;
+        } else if (defined('CONTROLLERS_DIR')) {
+            $this->controllers_dir = constant('CONTROLLERS_DIR');
+        } else {
+            //$this->controllers_dir = __DIR__;
+        }
+
         // validate controllers directory
-        if ($controllers_dir == null && defined('CONTROLLERS_DIR'))
-            $controllers_dir = constant('CONTROLLERS_DIR');
-        if (!is_dir($controllers_dir) && $controllers_dir !== null)
+        if ($controllers_dir !== null && !is_dir($controllers_dir)) {
             throw new RouterException("Specified controllers directory does not exist.");
+        }
 
         // set default controller, if any
-        if ($default_controller == null && defined('DEFAULT_CONTROLLER'))
-            $this->default_controller = constant('DEFAULT_CONTROLLER');
-        else if ($default_controller !== null)
+        if ($default_controller !== null) {
             $this->default_controller = $default_controller;
+        } else if (defined('DEFAULT_CONTROLLER')) {
+            $this->default_controller = constant('DEFAULT_CONTROLLER');
+        } else {
+            //$this->default_controller = 'index.php';
+        }
+        
+        // find out the route path from the request URI
+        $this->determine_route_path();
 
+        // if we specified a controllers dir, find all controllers and determine the current one
         if ($controllers_dir !== null && $default_controller !== null) {
             $this->find_controllers($controllers_dir);
             $this->determine_controller();
         }
+
+        //var_dump(get_included_files());
+        //var_dump($this->controllers);
     }
 
     /**
@@ -87,13 +106,19 @@ class Router
      */
     private function find_controllers(string $parent_dir, string $prefix = '/')
     {
+        $included_files = get_included_files();
+
         foreach (scandir($parent_dir) as $file) {
             if ($file != '.' && $file != '..') {
                 if (is_dir($parent_dir.'/'.$file))
                     $this->find_controllers($parent_dir.'/'.$file, $prefix.$file."/");
                 else if (preg_match('/\.php$/', $file)) {
                     list($controller, $ext) = explode('.', $file);
-                    $this->controllers[($prefix ? $prefix : '/').$controller] = $parent_dir."/".$file;
+                    $controller_path = $parent_dir."/".$file;
+
+                    if (!in_array($controller_path, $included_files)) {
+                        $this->controllers[($prefix ? $prefix : '/').$controller] = $controller_path;
+                    }
                 }
             }
         }
@@ -135,18 +160,11 @@ class Router
         /*var_dump($_SERVER['REQUEST_URI']);
         var_dump($_SERVER['QUERY_STRING']);
         var_dump($_SERVER['PHP_SELF']);
-        var_dump($_SERVER['SCRIPT_NAME']);*/
-        
-        //$route_path = rtrim($_SERVER['PATH_INFO'] ?? '/', '/');
-        
-        // get the route path
-        $count = 1;
-        $base_path = str_replace($_SERVER['SCRIPT_NAME'], '', $_SERVER['PHP_SELF']);
-        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
-        $route_path = str_replace($base_path, '', $route_path, $count);
-        $this->route_path = rtrim($route_path, '/');
-        //$route_path = ltrim($route_path, '/');
+        var_dump($_SERVER['SCRIPT_NAME']);
+        var_dump($_SERVER['SCRIPT_FILENAME']);
 
+        print("<br />");*/
+        
         //print("ROUTE PATH: $this->route_path<br/>");
         $route_components = explode("/", $this->route_path);
 
@@ -178,6 +196,15 @@ class Router
     }
 
     // ROUTER METHODS
+
+    public function determine_route_path(): void
+    {
+        $count = 1;
+        $base_path = dirname($_SERVER['SCRIPT_NAME']);
+        $route_path = str_replace($base_path, '', $_SERVER['REQUEST_URI'], $count);
+        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
+        $this->route_path = rtrim($route_path, '/');
+    }
 
     /**
      * Adds a new route to the router
@@ -296,9 +323,9 @@ class Router
      */   
     public function route(): bool
     {
-        //print("<pre>");
-        //print("ROUTING...\n");
-        //print_r($this->routes);
+        print("<pre>");
+        print("ROUTING...\n");
+        print_r($this->routes);
 
         foreach ($this->routes as $route_string => $route)
         {

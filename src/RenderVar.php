@@ -2,17 +2,23 @@
 namespace Fzb;
 
 use Iterator;
+use IteratorIterator;
 use ArrayAccess;
 
 class RenderVar implements ArrayAccess, Iterator
 {
     private $__data;
     public $unsafe;
+    public $iterator;
     
     function __construct($data)
     {
         $this->__data = $data;
         $this->unsafe = &$this->__data;
+
+        if (is_iterable($this->__data) && !is_array($this->__data)) {
+            $this->iterator = new IteratorIterator($this->__data);
+        }
     }
 
     public function unsafe(): mixed
@@ -67,27 +73,54 @@ class RenderVar implements ArrayAccess, Iterator
     // Iterator methods
     public function current(): mixed
     {
-        return new RenderVar(current($this->__data));
+        if (is_array($this->__data)) {
+            return new RenderVar(current($this->__data));
+        } else if (is_iterable($this->__data)) {
+            return new RenderVar($this->iterator->current());
+        } else {
+            return null;
+        }
     }
 
     public function key(): mixed
     {
-        return key($this->__data);
+        if (is_array($this->__data)) {
+            return key($this->__data);
+        } else if (is_iterable($this->__data)) {
+            return $this->iterator->key();
+        } else {
+            return null;
+        }
     }
 
     public function next(): void
     {
-        next($this->__data);
+        if (is_array($this->__data)) {
+            next($this->__data);
+        } else if (is_iterable($this->__data)) {
+            print("NEXTING");
+            $this->iterator->next();
+        }
     }
 
     public function rewind(): void
     {
-        reset($this->__data);
+        if (is_array($this->__data)) {
+            reset($this->__data);
+        } else if (is_iterable($this->__data)) {
+            $this->iterator->rewind();
+        }
     }
 
     public function valid (): bool
     {
-        return key($this->__data) !== null;
+        if (is_array($this->__data)) {
+            return key($this->__data) !== null;
+        } else if (is_iterable($this->__data)) {
+            return $this->iterator->valid();
+        } else {
+            return false;
+        }
     }
 }
 

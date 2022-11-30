@@ -287,6 +287,7 @@ class Redis
 
         $resp = $this->cmd('HSET', $key, ...$args);
         var_dump($this->last_cmd_raw);
+        var_dump($resp);
         return $resp;
     }
 

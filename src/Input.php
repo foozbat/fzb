@@ -46,6 +46,10 @@ class Input implements ArrayAccess, Iterator
         if (isset($inputs)) {
             if (is_array($inputs)) {
                 foreach ($inputs as $name => $properties) {
+                    if (is_int($name)) {
+                        $name = $properties;
+                        $properties = null;
+                    }
                     //$this->offsetSet($name, $properties);
                     $this->read_input($name, $properties);
                 }

@@ -74,14 +74,20 @@ class Renderer
         }
 
         if ($value instanceof Input) {
-            $this->assign_input($value);
-        } else if (is_array($value)) {
-            foreach ($value as $key => $var) {
-                $this->render_vars[$name][$key] = $var;
-            }
+            $this->flag_error('input_required', $value->is_missing());
+            $this->flag_error('input_validation', $value->is_invalid());
         }
 
-        $this->render_vars[$name] = $value;
+        $this->render_vars[$name] = new RenderVar($value);
+    }
+
+    public function flag_error(string $error_name, bool $is_error)
+    {
+        if (!isset($this->render_vars[$error_name."_error"])) {
+            $this->render_vars[$error_name."_error"] = $is_error;
+        } else {
+            $this->render_vars[$error_name."_error"] |= $is_error;
+        }
     }
 
     /**
@@ -93,12 +99,15 @@ class Renderer
      */
     public function assign_all(mixed $arr)
     {
-        if (is_array($arr)) {
+        if ($arr instanceof Input) {
+            $this->flag_error('input_required', $arr->is_missing());
+            $this->flag_error('input_validation', $arr->is_invalid());
+        }
+
+        if (is_array($arr) || is_iterable($arr)) {
             foreach ($arr as $name => $value) {
                 if (is_int($name)) {
                     throw new RendererException("assign_all: Must pass an associative array or Input object");
-                } else if ($arr instanceof Input) {
-                    $this->assign_input($value);
                 } else {
                     $this->assign($name, $value);
                 }
@@ -114,7 +123,7 @@ class Renderer
      * @throws RendererException if method is not passed a Input object
      * @return void
      */
-    public function assign_input(Input $input)
+/*    public function assign_input(Input $input)
     {
         if ($input instanceof Input) {
             $this->assign('input_required_error', $input->is_missing());
@@ -130,7 +139,7 @@ class Renderer
         } else {
             throw new RendererException("assign_input did not receive a valid Input object.");
         }
-    }
+    }*/
 
     /**
      * Renders and displays a specified page
@@ -282,7 +291,7 @@ function _load_tpl(string $_template_file, array $_vars)
     unset($_vars);
 
     if (file_exists($_template_file)) {
-        require_once($_template_file);
+        require($_template_file);
     } else {
         throw new RendererException("Renderer could not find the specified template file.");
     }
