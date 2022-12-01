@@ -16,11 +16,12 @@ use Iterator;
 use IteratorIterator;
 use ArrayAccess;
 use ArrayIterator;
+use EmptyIterator;
 
 class RenderVar implements ArrayAccess, Iterator
 {
     public readonly mixed $unsafe;
-    private ArrayIterator|IteratorIterator $iterator;
+    private ArrayIterator|IteratorIterator|EmptyIterator $iterator;
     
     /**
      * Constructor
@@ -35,6 +36,8 @@ class RenderVar implements ArrayAccess, Iterator
             $this->iterator = new ArrayIterator($this->unsafe);
         } else if (is_iterable($this->unsafe)) {
             $this->iterator = new IteratorIterator($this->unsafe);
+        } else {
+            $this->iterator = new EmptyIterator();
         }
     }
 
@@ -114,7 +117,11 @@ class RenderVar implements ArrayAccess, Iterator
 
     public function current(): mixed
     {
-        return new RenderVar($this->iterator->current());
+        if (is_iterable($this->unsafe)) {
+            return new RenderVar($this->iterator->current());
+        }
+
+        return $this;
     }
 
     public function key(): mixed

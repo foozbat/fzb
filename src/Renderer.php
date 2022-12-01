@@ -64,7 +64,7 @@ class Renderer
      * @throws RendererException if the specified var name is reserved
      * @return void
      */
-    public function assign(string $name, mixed $value)
+    public function set(string $name, mixed $value): void
     {
         if (in_array($name, $this->reserved_var_names)) {
             throw new RendererException("$name is a reserved Renderer variable name.");
@@ -94,7 +94,7 @@ class Renderer
      * @throws RendererException if the method is not passed an associative array or Input object
      * @return void
      */
-    public function assign_all(mixed $arr)
+    public function set_all(mixed $arr): void
     {
         if ($arr instanceof Input) {
             $this->flag_error('input_required', $arr->is_missing());
@@ -106,37 +106,11 @@ class Renderer
                 if (is_int($name)) {
                     throw new RendererException("assign_all: Must pass an associative array or Input object");
                 } else {
-                    $this->assign($name, $value);
+                    $this->set($name, $value);
                 }
             }
         }
     }
-
-    /**
-     * Assigns InputObjects contained with in an Input object to the renderer
-     * extracting errors to separate variables for easy checking within a template
-     * 
-     * @param Input $input Input object to be assigned as render vars
-     * @throws RendererException if method is not passed a Input object
-     * @return void
-     */
-/*    public function assign_input(Input $input)
-    {
-        if ($input instanceof Input) {
-            $this->assign('input_required_error', $input->is_missing());
-            $this->assign('input_validation_error', $input->is_invalid());
-
-            foreach ($input as $name => $input_obj) {
-                $this->assign($name, (string) $input_obj);
-                $this->assign($name."_submitted_value", $input_obj->submitted_value());
-                $this->assign($name."_is_required", $input_obj->is_required());
-                $this->assign($name."_is_missing", $input_obj->is_missing());
-                $this->assign($name."_is_invalid", $input_obj->is_invalid());
-            }
-        } else {
-            throw new RendererException("assign_input did not receive a valid Input object.");
-        }
-    }*/
 
     /**
      * Renders and displays a specified page
