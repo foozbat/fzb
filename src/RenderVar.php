@@ -15,12 +15,12 @@ namespace Fzb;
 use Iterator;
 use IteratorIterator;
 use ArrayAccess;
+use ArrayIterator;
 
 class RenderVar implements ArrayAccess, Iterator
 {
-    private $__data;
-    public $unsafe;
-    public $iterator;
+    public readonly mixed $unsafe;
+    private ArrayIterator|IteratorIterator $iterator;
     
     /**
      * Constructor
@@ -29,11 +29,12 @@ class RenderVar implements ArrayAccess, Iterator
      */
     function __construct(mixed $data)
     {
-        $this->__data = $data;
-        $this->unsafe = &$this->__data;
+        $this->unsafe = $data;
 
-        if (is_iterable($this->__data) && !is_array($this->__data)) {
-            $this->iterator = new IteratorIterator($this->__data);
+        if (is_array($this->unsafe)) {
+            $this->iterator = new ArrayIterator($this->unsafe);
+        } else if (is_iterable($this->unsafe)) {
+            $this->iterator = new IteratorIterator($this->unsafe);
         }
     }
 
@@ -45,8 +46,8 @@ class RenderVar implements ArrayAccess, Iterator
      */
     public function __get(string $name): RenderVar
     {
-        if (property_exists($this->__data, $name)) {
-            return new RenderVar($this->__data->{$name});
+        if (property_exists($this->unsafe, $name)) {
+            return new RenderVar($this->unsafe->{$name});
         }
     }
 
@@ -57,11 +58,11 @@ class RenderVar implements ArrayAccess, Iterator
      */
     public function __toString()
     {
-        if (is_object($this->__data)) {
-            return _htmlspecialchars( (string) $this->__data );
+        if (is_object($this->unsafe)) {
+            return _htmlspecialchars( (string) $this->unsafe );
         }
         
-        return _htmlspecialchars( $this->__data );
+        return _htmlspecialchars( $this->unsafe );
     }
 
     /**
@@ -73,8 +74,8 @@ class RenderVar implements ArrayAccess, Iterator
      */
     public function __call(string $method, array $args): mixed
     {
-        if (method_exists($this->__data, $method)) {
-            $ret = $this->__data->$method(...$args);
+        if (method_exists($this->unsafe, $method)) {
+            $ret = $this->unsafe->$method(...$args);
             if ($ret !== null) {
                 return _htmlspecialchars($ret);
             }
@@ -92,74 +93,48 @@ class RenderVar implements ArrayAccess, Iterator
 
     public function offsetExists($offset): bool
     {
-        return isset($this->__data[$offset]);
+        return isset($this->unsafe[$offset]);
     }
 
     public function offsetUnset($offset): void
     {
-        unset($this->__data[$offset]);
+        return;
     }
 
     public function offsetGet($offset): mixed
     {
-        return isset($this->__data[$offset]) ? new RenderVar($this->__data[$offset]) : null;
+        return isset($this->unsafe[$offset]) ? new RenderVar($this->unsafe[$offset]) : null;
     }  
 
     /**
      * Iterator Methods
      * 
-     * Supports iterating an an internal array or iterable using IteratorIterator
+     * Supports iterating an an internal array or iterable
      */
 
     public function current(): mixed
     {
-        if (is_array($this->__data)) {
-            return new RenderVar(current($this->__data));
-        } else if (is_iterable($this->__data)) {
-            return new RenderVar($this->iterator->current());
-        } else {
-            return null;
-        }
+        return new RenderVar($this->iterator->current());
     }
 
     public function key(): mixed
     {
-        if (is_array($this->__data)) {
-            return key($this->__data);
-        } else if (is_iterable($this->__data)) {
-            return $this->iterator->key();
-        } else {
-            return null;
-        }
+        return $this->iterator->key();
     }
 
     public function next(): void
     {
-        if (is_array($this->__data)) {
-            next($this->__data);
-        } else if (is_iterable($this->__data)) {
-            $this->iterator->next();
-        }
+        $this->iterator->next();
     }
 
     public function rewind(): void
     {
-        if (is_array($this->__data)) {
-            reset($this->__data);
-        } else if (is_iterable($this->__data)) {
-            $this->iterator->rewind();
-        }
+        $this->iterator->rewind();
     }
 
     public function valid (): bool
     {
-        if (is_array($this->__data)) {
-            return key($this->__data) !== null;
-        } else if (is_iterable($this->__data)) {
-            return $this->iterator->valid();
-        } else {
-            return false;
-        }
+        return $this->iterator->valid();
     }
 }
 
