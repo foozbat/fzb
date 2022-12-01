@@ -11,7 +11,7 @@
  * 
  * @author  Aaron Bishop (github.com/foozbat)
  * 
- * @todo refactor entire class.  I am not happy with it's implementation.
+ * @todo refactor class.  I am not happy with it's implementation.
  */
 
 namespace Fzb;
@@ -42,70 +42,17 @@ class Input implements ArrayAccess, Iterator
 
         $this->read_all_inputs($inputs);
     }
-  
-    private function read_all_inputs($inputs): void
-    {
-        if (isset($inputs)) {
-            if (is_array($inputs)) {
-                foreach ($inputs as $name => $properties) {
-                    if (is_int($name)) {
-                        $name = $properties;
-                        $properties = null;
-                    }
-                    //$this->offsetSet($name, $properties);
-                    $this->read_input($name, $properties);
-                }
-            }
-        }
-    }
 
-    // TODO: remove or refactor
-    public function get_validation_failures(): array
-    {
-/*        $validation_failures = array();
-        $required_failures = array();
-
-        foreach ($this->inputs as $name => $properties) {
-            if ($properties['required'] && ($properties['submitted_value'] == null || $properties['submitted_value'] == '')) {
-                array_push($required_failures, $name);
-            } else if (isset($properties['validated'])) {
-                if ($properties['validated'] === false) {
-                    array_push($validation_failures, $name);
-                }
-            }
-        }
-
-        return array(
-            'input_required_error' => sizeof($required_failures) > 0,
-            'input_required_failures' => $required_failures,
-            'input_validation_error' => sizeof($validation_failures) > 0,
-            'input_validation_failures' => $validation_failures
-        );
-*/        
-        return array();
-    }
-
-    public function is_missing(): bool
-    {
-        foreach ($this->inputs as $input_name) {
-            if ($input_name->is_missing()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public function is_invalid(): bool
-    {
-        foreach ($this->inputs as $input_name) {
-            if ($input_name->is_invalid()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function read_input($input_name, mixed $properties): void
+    /**
+     * Reads a specified input name from get/post/etc and performs specified validation.
+     *
+     * @param string $input_name Name of input to be read
+     * @param mixed $properties Input source and validation/santitization options
+     * @return void
+     * 
+     * @todo Refactor to something cleaner
+     */
+    private function read_input(string $input_name, mixed $properties): void
     {
         if (is_null($input_name)) {
             throw new InputException('Invalid input parameters.');
@@ -181,7 +128,62 @@ class Input implements ArrayAccess, Iterator
         }
     }
 
-    // Request method checking
+    /**
+     * Wrapper for read_input which supports an array of inputs.
+     *
+     * @param array $inputs inputs to be read from source
+     * @return void
+     */
+    private function read_all_inputs(array $inputs): void
+    {
+        if (isset($inputs)) {
+            if (is_array($inputs)) {
+                foreach ($inputs as $name => $properties) {
+                    if (is_int($name)) {
+                        $name = $properties;
+                        $properties = null;
+                    }
+                    $this->read_input($name, $properties);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if any required field is missing
+     *
+     * @return boolean True if missing
+     */
+    public function is_missing(): bool
+    {
+        foreach ($this->inputs as $input_name) {
+            if ($input_name->is_missing()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if any validated field is invalid
+     *
+     * @return boolean True if invalid
+     */
+    public function is_invalid(): bool
+    {
+        foreach ($this->inputs as $input_name) {
+            if ($input_name->is_invalid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Request method checking
+     *   Wrappers for $_SERVER['REQUEST_METHOD']
+     */
+    
     public function request_method()
     {
         return $_SERVER['REQUEST_METHOD'];
@@ -207,7 +209,9 @@ class Input implements ArrayAccess, Iterator
         return $_SERVER['REQUEST_METHOD'] == 'DELETE';
     }
 
-    // ArrayAccess Methods
+    /**
+     * ArrayAccess methods
+     */
 
     public function offsetSet($input_name, $properties = null): void
     {
@@ -229,24 +233,43 @@ class Input implements ArrayAccess, Iterator
         return isset($this->inputs[$offset]) ? $this->inputs[$offset] : null;
     }    
 
-    // Iterator methods
-    public function current(): mixed {
+    /**
+     * Iterator methods
+     */
+    
+    public function current(): mixed
+    {
         return current($this->inputs);
     }
-    public function key(): mixed {
+
+    public function key(): mixed
+    {
         return key($this->inputs);
     }
-    public function next(): void {
+
+    public function next(): void
+    {
         next($this->inputs);
     }
-    public function rewind(): void {
+
+    public function rewind(): void
+    {
         reset($this->inputs);
     }
-    public function valid (): bool {
+
+    public function valid (): bool
+    {
         return key($this->inputs) !== null;
     }
 }
 
+/**
+ * InputObject Class
+ * 
+ * Container for input data and their associated validation results
+ * 
+ * @todo refactor
+ */
 class InputObject 
 {
     private $name;
