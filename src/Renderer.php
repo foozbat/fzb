@@ -21,12 +21,9 @@ class RendererException extends Exception { }
 
 class Renderer
 {
-    // DATA MEMBERS //
     private string $templates_dir;
-
     private array $render_vars = array();
     private array $reserved_var_names = ['_vars', '_base_path', 'html'];
-
     private array $global_state = array();
 
     /**

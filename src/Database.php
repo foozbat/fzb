@@ -12,6 +12,8 @@
  *         or from a Fzb\Config object
  * 
  * @author Aaron Bishop (github.com/foozbat)
+ * 
+ * @todo Currently, statement handlers are handled internally.  Possibly refactor to allow developer to handle own $sth.
  */
 
 namespace Fzb;
@@ -40,6 +42,10 @@ class Database
      */
     public function __construct(mixed ...$options)
     {
+        /**
+         * @todo Refactor this ugly constructor :(
+         */
+
         if (sizeof($options) == 0) {
             try {
                 $config = Config::get_instance();
@@ -98,9 +104,10 @@ class Database
      */
     public static function get_instance(?int $instance_id = null): ?Database
     {
-        if ($instance_id === null)
+        if ($instance_id === null) {
             $instance_id = self::$active_instance_id;
-        
+        }
+
         return self::$instances[$instance_id] ?? null;
     }
 
@@ -194,6 +201,7 @@ class Database
         if ($this->pdo_sth == null) {
             throw new DatabaseException("Cannot execute without preparing a query.");
         }
+
         $this->pdo_sth->execute($params);
     }
 
@@ -387,37 +395,43 @@ class Database
 
     /**
      * Gets the column names of a specified table
+     * 
+     * @todo Add support for more DBs
      *
      * @param string $table table to be checked
      * @return mixed array of column names or null
      */
     public function get_column_names(string $table): mixed
     {
-        if ($this->pdo_options["driver"] == "mysql")
+        if ($this->pdo_options["driver"] == "mysql") {
             return $this->selectcol_array("EXPLAIN $table");
-        else if ($this->pdo_options["driver"] == "sqlite")
+        } else if ($this->pdo_options["driver"] == "sqlite") {
             return $this->selectcol_array("SELECT name FROM pragma_table_info('$table')");
-        else if ($this->pdo_options["driver"] == "pgsql")
+        } else if ($this->pdo_options["driver"] == "pgsql") {
             return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
-        else
+        } else {
             throw new DatabaseException("Database driver not supported.");
+        }
     }
 
     /**
      * Gets a list of tables in the current database
      *
+     * @todo Add support for more DBs
+     *    
      * @return mixed array of table names or null
      */
     public function get_tables(): mixed
     {
-        if ($this->pdo_options["driver"] == "mysql")
+        if ($this->pdo_options["driver"] == "mysql") {
             return $this->selectrow_array("SHOW TABLES");
-        else if ($this->pdo_options["driver"] == "sqlite")
+        } else if ($this->pdo_options["driver"] == "sqlite") {
             return $this->selectrow_array("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-        else if ($this->pdo_options["driver"] == "pgsql")
+        } else if ($this->pdo_options["driver"] == "pgsql") {
             return $this->selectrow_array("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'information_schema' AND schemaname != 'pg_catalog'");
-        else
+        } else {
             throw new DatabaseException("Database driver not supported.");
+        }
     }
 }
 

@@ -9,6 +9,8 @@
  *        Constructor is passed a list of inputs to define, along with validation requirements
  *        Inputs can be accessed by referencing the object as an array, i.e. $input['myinput']
  * 
+ * @author  Aaron Bishop (github.com/foozbat)
+ * 
  * @todo refactor entire class.  I am not happy with it's implementation.
  */
 

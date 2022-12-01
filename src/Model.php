@@ -8,6 +8,10 @@
  * 
  * usage: class MyModel extends Fzb\Model
  * 
+ * notes: By default, a Model's public and private members will be mapped to DB colums,
+ *        if they exist.  Protected members are not written to the DB,
+ *        so structure your models accordingly.
+ * 
  * @author Aaron Bishop (github.com/foozbat)
  */
 
@@ -67,6 +71,8 @@ abstract class Model implements Iterator
     /**
      * Gets the table associated with the model
      *
+     * @todo Add support for defaulting table name to the class name, if __table__ not specified.
+     * 
      * @return string database table used by the model
      */
     static function table(): string
@@ -76,8 +82,9 @@ abstract class Model implements Iterator
 
         if ($table == '')
         {
-            if ($pos = strrpos($cls, '\\')) 
+            if ($pos = strrpos($cls, '\\')) {
                 $cls = substr($cls, $pos + 1);
+            }
             $table = strtolower($cls);
         }
 
@@ -118,8 +125,7 @@ abstract class Model implements Iterator
 
         foreach ($arr as $var => $val)
         {
-            if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__"))
-            {
+            if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
                 $this->{$var} = $data[$var];
             }
         }
@@ -141,8 +147,9 @@ abstract class Model implements Iterator
             $data[$this::__primary_key__] ?? null
         );
 
-        if (!isset($data[$this::__primary_key__]))
+        if (!isset($data[$this::__primary_key__])) {
             $this->{$this::__primary_key__} = $this->db()->last_insert_id();
+        }
 
         return $rows_affected > 0;
     }

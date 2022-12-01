@@ -41,10 +41,11 @@ class Router
     function __construct(string $controllers_dir = null, string $default_controller = null)
     {
         // I'm a singleton
-        if (self::$instance !== null)
+        if (self::$instance !== null) {
             throw new RouterException("A router has already been instantiated.  Cannot create more than one instance");
-        else
+        } else {
             self::$instance = $this;
+        }
 
         // set controllers dir, if any specified, otherwise project root
         if ($controllers_dir !== null) {
@@ -89,9 +90,10 @@ class Router
      */
     public static function get_instance(): Router
     {
-        if (self::$instance === null)
+        if (self::$instance === null) {
             self::$instance = new Router();
-        
+        }
+
         return self::$instance;
     }
 
@@ -110,9 +112,9 @@ class Router
 
         foreach (scandir($parent_dir) as $file) {
             if ($file != '.' && $file != '..') {
-                if (is_dir($parent_dir.'/'.$file))
+                if (is_dir($parent_dir.'/'.$file)) {
                     $this->find_controllers($parent_dir.'/'.$file, $prefix.$file."/");
-                else if (preg_match('/\.php$/', $file)) {
+                } else if (preg_match('/\.php$/', $file)) {
                     list($controller, $ext) = explode('.', $file);
                     $controller_path = $parent_dir."/".$file;
 
@@ -123,8 +125,9 @@ class Router
             }
         }
 
-        if ($prefix == '/' && $this->default_controller != null)
+        if ($prefix == '/' && $this->default_controller != null) {
             $this->controllers['/'] = $parent_dir.'/'.$this->default_controller;
+        }
     }
     
     /**
@@ -144,10 +147,11 @@ class Router
      */
     public function get_controller(): string
     {
-        if ($this->controller_exists)
+        if ($this->controller_exists) {
             return $this->controllers[$this->controller_route];
-        else
+        } else {
             throw new RouterException("A controller could not be found for the specified URI path.  Specify a default controller to prevent this error.");
+        }
     }
 
     /**
@@ -157,15 +161,6 @@ class Router
      */
     private function determine_controller(): void
     {
-        /*var_dump($_SERVER['REQUEST_URI']);
-        var_dump($_SERVER['QUERY_STRING']);
-        var_dump($_SERVER['PHP_SELF']);
-        var_dump($_SERVER['SCRIPT_NAME']);
-        var_dump($_SERVER['SCRIPT_FILENAME']);
-
-        print("<br />");*/
-        
-        //print("ROUTE PATH: $this->route_path<br/>");
         $route_components = explode("/", $this->route_path);
 
         while (count($route_components) > 0) {
@@ -189,14 +184,23 @@ class Router
      *
      * @return string URI path of the current controller
      */
-    public function get_controller_path(): string
+    public function get_controller_path(): ?string
     {
-        if ($this->controller_exists)
-        return $this->controller_route;
+        if ($this->controller_exists) {
+            return $this->controller_route;
+        }
+
+        return null;
     }
 
     // ROUTER METHODS
 
+    /**
+     * Gets the route path relative to the root directory of the application
+     * Allows for the app to be in the document root or a subfolder
+     *
+     * @return void
+     */
     public function determine_route_path(): void
     {
         $count = 1;
@@ -216,50 +220,26 @@ class Router
      */
     public function add(mixed $method = 'GET', mixed $path = null, callable $func = null): void
     {
-        /*
-        $route_string = array_shift($params);
-        $route_methods = $params['methods'];
-        $route_func = null;
-
-        if (!is_callable($params[0])) {
-            $route_methods = array_shift($params);
-            if (!is_array($route_methods))
-                $route_methods = array($route_methods);
-        }
-
-        if (is_callable($params[0]))
-            $route_func = array_shift($params);
-*/
-        //print("<pre>");
-        //print("<b>ADDING ROUTES</b>\n");
-
         if (!is_array($path))   $path = array($path);
         if (!is_array($method)) $method = array($method);
-        if (!is_callable($func))
+        if (!is_callable($func)) {
             throw new RouterException("Callback function not provided for route.");
+        }
 
         $method = array_map("strtoupper", $method);
 
         foreach ($path as $route_string) {
-/*
-            print("route def: ".$route_string."\n");
-
-            print("\n");
-            print_r($method);
-            print("\n");
-            //print_r($route_func);
-            print("\n");
-*/
-            if (!str_starts_with($route_string, '/'))
+            if (!str_starts_with($route_string, '/')) {
                 $route_string = '/'.$route_string;
+            }
 
-            if ($this->route_prefix != '')
+            if ($this->route_prefix != '') {
                 $route_string = $this->route_prefix . $route_string;
+            }
 
-            //print($route_string."<br/>");
-
-            if (isset($this->routes[$route_string]))
+            if (isset($this->routes[$route_string])) {
                 throw new RouterException("Attempting to redefine route \"$route_string\"");
+            }
 
             $this->routes[$route_string] = [
                 'method' => $method,
@@ -331,16 +311,11 @@ class Router
         {
             $route_string = rtrim($route_string, '/');
 
-            //print("CHECKING route: $route_string\n");
-
             $route_regex = preg_replace("/\{(.*?)\}/i", "(.*?)", $route_string);
             $route_regex = "~^".str_replace("/", "\/", $route_regex)."$~i";
-
-            //print("regex: $route_regex\n");
             
             $is_match = preg_match($route_regex, $this->route_path);
-
-            //print("match? $is_match\n");
+;
             $route_vars = array();
             $route_var_vals = array();
 
@@ -363,13 +338,6 @@ class Router
                     
                     $route_vars[$var_name] = $var_val;
                 }
-
-                /*
-                print("vars:\n");
-                print_r($route_vars);
-                print_r($route['func']);
-                print("\n");
-                */
                 
                 $refl = new \ReflectionFunction($route['func']);
                 $func_params = $refl->getParameters();
@@ -378,6 +346,9 @@ class Router
                     $params[$param->getName()] = $param->getType();
                 }
 
+                /**
+                 * @todo Finish implementing ReflectionFunction type checks
+                 */
 
                 call_user_func($route['func'], ...$route_vars);
                 return true;

@@ -28,10 +28,11 @@ class Config
     public function __construct(mixed ...$params)
     {
         // I'm a singleton
-        if (self::$instance !== null)
+        if (self::$instance !== null) {
             throw new ConfigException("A config has already been instantiated.  Cannot create more than one instance.");
-        else
+        } else {
             self::$instance = $this;
+        }
     
         if (isset($params['ini_file'])) {
             if (file_exists($params['ini_file'])) {
@@ -51,9 +52,10 @@ class Config
      */
     public static function get_instance(): Config
     {
-        if (self::$instance === null)
+        if (self::$instance === null) {
             throw new ConfigException("Config instance could not be loaded.  Instantiate a new Config object.");
-        
+        }
+
         return self::$instance;
     }
 

@@ -29,6 +29,13 @@ class Redis
 
     private $instance_id = 0;
 
+    /**
+     * Constructor
+     *
+     * @todo add support for Unix domain sockets
+     * 
+     * @param mixed ...$options Connection options
+     */
     function __construct(mixed ...$options)
     {
         /**
@@ -67,6 +74,14 @@ class Redis
     }
 
     /**
+     * Destructor
+     */
+    function __destruct()
+    {
+        $this->disconnect();
+    }
+
+    /**
      * Retrieves the default or specified instance
      *
      * @param integer $instance_num
@@ -78,11 +93,6 @@ class Redis
             $instance_id = self::$active_instance_id;
         
         return self::$instances[$instance_id] ?? null;
-    }
-
-    function __destruct()
-    {
-        $this->disconnect();
     }
 
     /**
@@ -183,12 +193,14 @@ class Redis
             // remove first string through first delimiter
             $response_str = substr($response_str, strpos($response_str, "\r\n")+2);
 
-            // add to ret array according to prefix code
-            // : int (value)
-            // + simple string (value)
-            // - error (value)
-            // $ bulk string (length)
-            // * array (length)
+            /**
+             * Add to ret array according to prefix code:
+             *  : int (value)
+             *  + simple string (value)
+             *  - error (value)
+             *  $ bulk string (length)
+             *  * array (length)
+             */
             if ($prefix  == ":") {
                 array_push($ret, (int) $value);
             } else if ($prefix  == "+") {
@@ -365,6 +377,11 @@ class Redis
     }
 }
 
+/**
+ * RedisError Class
+ * 
+ * Allows for typing a Redis error string
+ */
 class RedisError
 {
     private string $error;

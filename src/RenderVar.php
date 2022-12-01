@@ -1,4 +1,15 @@
 <?php
+/**
+ * Class Fzb\RenderVar
+ * 
+ * Container for a render variable which returns HTML-safe output for any printable type.
+ * Typically only used internally by Fzb\Renderer
+ * 
+ * @author  Aaron Bishop (github.com/foozbat)
+ * 
+ * @todo Possibly rename this class, do more testing.
+ */
+
 namespace Fzb;
 
 use Iterator;
@@ -11,7 +22,12 @@ class RenderVar implements ArrayAccess, Iterator
     public $unsafe;
     public $iterator;
     
-    function __construct($data)
+    /**
+     * Constructor
+     *
+     * @param mixed $data Data to be rendered
+     */
+    function __construct(mixed $data)
     {
         $this->__data = $data;
         $this->unsafe = &$this->__data;
@@ -21,26 +37,39 @@ class RenderVar implements ArrayAccess, Iterator
         }
     }
 
-    public function unsafe(): mixed
-    {
-        return $this->__data;
-    }
-
-    public function __get(string $name) {
+    /**
+     * Returns a RenderVar encapsulated public member variable for a class
+     *
+     * @param string $name Member Variable
+     * @return RenderVar
+     */
+    public function __get(string $name): RenderVar {
         if (property_exists($this->__data, $name)) {
             return new RenderVar($this->__data->{$name});
         }
     }
 
-    public function __toString() {
+    /**
+     * HTML-safe output getter
+     *
+     * @return string HTML-safe output
+     */
+    public function __toString(): mixed {
         if (is_object($this->__data)) {
             return _htmlspecialchars( (string) $this->__data );
-        } else {
-            return _htmlspecialchars( $this->__data );
         }
+        
+        return _htmlspecialchars( $this->__data );
     }
 
-    public function __call($method, $args) {
+    /**
+     * Calls class method and gets HTML-safe output
+     *
+     * @param string $method class method to call
+     * @param array $args Method arguments
+     * @return mixed HTML-safe output or RenderVar
+     */
+    public function __call(string $method, array $args): mixed {
         if (method_exists($this->__data, $method)) {
             $ret = $this->__data->$method(...$args);
             if ($ret !== null) {
@@ -49,7 +78,10 @@ class RenderVar implements ArrayAccess, Iterator
         }
     }
 
-    // ArrayAccess methods
+    /**
+     * Array Access Methods
+     */
+    
     public function offsetSet($input_name, $properties = null): void
     {
         return;
@@ -70,7 +102,12 @@ class RenderVar implements ArrayAccess, Iterator
         return isset($this->__data[$offset]) ? new RenderVar($this->__data[$offset]) : null;
     }  
 
-    // Iterator methods
+    /**
+     * Iterator Methods
+     * 
+     * Supports iterating an an internal array or iterable using IteratorIterator
+     */
+
     public function current(): mixed
     {
         if (is_array($this->__data)) {
@@ -124,7 +161,13 @@ class RenderVar implements ArrayAccess, Iterator
     }
 }
 
-function _htmlspecialchars($data) {
+/**
+ * Wrapper for htmlspecialchars to support arrays and objects
+ *
+ * @param mixed $data Data to be rendered HTML-safe
+ * @return void HTML-safe output or RenderVar
+ */
+function _htmlspecialchars(mixed $data) {
     if (is_array($data)) {
         foreach ($data as $key => $value ) {
             $data[htmlspecialchars($key)] = _htmlspecialchars($value);
