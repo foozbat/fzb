@@ -43,18 +43,20 @@ class RenderVar implements ArrayAccess, Iterator
      * @param string $name Member Variable
      * @return RenderVar
      */
-    public function __get(string $name): RenderVar {
+    public function __get(string $name): RenderVar
+    {
         if (property_exists($this->__data, $name)) {
             return new RenderVar($this->__data->{$name});
         }
     }
 
     /**
-     * HTML-safe output getter
+     * HTML-safe output gette
      *
-     * @return string HTML-safe output
+     * @return string
      */
-    public function __toString(): mixed {
+    public function __toString()
+    {
         if (is_object($this->__data)) {
             return _htmlspecialchars( (string) $this->__data );
         }
@@ -69,7 +71,8 @@ class RenderVar implements ArrayAccess, Iterator
      * @param array $args Method arguments
      * @return mixed HTML-safe output or RenderVar
      */
-    public function __call(string $method, array $args): mixed {
+    public function __call(string $method, array $args): mixed
+    {
         if (method_exists($this->__data, $method)) {
             $ret = $this->__data->$method(...$args);
             if ($ret !== null) {
@@ -135,7 +138,6 @@ class RenderVar implements ArrayAccess, Iterator
         if (is_array($this->__data)) {
             next($this->__data);
         } else if (is_iterable($this->__data)) {
-            print("NEXTING");
             $this->iterator->next();
         }
     }
@@ -167,7 +169,8 @@ class RenderVar implements ArrayAccess, Iterator
  * @param mixed $data Data to be rendered HTML-safe
  * @return void HTML-safe output or RenderVar
  */
-function _htmlspecialchars(mixed $data) {
+function _htmlspecialchars(mixed $data)
+{
     if (is_array($data)) {
         foreach ($data as $key => $value ) {
             $data[htmlspecialchars($key)] = _htmlspecialchars($value);
