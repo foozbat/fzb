@@ -117,11 +117,7 @@ class RenderVar implements ArrayAccess, Iterator
 
     public function current(): mixed
     {
-        if (is_iterable($this->unsafe)) {
-            return new RenderVar($this->iterator->current());
-        }
-
-        return $this;
+        return new RenderVar($this->iterator->current());
     }
 
     public function key(): mixed
