@@ -68,118 +68,133 @@ class Input implements ArrayAccess, Iterator
 
         if (is_null($input_name)) {
             throw new InputException('Invalid input parameters.');
-        } else {
-            if (is_string($properties)) {
-                if (strpos($properties, '|') !== false) {
-                    $properties = explode('|', $properties);
-                } else {
-                    $properties = array($properties);
+        }
+
+        if (is_string($properties)) {
+            if (strpos($properties, ' ') !== false) {
+                $properties = preg_replace("/\s+/i",  ' ', $properties);
+                $properties = str_replace("\r\n", '', $properties);
+                $properties = str_replace("\n",   '', $properties);
+                $properties = ltrim($properties);
+                $properties = rtrim($properties);
+                $properties = explode(' ', $properties);
+            } else {
+                $properties = array($properties);
+            }
+        }
+
+        if ($properties !== null) {
+            foreach ($properties as $property) {
+                $property = strtolower($property);
+                if ($property == 'get') {
+                    $input_type = 'get';
+                } else if ($property == 'post') {
+                    $input_type = 'post';
+                } else if ($property == 'required') {
+                    $input_required = true;
+                } else if (strpos($property, 'validate:') !== false) {
+                    list($tag, $option) = explode(':', $property);
+
+                    $option = 'FILTER_VALIDATE_'.strtoupper($option);
+
+                    if (defined($option)) {
+                        $input_validate = constant($option);
+                    } else {
+                        throw new InputException('Invalid input validation option.');
+                    }
+                } else if (strpos($property, 'sanitize:') !== false) {
+                    list($tag, $option) = explode(':', $property);
+
+                    $option = 'FILTER_SANITIZE_'.strtoupper($option);
+
+                    if (defined($option)) {
+                        $input_sanitize = constant($option);
+                    } else {
+                        throw new InputException('Invalid input sanitization option.');
+                    }
+                } else if (strpos($property, 'validate_flags:' !== false)) {
+                    list($tag, $options) = explode(':', $property);
+                    $flags = explode(',', $options);
                 }
             }
+        }
 
-             if ($properties !== null) {
-                foreach ($properties as $property) {
-                    $property = strtolower($property);
-                    if ($property == 'get' || $property == 'post') {
-                        $input_type = $property;
-                    } else if ($property == 'required') {
-                        $input_required = $property;
-                    } else if (strpos($property, 'validate:') !== false) {
-                        list($validate, $option) = explode(':', $property);
+        /*
+        if (!is_array($properties)) {
+            $properties = array('value' => $properties);
+        }
 
-                        $option = 'FILTER_VALIDATE_'.strtoupper($option);
+        // set default values
+        $input_required = $properties['required'] ?? false;
+        $input_type     = $properties['type'] ?? 'var';
+        $input_validate = $properties['validate'] ?? false;
+        $input_sanitize = $properties['sanitize'] ?? false;
+        $filter_options = $properties['filter_options'] ?? array();
+        $filter_flags   = $properties['filter_flags'] ?? 0;
+        $sanitize_flags = $properties['sanitize_flags'] ?? array();
+        $input_value    = $properties['value'] ?? null;
+        $submitted_value = null;
+        $input_validated = null;
+        */
 
-                        if (defined($option)) {
-                            $input_validate = constant($option);
-                        }
-                    } else if (strpos($property, 'sanitize:') !== false) {
-                        list($validate, $option) = explode(':', $property);
+        if ($input_type == 'get' && isset($_GET[$input_name])) {
+            $input_value = $_GET[$input_name];
+        } else if ($input_type == 'post' && isset($_POST[$input_name])) {
+            $input_value = $_POST[$input_name];
+        }
 
-                        $option = 'FILTER_SANITIZE_'.strtoupper($option);
+        $submitted_value = $input_value;
 
-                        if (defined($option)) {
-                            $input_sanitize = constant($option);
-                        }
-                    } 
-                }
+        $filter_flags |= FILTER_NULL_ON_FAILURE;
+
+        // check if required value was submitted or not
+        $input_submitted = !($submitted_value == null || $submitted_value == '') ;
+
+        // validate the input according to filter
+        if ($input_validate != false) {
+            $input_value = filter_var(
+                $input_value, 
+                $input_validate,
+                array('options' => $filter_options, 'flags' => $filter_flags)
+            );
+
+            if ($input_validate == FILTER_VALIDATE_BOOLEAN) {
+                $input_value = $input_value ?? false;
             }
 
-            /*
-            if (!is_array($properties)) {
-                $properties = array('value' => $properties);
-            }
-
-            // set default values
-            $input_required = $properties['required'] ?? false;
-            $input_type     = $properties['type'] ?? 'var';
-            $input_validate = $properties['validate'] ?? false;
-            $input_sanitize = $properties['sanitize'] ?? false;
-            $filter_options = $properties['filter_options'] ?? array();
-            $filter_flags   = $properties['filter_flags'] ?? 0;
-            $sanitize_flags = $properties['sanitize_flags'] ?? array();
-            $input_value    = $properties['value'] ?? null;
-            $submitted_value = null;
-            $input_validated = null;
-            */
-
-            if (strtolower($input_type) == 'get' && isset($_GET[$input_name])) {
-                $input_value = $_GET[$input_name];
-            } else if (strtolower($input_type) == 'post' && isset($_POST[$input_name])) {
-                $input_value = $_POST[$input_name];
-            }
-
-            $submitted_value = $input_value;
-
-            $filter_flags |= FILTER_NULL_ON_FAILURE;
-
-            // check if required value was submitted or not
-            $input_submitted = !($submitted_value == null || $submitted_value == '') ;
-
-            // validate the input according to filter
-            if ($input_validate != false) {
-                $input_value = filter_var(
-                    $input_value, 
-                    $input_validate,
-                    array('options' => $filter_options, 'flags' => $filter_flags)
-                );
-
-                if ($input_validate == FILTER_VALIDATE_BOOLEAN) {
-                    $input_value = $input_value ?? false;
-                }
-
-                $input_validated = ($input_submitted ? $input_value !== null: null);
-            }
+            $input_validated = ($input_submitted ? $input_value !== null: null);
+        }
 
 
-            // sanitize the input according to filter
-            if ($input_sanitize != false) {
-                $input_value = filter_var(
-                    $input_value, 
-                    $input_sanitize,
-                    $sanitize_flags
-                );
-            }
-
-            // probably add more advanced filtering and santization here
-            //
-
-            // record final validated input
-            $this->inputs[$input_name] = new InputObject(
-                name:  $input_name,
-                value: $input_value,
-                type:  $input_type,
-
-                is_required: $input_required,
-                is_missing:  $input_required && $input_submitted === false,
-                is_invalid:  $input_validate && $input_validated === false,
-                /*
-                submitted_value: $submitted_value,
-                required: $input_required,
-                submitted: $input_submitted,
-                validate: $input_validate != false,
-                validated: $input_validated,*/
+        // sanitize the input according to filter
+        if ($input_sanitize != false) {
+            $input_value = filter_var(
+                $input_value, 
+                $input_sanitize,
+                $sanitize_flags
             );
         }
+
+        // probably add more advanced filtering and santization here
+        //
+
+        // record final validated input
+        $this->inputs[$input_name] = new InputObject(
+            name:  $input_name,
+            value: $input_value,
+            type:  $input_type,
+
+            is_required: $input_required,
+            is_missing:  $input_required && $input_submitted === false,
+            is_invalid:  $input_validate && $input_validated === false,
+            /*
+            submitted_value: $submitted_value,
+            required: $input_required,
+            submitted: $input_submitted,
+            validate: $input_validate != false,
+            validated: $input_validated,*/
+        );
+
     }
 
     /**
