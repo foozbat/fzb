@@ -42,16 +42,17 @@ class RenderVar implements ArrayAccess, Iterator
     }
 
     /**
-     * Returns a RenderVar encapsulated public member variable for a class
+     * Returns a output for a stored object
      *
      * @param string $name Member Variable
-     * @return RenderVar
+     * @return mixed
      */
-    public function __get(string $name): RenderVar
+    public function __get(string $name): mixed
     {
         if (property_exists($this->unsafe, $name)) {
-            return new RenderVar($this->unsafe->{$name});
+            return _htmlspecialchars( $this->unsafe->{$name} );
         }
+        return null;
     }
 
     /**
@@ -155,7 +156,7 @@ function _htmlspecialchars(mixed $data)
         }
     } else if (is_object($data)) {
         $data = new RenderVar($data);
-    } else if ($data !== null) {
+    } else if (is_string($data)) {
         $data = htmlspecialchars($data);
     }
     return $data;

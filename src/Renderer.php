@@ -75,7 +75,7 @@ class Renderer
             $this->flag_error('input_validation', $value->is_invalid());
         }
 
-        $this->render_vars[$name] = new RenderVar($value);
+        $this->render_vars[$name] = $this->process_var($value);
     }
 
     public function flag_error(string $error_name, bool $is_error)
@@ -110,6 +110,20 @@ class Renderer
                 }
             }
         }
+    }
+
+    private function process_var(mixed $data)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value ) {
+                $data[$key] = $this->process_var($value);
+            }
+        } else if (is_object($data) || is_string($data)) {
+            $data = new RenderVar($data);
+        }
+        
+        return $data;
+
     }
 
     /**

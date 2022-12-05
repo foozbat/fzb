@@ -116,14 +116,19 @@ class Input implements ArrayAccess, Iterator
 
             // record final validated input
             $this->inputs[$input_name] = new InputObject(
-                name: $input_name,
+                name:  $input_name,
                 value: $input_value,
-                type: $input_type,
+                type:  $input_type,
+
+                is_required: $input_required,
+                is_missing:  $input_required && $input_submitted === false,
+                is_invalid:  $input_validate && $input_validated === false,
+                /*
                 submitted_value: $submitted_value,
                 required: $input_required,
                 submitted: $input_submitted,
                 validate: $input_validate != false,
-                validated: $input_validated,
+                validated: $input_validated,*/
             );
         }
     }
@@ -157,7 +162,7 @@ class Input implements ArrayAccess, Iterator
     public function is_missing(): bool
     {
         foreach ($this->inputs as $input_name) {
-            if ($input_name->is_missing()) {
+            if ($input_name->is_missing) {
                 return true;
             }
         }
@@ -172,7 +177,7 @@ class Input implements ArrayAccess, Iterator
     public function is_invalid(): bool
     {
         foreach ($this->inputs as $input_name) {
-            if ($input_name->is_invalid()) {
+            if ($input_name->is_invalid) {
                 return true;
             }
         }
@@ -272,25 +277,24 @@ class Input implements ArrayAccess, Iterator
  */
 class InputObject 
 {
-    private $name;
-    private $value;
-    private $type;
-    private $submitted_value;
-    private $required;
-    private $submitted;
-    private $validate;
-    private $validated;
+    private string $name;
+    private string $type;
 
-    public function __construct(...$properties)
+    public mixed $value;
+
+    public readonly bool $is_required;
+    public readonly bool $is_missing;
+    public readonly bool $is_invalid;
+
+    function __construct(string $name, mixed $value, string $type, bool $is_required, bool $is_missing, bool $is_invalid)
     {
-        $this->name = $properties['name'];
-        $this->value = $properties['value'];
-        $this->type = $properties['type'];
-        $this->submitted_value = $properties['submitted_value'];
-        $this->required = $properties['required'];
-        $this->submitted = $properties['submitted'];
-        $this->validate = $properties['validate'];
-        $this->validated = $properties['validated'];
+        $this->name  = $name;
+        $this->value = $value;
+        $this->type  = $type;
+
+        $this->is_required = $is_missing;
+        $this->is_missing  = $is_missing;        
+        $this->is_invalid  = $is_invalid;
     }
 
     public function __toString()
@@ -299,25 +303,5 @@ class InputObject
             return "";
         else
             return $this->value;
-    }
-
-    public function is_invalid(): bool
-    {
-        return $this->validate == true && $this->validated === false;
-    }
-
-    public function is_missing(): bool
-    {
-        return $this->required == true && $this->submitted === false;
-    }
-
-    public function is_required(): bool
-    {
-        return $this->required == true;
-    }
-
-    public function submitted_value()
-    {
-        return $this->submitted_value;
     }
 }
