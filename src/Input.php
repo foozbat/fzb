@@ -54,9 +54,57 @@ class Input implements ArrayAccess, Iterator
      */
     private function read_input(string $input_name, mixed $properties): void
     {
+        // default values
+        $input_required  = false;
+        $input_type      = 'var';
+        $input_validate  = false;
+        $input_sanitize  = false;
+        $filter_options  = array();
+        $filter_flags    = 0;
+        $sanitize_flags  = array();
+        $input_value     = null;
+        $submitted_value = null;
+        $input_validated = null;
+
         if (is_null($input_name)) {
             throw new InputException('Invalid input parameters.');
         } else {
+            if (is_string($properties)) {
+                if (strpos($properties, '|') !== false) {
+                    $properties = explode('|', $properties);
+                } else {
+                    $properties = array($properties);
+                }
+            }
+
+             if ($properties !== null) {
+                foreach ($properties as $property) {
+                    $property = strtolower($property);
+                    if ($property == 'get' || $property == 'post') {
+                        $input_type = $property;
+                    } else if ($property == 'required') {
+                        $input_required = $property;
+                    } else if (strpos($property, 'validate:') !== false) {
+                        list($validate, $option) = explode(':', $property);
+
+                        $option = 'FILTER_VALIDATE_'.strtoupper($option);
+
+                        if (defined($option)) {
+                            $input_validate = constant($option);
+                        }
+                    } else if (strpos($property, 'sanitize:') !== false) {
+                        list($validate, $option) = explode(':', $property);
+
+                        $option = 'FILTER_SANITIZE_'.strtoupper($option);
+
+                        if (defined($option)) {
+                            $input_sanitize = constant($option);
+                        }
+                    } 
+                }
+            }
+
+            /*
             if (!is_array($properties)) {
                 $properties = array('value' => $properties);
             }
@@ -72,6 +120,7 @@ class Input implements ArrayAccess, Iterator
             $input_value    = $properties['value'] ?? null;
             $submitted_value = null;
             $input_validated = null;
+            */
 
             if (strtolower($input_type) == 'get' && isset($_GET[$input_name])) {
                 $input_value = $_GET[$input_name];
