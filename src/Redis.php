@@ -153,8 +153,6 @@ class Redis
         
         $resp = $this->get_response();
 
-        var_dump($resp);
-
         if ($resp instanceof RedisError) {
             throw new RedisException("Redis error: $resp.");
         }
