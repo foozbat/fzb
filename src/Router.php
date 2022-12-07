@@ -83,6 +83,11 @@ class Router
         //var_dump($this->controllers);
     }
 
+    function __destruct()
+    {
+        self::$instance = null;
+    }
+
     /**
      * interface for retrieving the Router singleton
      *
@@ -203,11 +208,18 @@ class Router
      */
     public function determine_route_path(): void
     {
-        $count = 1;
+        $route_path = $_SERVER['REQUEST_URI'];
+
         $base_path = dirname($_SERVER['SCRIPT_NAME']);
-        $route_path = str_replace($base_path, '', $_SERVER['REQUEST_URI'], $count);
-        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
-        $this->route_path = rtrim($route_path, '/');
+
+        if ($base_path != '/') {
+            $count = 1;
+            $route_path = str_replace($base_path, '', $_SERVER['REQUEST_URI'], $count);
+            $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
+            $route_path = rtrim($route_path, '/');
+        }
+
+        $this->route_path = $route_path;
     }
 
     /**
@@ -303,10 +315,6 @@ class Router
      */   
     public function route(): bool
     {
-        print("<pre>");
-        print("ROUTING...\n");
-        print_r($this->routes);
-
         foreach ($this->routes as $route_string => $route)
         {
             $route_string = rtrim($route_string, '/');

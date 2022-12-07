@@ -50,7 +50,11 @@ class RenderVar implements ArrayAccess, Iterator
     public function __get(string $name): mixed
     {
         if (property_exists($this->unsafe, $name)) {
-            return _htmlspecialchars( $this->unsafe->{$name} );
+            if (is_string($this->unsafe->{$name}) || is_object($this->unsafe->{$name})) {
+                return new RenderVar($this->unsafe->{$name});
+            } 
+            
+            return $this->unsafe->{$name};
         }
         return null;
     }
@@ -62,7 +66,7 @@ class RenderVar implements ArrayAccess, Iterator
      */
     public function __toString()
     {
-        if (is_object($this->unsafe)) {
+        if ($this->unsafe instanceof \Stringable) {
             return _htmlspecialchars( (string) $this->unsafe );
         }
         
@@ -81,7 +85,11 @@ class RenderVar implements ArrayAccess, Iterator
         if (method_exists($this->unsafe, $method)) {
             $ret = $this->unsafe->$method(...$args);
             if ($ret !== null) {
-                return _htmlspecialchars($ret);
+                if (is_string($this->unsafe->{$name}) || is_object($this->unsafe->{$name})) {
+                    return new RenderVar($ret);
+                } else {
+                    return _htmlspecialchars($ret);
+                }
             }
         }
     }
@@ -154,8 +162,6 @@ function _htmlspecialchars(mixed $data)
         foreach ($data as $key => $value ) {
             $data[htmlspecialchars($key)] = _htmlspecialchars($value);
         }
-    } else if (is_object($data)) {
-        $data = new RenderVar($data);
     } else if (is_string($data)) {
         $data = htmlspecialchars($data);
     }

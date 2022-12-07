@@ -66,21 +66,17 @@ class Input implements ArrayAccess, Iterator
         $submitted_value = null;
         $input_validated = null;
 
-        if (is_null($input_name)) {
+        if (is_null($input_name) && !is_string($properties) && !is_array($properties) ) {
             throw new InputException('Invalid input parameters.');
         }
 
         if (is_string($properties)) {
-            if (strpos($properties, ' ') !== false) {
-                $properties = preg_replace("/\s+/i",  ' ', $properties);
-                $properties = str_replace("\r\n", '', $properties);
-                $properties = str_replace("\n",   '', $properties);
-                $properties = ltrim($properties);
-                $properties = rtrim($properties);
-                $properties = explode(' ', $properties);
-            } else {
-                $properties = array($properties);
-            }
+            $properties = preg_replace('/\s+/',  ' ', $properties);
+            $properties = str_replace('\r', '', $properties);
+            $properties = str_replace('\n', '', $properties);
+            $properties = ltrim($properties);
+            $properties = rtrim($properties);
+            $properties = explode(' ', $properties);
         }
 
         if ($properties !== null) {
@@ -183,6 +179,7 @@ class Input implements ArrayAccess, Iterator
             name:  $input_name,
             value: $input_value,
             type:  $input_type,
+            submitted_value: $submitted_value,
 
             is_required: $input_required,
             is_missing:  $input_required && $input_submitted === false,
@@ -345,17 +342,19 @@ class InputObject
     private string $type;
 
     public mixed $value;
+    public readonly mixed $submitted_value;
 
     public readonly bool $is_required;
     public readonly bool $is_missing;
     public readonly bool $is_invalid;
 
-    function __construct(string $name, mixed $value, string $type, bool $is_required, bool $is_missing, bool $is_invalid)
+    function __construct(string $name, mixed $value, mixed $submitted_value, string $type, bool $is_required, bool $is_missing, bool $is_invalid)
     {
         $this->name  = $name;
         $this->value = $value;
         $this->type  = $type;
 
+        $this->submitted_value = $submitted_value;
         $this->is_required = $is_missing;
         $this->is_missing  = $is_missing;        
         $this->is_invalid  = $is_invalid;

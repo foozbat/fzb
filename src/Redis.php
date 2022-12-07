@@ -295,11 +295,11 @@ class Redis
             array_push($args, $v);
         }
 
-        var_dump($args);
+        //var_dump($args);
 
         $resp = $this->cmd('HSET', $key, ...$args);
-        var_dump($this->last_cmd_raw);
-        var_dump($resp);
+        //var_dump($this->last_cmd_raw);
+        //var_dump($resp);
         return $resp;
     }
 

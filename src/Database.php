@@ -164,6 +164,11 @@ class Database
         }
     }
 
+    function __destruct()
+    {
+        $this->disconnect();
+    }
+
     /**
      * Disconnects from the database
      *
