@@ -21,6 +21,8 @@ class Redis
     const CHUNK_SIZE = 4096;
     
     private $socket;
+    private $host;
+    private $port;
 
     private string $last_cmd;
 
@@ -50,12 +52,10 @@ class Redis
             $options['port'] = $this::REDIS_PORT;
         }
 
-        $this->socket = socket_create(AF_INET, SOCK_STREAM , SOL_TCP);
-        $success = socket_connect($this->socket, $options['host'], $options['port']);
+        $this->host = $options['host'];
+        $this->port = $options['port'];
 
-        if (!$success) {
-            throw new RedisException("Could not connect to Redis server.");
-        }
+        $this->connect();
 
         // save myself in the array of instances
         if (isset($options['id'])) {
@@ -78,7 +78,7 @@ class Redis
      */
     function __destruct()
     {
-        $this->disconnect();
+        //$this->disconnect();
     }
 
     /**
@@ -95,6 +95,16 @@ class Redis
         return self::$instances[$instance_id] ?? null;
     }
 
+    public function connect() : void
+    {
+        $this->socket = socket_create(AF_INET, SOCK_STREAM , SOL_TCP);
+        $success = socket_connect($this->socket, $this->host, $this->port);
+
+        if (!$success) {
+            throw new RedisException("Could not connect to Redis server.");
+        }
+
+    }
     /**
      * Disconnects from the Redis server
      *
@@ -140,8 +150,10 @@ class Redis
         $this->last_cmd_raw = $cmd;
 
         socket_write($this->socket, $cmd, strlen($cmd));
-
+        
         $resp = $this->get_response();
+
+        var_dump($resp);
 
         if ($resp instanceof RedisError) {
             throw new RedisException("Redis error: $resp.");
@@ -161,8 +173,10 @@ class Redis
         $buf = '';
         $response = '';
 
-        while (false !== ($bytes = socket_recv($this->socket, $buf, $this::CHUNK_SIZE, MSG_DONTWAIT))) {
-            $response .= $buf;
+        while ($response == '') { // might cause infinite loop, need to refactor
+            while (false !== ($bytes = socket_recv($this->socket, $buf, $this::CHUNK_SIZE, MSG_DONTWAIT))) {
+                $response .= $buf;
+            }
         }
 
         //$ret_arr = $response;
@@ -286,7 +300,7 @@ class Redis
      * @param array $data associative array of hash data to insert
      * @return integer number of fields inserted
      */
-    public function hset(string $key, array $data): int
+    public function hset(string $key, array $data): ?int
     {
         $args = array();
         
@@ -326,7 +340,7 @@ class Redis
     {
         $resp = $this->cmd('HGETALL', $key);
 
-        if (sizeof($resp) == 0) {
+        if ($resp === null || sizeof($resp) == 0) {
             return false;
         }
 
@@ -348,7 +362,7 @@ class Redis
     public function hkeys(string $key): mixed
     {
         $ret = $this->cmd('HKEYS', $key);
-        return sizeof($ret) > 0 ? $ret : false;
+        return is_array($ret) && sizeof($ret) > 0 ? $ret : false;
     }
 
     /**
@@ -358,9 +372,9 @@ class Redis
      * @param [type] ...$fields fields to delete from hash
      * @return integer number of fields deleted
      */
-    public function hdel(string $key, ...$fields): int
+    public function hdel(string $key, ...$fields): ?int
     {
-        return $this->cmd('HDEL', $key, ...$fields);
+        return is_array($fields) ? $this->cmd('HDEL', $key, ...$fields) : null;
     }
 
     /**
@@ -369,11 +383,11 @@ class Redis
      * @param string $key key of Redis hash
      * @return int number of fields deleted 
      */
-    public function hdelall(string $key): int
+    public function hdelall(string $key): ?int
     {
         $fields = $this->hkeys($key);
 
-        return $this->hdel($key, ...$fields);
+        return is_array($fields) ? $this->hdel($key, ...$fields) : null;
     }
 }
 
