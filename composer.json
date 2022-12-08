@@ -5,8 +5,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Aaron Bishop",
-            "email": "aaron@foozbat.net"
+            "name": "Aaron Bishop"
         }
     ],
     "autoload": {
