@@ -34,7 +34,7 @@ class Input implements ArrayAccess, Iterator
     public function __construct(mixed ...$inputs)
     {
         // check to see if this is a websocket connection
-        if (strpos($_SERVER['GATEWAY_INTERFACE'], 'websocketd-CGI') !== false) {
+        if (isset($_SERVER['GATEWAY_INTERFACE']) && strpos($_SERVER['GATEWAY_INTERFACE'], 'websocketd-CGI') !== false) {
             GLOBAL $_GET;
             $_GET = array();
             parse_str($_SERVER['QUERY_STRING'], $_GET);
