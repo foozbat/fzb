@@ -53,7 +53,7 @@ class Renderer
         else
             $base_path = "";
 
-        $this->render_vars['_base_path'] = ltrim($base_path, "/");
+        $this->render_vars['_base_path'] = ($base_path != '/' ? $base_path : '');
     }
 
     /**
