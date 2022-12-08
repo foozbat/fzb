@@ -405,7 +405,7 @@ class Router
      */
     public function get_app_base_path(): string
     {
-        return explode($this->controller_route, $_SERVER['REQUEST_URI'], 2)[0];
+        return dirname($_SERVER['SCRIPT_NAME']);
     }
 
     /**
