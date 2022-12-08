@@ -198,6 +198,11 @@ class Router
         return null;
     }
 
+    public function get_all_controllers(): array
+    {
+        return array_keys($this->controllers);
+    }
+
     // ROUTER METHODS
 
     /**
@@ -323,7 +328,7 @@ class Router
             $route_regex = "~^".str_replace("/", "\/", $route_regex)."$~i";
             
             $is_match = preg_match($route_regex, $this->route_path);
-;
+
             $route_vars = array();
             $route_var_vals = array();
 
@@ -339,20 +344,23 @@ class Router
                 for ($i=0; $i<sizeof($rslt1); $i++) {
                     if ($i == 0) continue;
                     $var_name = $rslt1[$i][0];
-                    $var_val  = $rslt2[$i][0];
+                    $var_val  = urldecode($rslt2[$i][0]);
 
                     $var_name = ltrim($var_name, '{');
                     $var_name = rtrim($var_name, '}');
                     
+                    // probably change from passing raw path var to var as Input
                     $route_vars[$var_name] = $var_val;
                 }
                 
+                /*
                 $refl = new \ReflectionFunction($route['func']);
                 $func_params = $refl->getParameters();
 
                 foreach ($func_params as $param) {
                     $params[$param->getName()] = $param->getType();
                 }
+                */
 
                 /**
                  * @todo Finish implementing ReflectionFunction type checks
@@ -408,5 +416,10 @@ class Router
     public function get_route(): string
     {
         return $this->controller_route;
+    }
+
+    public function get_routes(): array
+    {
+        return $this->routes;
     }
 }
