@@ -12,7 +12,7 @@ To use, add to your composer.json:
     "require": {
         "fzb/fzb": "dev-master"
     }
-'''
+```
 Then run:
 ```
 composer update
