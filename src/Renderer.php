@@ -134,7 +134,7 @@ class Renderer
      * @param string $template_file Template to be rendered
      * @return void
      */
-    public function display(string $template_file)
+    public function show(string $template_file)
     {
         ob_start();
         $this->render($template_file);
