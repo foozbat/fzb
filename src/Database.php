@@ -16,6 +16,8 @@
  * @todo Currently, statement handlers are handled internally.  Possibly refactor to allow developer to handle own $sth.
  */
 
+declare(strict_types=1);
+
 namespace Fzb;
 
 use PDO;
@@ -316,7 +318,7 @@ class Database
      *
      * @return integer last insert ID
      */
-    public function last_insert_id(): int
+    public function last_insert_id(): string|false
     {
         return $this->pdo->lastInsertId();
     }

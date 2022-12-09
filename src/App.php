@@ -9,13 +9,15 @@
  * @author Aaron Bishop (github.com/foozbat)
  */
 
- namespace Fzb;
+declare(strict_types=1);
 
- use Exception;
+namespace Fzb;
 
- class AppException extends App { }
+use Exception;
 
- class App
- {
-    //
- }
+class AppException extends App { }
+
+class App
+{
+   //
+}

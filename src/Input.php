@@ -14,6 +14,8 @@
  * @todo refactor class.  I am not happy with it's implementation.
  */
 
+declare(strict_types=1);
+
 namespace Fzb;
 
 use ArrayAccess;
@@ -56,7 +58,7 @@ class Input implements ArrayAccess, Iterator
     {
         // default values
         $input_required  = false;
-        $input_type      = 'var';
+        $input_type      = 'get';
         $input_validate  = false;
         $input_sanitize  = false;
         $filter_options  = array();
@@ -86,6 +88,8 @@ class Input implements ArrayAccess, Iterator
                     $input_type = 'get';
                 } else if ($property == 'post') {
                     $input_type = 'post';
+                } else if ($property == 'path') {
+                    $input_type = 'path';
                 } else if ($property == 'required') {
                     $input_required = true;
                 } else if (strpos($property, 'validate:') !== false) {
@@ -115,28 +119,18 @@ class Input implements ArrayAccess, Iterator
             }
         }
 
-        /*
-        if (!is_array($properties)) {
-            $properties = array('value' => $properties);
-        }
-
-        // set default values
-        $input_required = $properties['required'] ?? false;
-        $input_type     = $properties['type'] ?? 'var';
-        $input_validate = $properties['validate'] ?? false;
-        $input_sanitize = $properties['sanitize'] ?? false;
-        $filter_options = $properties['filter_options'] ?? array();
-        $filter_flags   = $properties['filter_flags'] ?? 0;
-        $sanitize_flags = $properties['sanitize_flags'] ?? array();
-        $input_value    = $properties['value'] ?? null;
-        $submitted_value = null;
-        $input_validated = null;
-        */
-
         if ($input_type == 'get' && isset($_GET[$input_name])) {
             $input_value = $_GET[$input_name];
         } else if ($input_type == 'post' && isset($_POST[$input_name])) {
             $input_value = $_POST[$input_name];
+        } else if ($input_type == 'path') {
+            $router = Router::get_instance();
+            if ($router === null) {
+                throw new InputException("Defining a path var requires a router object to be instantiated and a route defined.");
+            }
+            $path_vars = $router->get_path_vars();
+
+            $input_value = $path_vars[$input_name] ?? null;
         }
 
         $submitted_value = $input_value;
@@ -160,7 +154,6 @@ class Input implements ArrayAccess, Iterator
 
             $input_validated = ($input_submitted ? $input_value !== null: null);
         }
-
 
         // sanitize the input according to filter
         if ($input_sanitize != false) {

@@ -9,6 +9,8 @@
  * @author Aaron Bishop (github.com/foozbat)
  */ 
 
+declare(strict_types=1);
+
 namespace Fzb;
 
 use Exception;
@@ -26,6 +28,7 @@ class Router
 
     private array $routes = array();
     private string $route_prefix = "";
+    private array $path_vars = array();
 
     private static $instance = null;
 
@@ -329,9 +332,6 @@ class Router
             
             $is_match = preg_match($route_regex, $this->route_path);
 
-            $route_vars = array();
-            $route_var_vals = array();
-
             if ($is_match && in_array($_SERVER['REQUEST_METHOD'], $route['method'])) {
                 $rslt1 = array();
                 $rslt2 = array();
@@ -350,23 +350,10 @@ class Router
                     $var_name = rtrim($var_name, '}');
                     
                     // probably change from passing raw path var to var as Input
-                    $route_vars[$var_name] = $var_val;
+                    $this->path_vars[$var_name] = $var_val;
                 }
-                
-                /*
-                $refl = new \ReflectionFunction($route['func']);
-                $func_params = $refl->getParameters();
 
-                foreach ($func_params as $param) {
-                    $params[$param->getName()] = $param->getType();
-                }
-                */
-
-                /**
-                 * @todo Finish implementing ReflectionFunction type checks
-                 */
-
-                call_user_func($route['func'], ...$route_vars);
+                call_user_func($route['func'], ...$this->path_vars);
                 return true;
             }
         }
@@ -421,5 +408,10 @@ class Router
     public function get_routes(): array
     {
         return $this->routes;
+    }
+
+    public function get_path_vars(): array
+    {
+        return $this->path_vars;
     }
 }

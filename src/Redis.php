@@ -9,6 +9,8 @@
  * @author Aaron Bishop (github.com/foozbat)
  */
 
+declare(strict_types=1);
+
 namespace Fzb;
 
 use Exception;
@@ -143,7 +145,7 @@ class Redis
         $cmd .= "*".sizeof($args)."\r\n";
         foreach ($args as $arg) {
             //$arg = $this->sanitize($arg);
-            $cmd .= "$".strlen($arg)."\r\n".$arg."\r\n";
+            $cmd .= "$".strlen((string) $arg)."\r\n".$arg."\r\n";
         }
 
         $this->last_cmd = implode(' ', $args);
@@ -223,7 +225,7 @@ class Redis
                 if ($value == "-1") {
                     array_push($ret, null);
                 } else {
-                    $string_val = substr($response_str, 0, $value);
+                    $string_val = substr($response_str, 0, (int) $value);
                     $response_str = substr($response_str, strpos($response_str, "\r\n")+2);
                     array_push($ret, $string_val);
                 }

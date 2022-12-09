@@ -10,8 +10,10 @@
  * @author  Aaron Bishop (github.com/foozbat)
  */
 
- // TODO: handle HTML-safe, HTML-unsafe assignment of render vars
- // TODO: refactor assigning of inputs
+// TODO: handle HTML-safe, HTML-unsafe assignment of render vars
+// TODO: refactor assigning of inputs
+
+declare(strict_types=1);
 
 namespace Fzb;
 
