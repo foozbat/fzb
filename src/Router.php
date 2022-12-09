@@ -77,13 +77,10 @@ class Router
         $this->determine_route_path();
 
         // if we specified a controllers dir, find all controllers and determine the current one
-        if ($controllers_dir !== null && $default_controller !== null) {
-            $this->find_controllers($controllers_dir);
+        if ($this->controllers_dir !== null && $this->default_controller !== null) {
+            $this->find_controllers($this->controllers_dir);
             $this->determine_controller();
         }
-
-        //var_dump(get_included_files());
-        //var_dump($this->controllers);
     }
 
     function __destruct()
