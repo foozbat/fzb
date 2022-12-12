@@ -220,9 +220,10 @@ class Router
         if ($base_path != '/') {
             $count = 1;
             $route_path = str_replace($base_path, '', $_SERVER['REQUEST_URI'], $count);
-            $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
             $route_path = rtrim($route_path, '/');
         }
+
+        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
 
         $this->route_path = $route_path;
     }
@@ -350,7 +351,8 @@ class Router
                     $this->path_vars[$var_name] = $var_val;
                 }
 
-                call_user_func($route['func'], ...$this->path_vars);
+                //call_user_func($route['func'], ...$this->path_vars);
+                call_user_func($route['func']);
                 return true;
             }
         }

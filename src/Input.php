@@ -78,12 +78,18 @@ class Input implements ArrayAccess, Iterator
             $properties = str_replace('\n', '', $properties);
             $properties = ltrim($properties);
             $properties = rtrim($properties);
-            $properties = explode(' ', $properties);
+            //$properties = explode(' ', $properties);
+            $properties = preg_split("/'[^']*'(*SKIP)(*F)|\x20/", $properties);
         }
 
         if ($properties !== null) {
             foreach ($properties as $property) {
                 $property = strtolower($property);
+                
+                if (strpos($property, ':') !== false) {
+                    list($tag, $option) = explode(':', $property);
+                }
+
                 if ($property == 'get') {
                     $input_type = 'get';
                 } else if ($property == 'post') {
@@ -92,9 +98,15 @@ class Input implements ArrayAccess, Iterator
                     $input_type = 'path';
                 } else if ($property == 'required') {
                     $input_required = true;
-                } else if (strpos($property, 'validate:') !== false) {
-                    list($tag, $option) = explode(':', $property);
-
+                } else if ($tag == 'default') { 
+                    if ($option == 'null') {
+                        $input_value = null;
+                    } else {
+                        $input_value = $option;
+                        $input_value = ltrim($input_value, "'");
+                        $input_value = rtrim($input_value, "'");
+                    }
+                } else if ($tag == 'validate') {
                     $option = 'FILTER_VALIDATE_'.strtoupper($option);
 
                     if (defined($option)) {
@@ -102,9 +114,7 @@ class Input implements ArrayAccess, Iterator
                     } else {
                         throw new InputException('Invalid input validation option.');
                     }
-                } else if (strpos($property, 'sanitize:') !== false) {
-                    list($tag, $option) = explode(':', $property);
-
+                } else if ($tag == 'sanitize') {
                     $option = 'FILTER_SANITIZE_'.strtoupper($option);
 
                     if (defined($option)) {
@@ -112,8 +122,7 @@ class Input implements ArrayAccess, Iterator
                     } else {
                         throw new InputException('Invalid input sanitization option.');
                     }
-                } else if (strpos($property, 'validate_flags:' !== false)) {
-                    list($tag, $options) = explode(':', $property);
+                } else if ($tag == 'validate_flags:') {
                     $flags = explode(',', $options);
                 }
             }
@@ -130,7 +139,9 @@ class Input implements ArrayAccess, Iterator
             }
             $path_vars = $router->get_path_vars();
 
-            $input_value = $path_vars[$input_name] ?? null;
+            if (isset($path_vars[$input_name])) {
+                $input_value = $path_vars[$input_name];
+            }
         }
 
         $submitted_value = $input_value;
@@ -358,6 +369,6 @@ class InputObject
         if ($this->value == null)
             return "";
         else
-            return $this->value;
+            return (string) $this->value;
     }
 }
