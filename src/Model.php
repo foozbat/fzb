@@ -97,7 +97,7 @@ abstract class Model implements Iterator
      *
      * @return array list of all public and private member variables
      */
-    function get_model_vars(): array
+    private function get_model_vars(): array
     {
         $table_columns = $this->db()->get_column_names($this->table());
 
@@ -120,7 +120,7 @@ abstract class Model implements Iterator
      * @param array $data data to set class members to
      * @return void
      */
-    function set_model_data(array $data): void
+    private function set_model_data(array $data): void
     {
         $arr = $this->get_model_vars();
 
@@ -137,7 +137,7 @@ abstract class Model implements Iterator
      *
      * @return bool if save was successful or not
      */
-    function save(): bool
+    public function save(): bool
     {
         $data = $this->get_model_vars();
 
@@ -160,7 +160,7 @@ abstract class Model implements Iterator
      *
      * @return bool if load was successful or not
      */
-    function load(): bool
+    public function load(): bool
     {
         $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
