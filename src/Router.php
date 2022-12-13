@@ -223,7 +223,9 @@ class Router
             $route_path = rtrim($route_path, '/');
         }
 
-        $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
+        if (isset($_SERVER['QUERY_STRING'])) {
+            $route_path = str_replace("?".$_SERVER['QUERY_STRING'], '', $route_path);
+        }
 
         $this->route_path = $route_path;
     }
