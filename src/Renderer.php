@@ -176,7 +176,7 @@ class Renderer
         $this->sandbox_global_state();
 
         // call helper functions to isolate scope of template from this class
-        _load_tpl($this->templates_dir.'/'.$template_file, $this->render_vars);
+        _load_tpl($template_file, $this->templates_dir, $this->render_vars);
 
         // restore the state after sandbox
         $this->restore_global_state();
@@ -271,15 +271,19 @@ class Renderer
  * @throws RendererException if the specified template file could not be found
  * @return void
  */
-function _load_tpl(string $_template_file, array $_vars)
+function _load_tpl(string $_template_file, string $_templates_dir, array $_vars)
 {
     // create a local variable for each render var
     extract($_vars, EXTR_SKIP);
     unset($_vars);
 
-    if (file_exists($_template_file)) {
-        require($_template_file);
-    } else {
+    $prev_path = get_include_path();
+
+    set_include_path($_templates_dir);
+
+    if ( (include $_template_file) == FALSE) {
         throw new RendererException("Renderer could not find the specified template file.");
     }
+
+    set_include_path($prev_path);
 }
