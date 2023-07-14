@@ -72,6 +72,11 @@ class Renderer
             throw new RendererException("$name is a reserved Renderer variable name.");
         }
 
+        // check for invalid variable name
+        if (!preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/', $name)) {
+            throw new RendererException("$name is not a valid PHP variable name.");
+        }
+        
         if ($value instanceof Input) {
             $this->flag_error('input_required', $value->is_missing());
             $this->flag_error('input_validation', $value->is_invalid());
