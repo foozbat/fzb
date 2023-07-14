@@ -136,7 +136,10 @@ class Renderer
      */
     public function show(string $template_file)
     {
-        ob_start();
+        if (!ob_start("ob_gzhandler")) {
+            ob_start();
+        }
+        
         $this->render($template_file);
         ob_end_flush();
     }
@@ -173,13 +176,13 @@ class Renderer
         // sandbox the application state to limit rogue template damage
         error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
         $err_handler = set_error_handler(null);
-        $this->sandbox_global_state();
+        //$this->sandbox_global_state();
 
         // call helper functions to isolate scope of template from this class
         _load_tpl($template_file, $this->templates_dir, $this->render_vars);
 
         // restore the state after sandbox
-        $this->restore_global_state();
+        //$this->restore_global_state();
         if ($err_handler !== null)
             set_error_handler($err_handler);
         error_reporting(E_ALL);
@@ -263,6 +266,8 @@ class Renderer
     }
 }
 
+$extend_file = '';
+
 /**
  * Helper function to isolate the template scope from the rest of the class
  *
@@ -275,15 +280,30 @@ function _load_tpl(string $_template_file, string $_templates_dir, array $_vars)
 {
     // create a local variable for each render var
     extract($_vars, EXTR_SKIP);
-    unset($_vars);
+    //unset($_vars);
 
     $prev_path = get_include_path();
 
     set_include_path($_templates_dir);
 
+    // function for extending templates (implicit include)
+    
     if ( (include $_template_file) == FALSE) {
         throw new RendererException("Renderer could not find the specified template file.");
     }
 
+    global $extend_file;
+
+    if ($extend_file) {
+        include($extend_file);
+        $extend_file = '';
+    }
+
     set_include_path($prev_path);
+}
+
+function extend(string $file)
+{
+    global $extend_file;
+    $extend_file = $file;
 }
