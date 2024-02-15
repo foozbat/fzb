@@ -431,11 +431,11 @@ class Database
     public function get_tables(): mixed
     {
         if ($this->pdo_options["driver"] == "mysql") {
-            return $this->selectrow_array("SHOW TABLES");
+            return $this->selectcol_array("SHOW TABLES");
         } else if ($this->pdo_options["driver"] == "sqlite") {
-            return $this->selectrow_array("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+            return $this->selectcol_array("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
         } else if ($this->pdo_options["driver"] == "pgsql") {
-            return $this->selectrow_array("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'information_schema' AND schemaname != 'pg_catalog'");
+            return $this->selectcol_array("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'information_schema' AND schemaname != 'pg_catalog'");
         } else {
             throw new DatabaseException("Database driver not supported.");
         }

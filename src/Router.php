@@ -325,7 +325,9 @@ class Router
     {
         foreach ($this->routes as $route_string => $route)
         {
-            $route_string = rtrim($route_string, '/');
+            if ($route_string != '/') {
+                $route_string = rtrim($route_string, '/');
+            }
 
             $route_regex = preg_replace("/\{(.*?)\}/i", "(.*?)", $route_string);
             $route_regex = "~^".str_replace("/", "\/", $route_regex)."$~i";

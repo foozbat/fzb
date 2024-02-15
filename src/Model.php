@@ -104,10 +104,10 @@ abstract class Model implements Iterator
             if ((str_starts_with($var, "__") && str_ends_with($var, "__")) ||
                 !in_array($var, $table_columns)) {
                 unset($arr[$var]);
+            } else if (isset($this->{$var})) {
+                $arr[$var] = $this->{$var};
             }
         }
-
-        var_dump($arr);
 
         return $arr;
     }
@@ -161,7 +161,7 @@ abstract class Model implements Iterator
     {
         $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
-        $data = $this->db()->selectrow_assoc($query, $this::__primary_key__);
+        $data = $this->db()->selectrow_assoc($query, $this->{$this::__primary_key__});
 
         if ($data === false) {
             return false;
@@ -170,6 +170,17 @@ abstract class Model implements Iterator
         }
 
         return true;
+    }
+
+    public function delete(): bool
+    {
+        if (isset($this->{$this::__primary_key__})) {
+            $query = "DELETE FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+
+            return $this->db()->query($query, $this->{$this::__primary_key__}) > 0;
+        }
+        
+        return false;
     }
 
     /**

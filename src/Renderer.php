@@ -56,6 +56,12 @@ class Renderer
             $base_path = "";
 
         $this->render_vars['_base_path'] = ($base_path != '/' ? $base_path : '');
+
+        $auth = Auth::get_instance();
+
+        if ($auth !== null) {
+            $this->set('auth', $auth);
+        }
     }
 
     /**
@@ -141,10 +147,7 @@ class Renderer
      */
     public function show(string $template_file)
     {
-        if (!ob_start("ob_gzhandler")) {
-            ob_start();
-        }
-        
+        ob_start();
         $this->render($template_file);
         ob_end_flush();
     }
