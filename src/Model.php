@@ -98,7 +98,7 @@ abstract class Model implements Iterator
     {
         $table_columns = $this->db()->get_column_names($this->table());
 
-        $arr = get_object_vars($this);
+        $arr = get_class_vars(get_called_class());
 
         foreach ($arr as $var => $val) {
             if ((str_starts_with($var, "__") && str_ends_with($var, "__")) ||
@@ -106,6 +106,8 @@ abstract class Model implements Iterator
                 unset($arr[$var]);
             }
         }
+
+        var_dump($arr);
 
         return $arr;
     }
