@@ -89,7 +89,16 @@ class Auth
             $this->user_session->save();
             $this->is_authenticated = true;
 
-            setcookie($this->cookie_name, $this->user_session->token, time() + 3600, '/');
+            $cookie_options = array (
+                'expires' => time() + 60*60*24*30, 
+                'path' => '/', 
+                //'domain' => '.foozbat.net', // leading dot for compatibility or use subdomain
+                'secure' => false,     // or false
+                'httponly' => true,    // or false
+                'samesite' => 'Strict' // None || Lax  || Strict
+            );
+
+            setcookie($this->cookie_name, $this->user_session->token, $cookie_options);
             return true;
         }
 
@@ -98,7 +107,16 @@ class Auth
 
     public function logout(): bool
     {
-        setcookie($this->cookie_name, "token", time() - 3600);
+        $cookie_options = array (
+            'expires' => time() - 60*60*24*30, 
+            'path' => '/', 
+            //'domain' => '.foozbat.net', // leading dot for compatibility or use subdomain
+            'secure' => false,     // or false
+            'httponly' => true,    // or false
+            'samesite' => 'Strict' // None || Lax  || Strict
+        );
+
+        setcookie($this->cookie_name, "", $cookie_options);
         if ($this->user_session !== null) {
             $this->user_session->delete();
         }
