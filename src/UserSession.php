@@ -13,11 +13,16 @@ class UserSession extends Model
     const __table__ = 'user_sessions';
 
     public int $user_id;
-    public string $token;
+    public bool $logged_in;
+    public string $auth_token;
+    public string $csrf_token;
+    public string $fingerprint;
 
     public function __construct(...$params)
     {
-        $params['token'] = $this->generate_uuid();
+        $this->auth_token = $this->generate_uuid();
+        $this->csrf_token = $this->generate_uuid();
+        $this->fingerprint = $this->generate_fingerprint();
 
         parent::__construct(...$params);
     }
@@ -32,17 +37,27 @@ class UserSession extends Model
         );
     }
 
-    private function generate_fingerprint() {
+    public function generate_fingerprint() {
         $fingerprint = '';
     
-        $fingerprint .= isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-        $fingerprint .= isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
-        $fingerprint .= isset($_SERVER['HTTP_SCREEN_RESOLUTION']) ? $_SERVER['HTTP_SCREEN_RESOLUTION'] : '';
-        $fingerprint .= isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
-        $fingerprint .= isset($_COOKIE) ? 'cookies:enabled' : 'cookies:disabled';
-        $fingerprint .= isset($_SERVER['HTTP_WEBGL_VENDOR']) ? $_SERVER['HTTP_WEBGL_VENDOR'] : '';
-        $fingerprint .= isset($_SERVER['HTTP_WEBGL_RENDERER']) ? $_SERVER['HTTP_WEBGL_RENDERER'] : '';
+        $fingerprint .= "useragent:";
+        $fingerprint .= $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $fingerprint .= "encoding:";
+        $fingerprint .= $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
+        $fingerprint .= "lang:";
+        $fingerprint .= $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $fingerprint .= "dnt:";
+        $fingerprint .= $_SERVER['HTTP_DNT'] ?? '';
+        $fingerprint .= "cookie:";
+        $fingerprint .= isset($_COOKIE) ? '1' : '';
     
+        //echo $fingerprint."<br />";
+
         return md5($fingerprint);
+    }
+
+    public function validate_fingerprint() {
+        //echo $this->fingerprint;
+        return $this->fingerprint == $this->generate_fingerprint();
     }
 }

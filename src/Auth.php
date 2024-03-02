@@ -21,13 +21,19 @@ class Auth
 
     public bool $is_authenticated = false;
     public bool $login_required = false;
+    public bool $csrf_validated = false;
+
+    private string $user_cls;
+    private string $user_session_cls;
+    private string $auth_token_name;
+    private string $csrf_token_name;
 
     private static $instance = null;
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(string $user_cls = User::class, string $user_session_cls = UserSession::class)
     {
         // I'm a singleton
         if (self::$instance !== null) {
@@ -36,17 +42,26 @@ class Auth
             self::$instance = $this;
         }
 
-        $this->cookie_name = (defined('APP_NAME') ? APP_NAME : 'fzb_app') . '_auth_token';
+        $this->user_cls = $user_cls;
+        $this->user_session_cls = $user_session_cls;
+        $this->auth_token_name = (defined('APP_NAME') ? APP_NAME : 'fzb_app') . '_auth_token';
+        $this->csrf_token_name = (defined('APP_NAME') ? APP_NAME : 'fzb_app') . '_csrf_token';
 
-        if (isset($_COOKIE[ $this->cookie_name ])) {
-            $this->user_session = UserSession::get_by(token: $_COOKIE[ $this->cookie_name ]);
+        if (isset($_COOKIE[ $this->auth_token_name ])) {
+            $this->user_session = $user_session_cls::get_by(auth_token: $_COOKIE[ $this->auth_token_name ]);
         }
         
-         if ($this->user_session !== null) {
-            $this->user = User::get_by(id: $this->user_session->user_id);
+        if ($this->user_session !== null) {
+            $this->user = $user_cls::get_by(id: $this->user_session->user_id);
 
-            if ($this->user !== null) {
+            if ($this->user !== null && $this->user_session->logged_in && $this->user_session->validate_fingerprint()) {
                 $this->is_authenticated = true;
+            }
+
+            $csrf_token = $_POST[$this->csrf_token_name] ?? $_GET[$this->csrf_token_name] ?? null;
+
+            if ($this->user !== null && $this->user_session->csrf_token == $csrf_token) {
+                $this->csrf_validated = true;
             }
         }
     }
@@ -66,11 +81,6 @@ class Auth
         return self::$instance;
     }
 
-    public function get_user()
-    {
-        return $this->user;
-    }
-
     public function login(string $username, string $password): bool
     {
         if (!$username || !$password) {
@@ -83,9 +93,9 @@ class Auth
             return false;
         }
 
-        if (password_verify($password, $user->password)) { // change to strong encryption
+        if (password_verify($password, $user->password)) {
             $this->user = $user;
-            $this->user_session = new UserSession(user_id: $user->id);
+            $this->user_session = new $this->user_session_cls(user_id: $user->id);
             $this->user_session->save();
             $this->is_authenticated = true;
 
@@ -98,7 +108,8 @@ class Auth
                 'samesite' => 'Strict' // None || Lax  || Strict
             );
 
-            setcookie($this->cookie_name, $this->user_session->token, $cookie_options);
+            setcookie($this->auth_token_name, $this->user_session->auth_token, $cookie_options);
+
             return true;
         }
 
@@ -116,16 +127,36 @@ class Auth
             'samesite' => 'Strict' // None || Lax  || Strict
         );
 
-        setcookie($this->cookie_name, "", $cookie_options);
+        setcookie($this->auth_token_name, "", $cookie_options);
+
         if ($this->user_session !== null) {
-            $this->user_session->delete();
+            $this->user_session->logged_in = false;
+            $this->user_session->save();
         }
 
         return true;
     }
 
+    public function on_failure(callable $callback)
+    {
+        if (!is_callable($callback)) {
+            throw new AuthException("Provide a valid callback for on_failure()");
+        }
+
+        $this->fail_callback = $callback;
+    }
+
     public function login_required()
     {
+        if (!$this->is_authenticated) {
+            call_user_func($this->fail_callback);
+        }
+    }
 
+    public function csrf_required()
+    {
+        if (!$this->csrf_validated) {
+            call_user_func($this->fail_callback);
+        }
     }
 }

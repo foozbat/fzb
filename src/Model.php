@@ -21,6 +21,7 @@ namespace Fzb;
 
 use Exception;
 use Iterator;
+use ReflectionClass;
 
 class ModelException extends Exception { }
 
@@ -94,22 +95,53 @@ abstract class Model implements Iterator
      *
      * @return array list of all public and private member variables
      */
-    private function get_model_vars(): array
+    private function get_mapped_properties(): array
     {
         $table_columns = $this->db()->get_column_names($this->table());
 
         $arr = get_class_vars(get_called_class());
 
-        foreach ($arr as $var => $val) {
+        $refl = new ReflectionClass(get_called_class());
+        $properties = $refl->getProperties();
+
+        //var_dump($properties);
+
+        foreach ($properties as $i => $property) {
+            $name = $property->name;
+
+            if ((str_starts_with($name, "__") && str_ends_with($name, "__")) ||
+                !in_array($name, $table_columns)) {
+                unset($properties[$i]);
+            }
+        }
+
+       /* foreach ($arr as $var => $val) {
             if ((str_starts_with($var, "__") && str_ends_with($var, "__")) ||
                 !in_array($var, $table_columns)) {
                 unset($arr[$var]);
             } else if (isset($this->{$var})) {
                 $arr[$var] = $this->{$var};
             }
+        }*/
+
+        return $properties;
+    }
+
+    private function get_model_data() {
+        $data = [];
+        $properties = $this->get_mapped_properties();
+
+        foreach ($properties as $property) {
+            $name = $property->name;
+
+            if (isset($this->{$name})) {
+                $data[$name] = $this->{$name};
+            }
         }
 
-        return $arr;
+        var_dump($data);
+
+        return $data;
     }
 
     /**
@@ -120,12 +152,27 @@ abstract class Model implements Iterator
      */
     private function set_model_data(array $data): void
     {
-        $arr = $this->get_model_vars();
+        $properties = $this->get_mapped_properties();
 
-        foreach ($arr as $var => $val) {
-            if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
-                $this->{$var} = $data[$var];
+        foreach ($properties as $property) {
+            $name = $property->name;
+
+            if (isset($data[$name])) {
+                //echo "$name: " . $property->getType() . "<br />";
+                if ($property->getType() == 'bool') {
+                    $this->{$name} = (bool) $data[$name];
+                } else {
+                    $this->{$name} = $data[$name];
+                }
             }
+            
+            /*if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
+                if (gettype($this->{$var}) == 'boolean') {
+                    $this->{$var} = (bool) $data[$var];
+                } else {
+                    $this->{$var} = $data[$var];
+                }
+            }*/
         }
     }
 
@@ -136,7 +183,7 @@ abstract class Model implements Iterator
      */
     public function save(): bool
     {
-        $data = $this->get_model_vars();
+        $data = $this->get_model_data();
 
         $rows_affected = $this->db()->auto_insert_update(
             $this::__table__, 
