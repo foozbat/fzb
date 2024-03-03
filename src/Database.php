@@ -260,7 +260,6 @@ class Database
      */
     public function query(string $query, mixed ...$params): int
     {
-        var_dump($params);
         $sth = $this->pdo->prepare($query);
         $sth->execute($params);
         $row_count = $sth->rowCount();
