@@ -135,11 +135,9 @@ abstract class Model implements Iterator
             $name = $property->name;
 
             if (isset($this->{$name})) {
-                $data[$name] = $this->{$name};
+                $data[$name] = is_bool($this->{$name}) ? (int) $this->{$name} : $this->{$name};
             }
         }
-
-        var_dump($data);
 
         return $data;
     }
@@ -158,12 +156,7 @@ abstract class Model implements Iterator
             $name = $property->name;
 
             if (isset($data[$name])) {
-                //echo "$name: " . $property->getType() . "<br />";
-                if ($property->getType() == 'bool') {
-                    $this->{$name} = (bool) $data[$name];
-                } else {
-                    $this->{$name} = $data[$name];
-                }
+                $this->{$name} = $property->getType() == 'bool' ? (bool) $data[$name] : $data[$name];
             }
             
             /*if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
