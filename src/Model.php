@@ -30,6 +30,8 @@ abstract class Model implements Iterator
     const __primary_key__ = 'id';
     const __table__ = '';
 
+    public int $id;
+
     private $__db_id__ = 0;
     protected int $__iter__ = 0;
 
@@ -40,6 +42,11 @@ abstract class Model implements Iterator
      */
     public function __construct(mixed ...$params)
     {
+        // if derived model uses a different primary key, unset the default
+        if ($this::__primary_key__ != 'id') {
+            unset($this->{'id'});
+        }
+
         // if a primary key is passed to constructor, set primary key member
         if (isset($params[self::__primary_key__])) {
             $this->{$this::__primary_key__} = $params[self::__primary_key__];
@@ -101,8 +108,7 @@ abstract class Model implements Iterator
 
         $arr = get_class_vars(get_called_class());
 
-        $refl = new ReflectionClass(get_called_class());
-        $properties = $refl->getProperties();
+        $properties = $this->get_class_properties(get_called_class());
 
         //var_dump($properties);
 
@@ -127,9 +133,33 @@ abstract class Model implements Iterator
         return $properties;
     }
 
+    private function get_class_properties($cls, $types='public'){
+        $ref = new ReflectionClass($cls);
+    
+        $props = $ref->getProperties();
+        //var_dump($props);
+        $ret_arr = [];
+    
+        foreach($props as $prop){
+            $f = $prop->getName();
+            $ret_arr[$f] = $prop;
+        }
+    
+        if($parent_cls = $ref->getParentClass()){
+            $parent_ret_arr = $this->get_class_properties($parent_cls->getName());//RECURSION
+            if(count($parent_ret_arr) > 0) {
+                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
+            }
+        }
+    
+        return $ret_arr;
+    }
+
     private function get_model_data() {
         $data = [];
         $properties = $this->get_mapped_properties();
+
+        //var_dump($properties);
 
         foreach ($properties as $property) {
             $name = $property->name;
@@ -178,6 +208,9 @@ abstract class Model implements Iterator
     {
         $data = $this->get_model_data();
 
+        //var_dump($this::__primary_key__);
+        //var_dump($data[$this::__primary_key__] ?? null);
+
         $rows_affected = $this->db()->auto_insert_update(
             $this::__table__, 
             $data, 
@@ -186,7 +219,7 @@ abstract class Model implements Iterator
         );
 
         if (!isset($data[$this::__primary_key__])) {
-            $this->{$this::__primary_key__} = $this->db()->last_insert_id();
+            $this->{$this::__primary_key__} = (int) $this->db()->last_insert_id();
         }
 
         return $rows_affected > 0;
