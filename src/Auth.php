@@ -23,10 +23,11 @@ class Auth
     public bool $login_required = false;
     public bool $csrf_validated = false;
 
-    private string $user_cls;
-    private string $user_session_cls;
-    private string $auth_token_name;
-    private string $csrf_token_name;
+    private static string $user_cls;
+    private static string $user_session_cls;
+
+    private static string $auth_token_name = (APP_NAME ?? 'fzb_app') . '_auth_token';
+    private static string $csrf_token_name = (APP_NAME ?? 'fzb_app') . '_csrf_token';
 
     private static $instance = null;
 
@@ -42,24 +43,26 @@ class Auth
             self::$instance = $this;
         }
 
-        $this->user_cls = $user_cls;
-        $this->user_session_cls = $user_session_cls;
-        $this->auth_token_name = (defined('APP_NAME') ? APP_NAME : 'fzb_app') . '_auth_token';
-        $this->csrf_token_name = (defined('APP_NAME') ? APP_NAME : 'fzb_app') . '_csrf_token';
+        self::$user_cls = $user_cls;
+        self::$user_session_cls = $user_session_cls;
 
         // try to get session from auth token cookie
-        if (isset($_COOKIE[ $this->auth_token_name ])) {
-            $this->user_session = $user_session_cls::get_by(auth_token: $_COOKIE[ $this->auth_token_name ], logged_in: true);
+        if (isset($_COOKIE[self::$auth_token_name])) {
+            $this->user_session = self::$user_session_cls::get_by(auth_token: $_COOKIE[self::$auth_token_name], logged_in: true);
+        } else {
+            // set an unauthenticated token to track this un-logged in user
+            $this->set_auth_cookie(self::$user_session_cls::generate_uuid(), time() + 60*60*24*30);
         }
         
+        // try to authenticate auth token
         if ($this->user_session !== null) {
-            $this->user = $user_cls::get_by(id: $this->user_session->user_id);
+            $this->user = self::$user_cls::get_by(id: $this->user_session->user_id);
 
             if ($this->user !== null && $this->user_session->validate_fingerprint()) {
                 $this->is_authenticated = true;
             }
 
-            $csrf_token = $_POST[$this->csrf_token_name] ?? $_GET[$this->csrf_token_name] ?? null;
+            $csrf_token = $_POST[self::$csrf_token_name] ?? $_GET[self::$csrf_token_name] ?? null;
 
             if ($this->user !== null && $this->user_session->csrf_token == $csrf_token) {
                 $this->csrf_validated = true;
@@ -96,9 +99,7 @@ class Auth
             return false;
         }
 
-        $user = $this->user_cls::get_by(username: $username);
-
-        //var_dump($user);
+        $user = self::$user_cls::get_by(username: $username);
 
         if ($user === null) {
             return false;
@@ -114,21 +115,12 @@ class Auth
             }
 
             // create a new session
-            $this->user_session = new $this->user_session_cls(user_id: $user->id);
+            $this->user_session = new self::$user_session_cls(user_id: $user->id);
             $this->user_session->logged_in = true; 
             $this->user_session->save();
             $this->is_authenticated = true;
 
-            $cookie_options = array (
-                'expires' => time() + 60*60*24*30, 
-                'path' => '/', 
-                //'domain' => '.foozbat.net', // leading dot for compatibility or use subdomain
-                'secure' => false,     // or false
-                'httponly' => true,    // or false
-                'samesite' => 'Strict' // None || Lax  || Strict
-            );
-
-            setcookie($this->auth_token_name, $this->user_session->auth_token, $cookie_options);
+            $this->set_auth_cookie($this->user_session->auth_token, time() + 60*60*24*30); // change expire time
 
             return true;
         }
@@ -143,8 +135,28 @@ class Auth
      */
     public function logout(): bool
     {
+        // set new unauthenticated token
+        $this->set_auth_cookie(self::$user_session_cls::generate_uuid(), time() + 60*60*24*30);
+
+        if ($this->user_session !== null) {
+            $this->user_session->logged_in = false;
+            $this->user_session->save();
+        }
+
+        return true;
+    }
+
+    /**
+     * Helper function to set a cookie with the auth token
+     *
+     * @param string $token Auth token
+     * @param integer|boolean $expires time to expire
+     * @return void
+     */
+    private function set_auth_cookie(string $token, int|bool $expires): void
+    {
         $cookie_options = array (
-            'expires' => time() - 60*60*24*30, 
+            'expires' => $expires, 
             'path' => '/', 
             //'domain' => '.foozbat.net', // leading dot for compatibility or use subdomain
             'secure' => false,     // or false
@@ -152,18 +164,7 @@ class Auth
             'samesite' => 'Strict' // None || Lax  || Strict
         );
 
-        setcookie($this->auth_token_name, "", $cookie_options);
-
-        //var_dump($this->user_session);
-
-        if ($this->user_session !== null) {
-            $this->user_session->logged_in = false;
-            $this->user_session->save();
-        }
-
-        //var_dump($this->user_session);
-
-        return true;
+        setcookie(self::$auth_token_name, $token, $cookie_options);
     }
 
     public function on_failure(callable $callback)

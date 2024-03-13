@@ -20,24 +20,24 @@ class UserSession extends Model
 
     public function __construct(...$params)
     {
-        $this->auth_token = $this->generate_uuid();
-        $this->csrf_token = $this->generate_uuid();
-        $this->fingerprint = $this->generate_fingerprint();
+        $this->auth_token = self::generate_uuid();
+        $this->csrf_token = self::generate_uuid();
+        $this->fingerprint = self::generate_fingerprint();
 
         parent::__construct(...$params);
     }
 
-    private function generate_uuid() {
+    public static function generate_uuid() {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0x0fff) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            random_int(0, 0xffff), random_int(0, 0xffff),
+            random_int(0, 0xffff),
+            random_int(0, 0x0fff) | 0x4000,
+            random_int(0, 0x3fff) | 0x8000,
+            random_int(0, 0xffff), random_int(0, 0xffff), random_int(0, 0xffff)
         );
     }
 
-    public function generate_fingerprint() {
+    public static function generate_fingerprint() {
         $fingerprint = '';
     
         $fingerprint .= "useragent:";
@@ -51,13 +51,10 @@ class UserSession extends Model
         $fingerprint .= "cookie:";
         $fingerprint .= isset($_COOKIE) ? '1' : '';
     
-        //echo $fingerprint."<br />";
-
         return md5($fingerprint);
     }
 
     public function validate_fingerprint() {
-        //echo $this->fingerprint;
-        return $this->fingerprint == $this->generate_fingerprint();
+        return $this->fingerprint == self::generate_fingerprint();
     }
 }

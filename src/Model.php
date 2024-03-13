@@ -22,6 +22,7 @@ namespace Fzb;
 use Exception;
 use Iterator;
 use ReflectionClass;
+use DateTime;
 
 class ModelException extends Exception { }
 
@@ -31,9 +32,13 @@ abstract class Model implements Iterator
     const __table__ = '';
 
     public int $id;
+    public DateTime $created_at;
+    public DateTime $updated_at;
 
     private $__db_id__ = 0;
     protected int $__iter__ = 0;
+
+    private static $__reserved_names__ = ['_page', '_per_page', '_order_by'];
 
     /**
      * Constructor
@@ -48,10 +53,12 @@ abstract class Model implements Iterator
         }
 
         // if a primary key is passed to constructor, set primary key member
-        if (isset($params[self::__primary_key__])) {
+        /*if (isset($params[self::__primary_key__])) {
             $this->{$this::__primary_key__} = $params[self::__primary_key__];
-            $this->load();
-        }
+            if (!$this->load()) {
+                throw new Exception('id_not_found');
+            }
+        }*/
         
         // if any model params were passed to constructor, set them
         if (sizeof($params) > 0) {
@@ -106,11 +113,7 @@ abstract class Model implements Iterator
     {
         $table_columns = $this->db()->get_column_names($this->table());
 
-        $arr = get_class_vars(get_called_class());
-
-        $properties = $this->get_class_properties(get_called_class());
-
-        //var_dump($properties);
+        $properties = $this->get_class_properties();
 
         foreach ($properties as $i => $property) {
             $name = $property->name;
@@ -121,23 +124,16 @@ abstract class Model implements Iterator
             }
         }
 
-       /* foreach ($arr as $var => $val) {
-            if ((str_starts_with($var, "__") && str_ends_with($var, "__")) ||
-                !in_array($var, $table_columns)) {
-                unset($arr[$var]);
-            } else if (isset($this->{$var})) {
-                $arr[$var] = $this->{$var};
-            }
-        }*/
-
         return $properties;
     }
 
-    private function get_class_properties($cls, $types='public'){
+    private function get_class_properties($cls=null, $types='public'){
+        if ($cls === null) {
+            $cls = get_called_class();
+        }
         $ref = new ReflectionClass($cls);
     
         $props = $ref->getProperties();
-        //var_dump($props);
         $ret_arr = [];
     
         foreach($props as $prop){
@@ -164,8 +160,21 @@ abstract class Model implements Iterator
         foreach ($properties as $property) {
             $name = $property->name;
 
+            if ($name == 'updated_at') {
+                continue;
+            }
+
             if (isset($this->{$name})) {
-                $data[$name] = is_bool($this->{$name}) ? (int) $this->{$name} : $this->{$name};
+                switch ($property->getType()) {
+                    case 'bool':
+                        $data[$name] = (int) $this->{$name};
+                        break;
+                    case 'DateTime':
+                        $data[$name] = $this->{$name}->format('Y-m-d H:i:s');
+                        break;
+                    default:
+                        $data[$name] = $this->{$name};
+                }
             }
         }
 
@@ -180,13 +189,30 @@ abstract class Model implements Iterator
      */
     private function set_model_data(array $data): void
     {
-        $properties = $this->get_mapped_properties();
+        $properties = $this->get_class_properties();
+
+        //var_dump($properties);
 
         foreach ($properties as $property) {
             $name = $property->name;
 
             if (isset($data[$name])) {
-                $this->{$name} = $property->getType() == 'bool' ? (bool) $data[$name] : $data[$name];
+                switch ($property->getType()) {
+                    case 'bool':
+                        $this->{$name} = (bool) $data[$name];
+                        break;
+                    case 'int':
+                        $this->{$name} = (int) $data[$name];
+                        break;
+                    case 'float':
+                        $this->{$name} = (float) $data[$name];
+                        break;
+                    case 'DateTime':
+                        $this->{$name} = new DateTime($data[$name]);
+                        break;
+                    default:
+                        $this->{$name} = $data[$name];
+                }
             }
             
             /*if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
@@ -261,13 +287,22 @@ abstract class Model implements Iterator
      *
      * @return mixed a single or array of model objects or null
      */
-    static function get_all(): mixed
+    public static function get_all(mixed ...$params): mixed
     {
-        $ret_arr = array();
+        $ret_arr = [];
         $cls = get_called_class();
         $table = $cls::table();
 
-        $cls::db()->prepare("SELECT * FROM $table");
+        $page = (int) $params['_page'] ?? null;
+        $per_page = (int) $params['_per_page'] ?? null;
+
+        $query = "SELECT * FROM $table";
+        $query .= self::order_by($params);
+        $query .= self::paginate($params);
+
+        var_dump($query);
+
+        $cls::db()->prepare($query);
         $cls::db()->execute();
 
         while ($row = $cls::db()->fetchrow_assoc()) {
@@ -287,23 +322,27 @@ abstract class Model implements Iterator
      * @param mixed ...$params variadic parameters to be checked
      * @return mixed a single or array of model objects or null
      */
-    static function get_by(mixed ...$params): mixed
+    public static function get_by(mixed ...$params): mixed
     {
-        $ret_arr = array();
+        $ret_arr = [];
         $cls = get_called_class();
         $table = $cls::table();
 
         $query = "SELECT * FROM $table";
         
         if (sizeof($params) > 0) {
+
+            [$params, $options] = self::get_options($params);
+
             $table_columns = $cls::db()->get_column_names($table);
-            $query_fields = array();
-            $query_values = array();
+            $query_fields = [];
+            $query_values = [];
 
             foreach ($params as $field => $value) {
                 if (!in_array($field, $table_columns)) {
                     throw new ModelException("Table column '$field' does not exist.");
                 }
+
                 array_push($query_fields, "$field = ?");
                 array_push($query_values, $value);
             }
@@ -311,6 +350,9 @@ abstract class Model implements Iterator
             if (sizeof($query_values) > 0) {
                 $query .= " WHERE ".implode(" AND ", $query_fields);
             }
+            
+            $query .= self::order_by($options);
+            $query .= self::paginate($options);
         }
 
         $cls::db()->prepare($query);
@@ -325,6 +367,98 @@ abstract class Model implements Iterator
         } else {
             return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
         }
+    }
+
+    public static function get_count(): int
+    {
+        $ret_arr = [];
+        $cls = get_called_class();
+        $table = $cls::table();
+
+        return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
+    }
+
+    public static function from_sql(string $query, mixed ...$params): mixed
+    {
+        $ret_arr = [];
+        $cls = get_called_class();
+        $table = $cls::table();
+
+        [$params, $options] = self::get_options($params);
+
+        $query .= self::order_by($options);
+        $query .= self::paginate($options);
+
+        $cls::db()->prepare($query);
+        $cls::db()->execute(...$params);
+
+        while ($row = $cls::db()->fetchrow_assoc()) {
+            array_push($ret_arr, new $cls(...$row));
+        }
+
+        if (sizeof($ret_arr) == 0) {
+            return null;
+        } else {
+            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+        }
+    }
+
+    private static function paginate(mixed $params): string {
+        $paginate_str = "";
+
+        if (isset($params['_page']) && isset($params['_per_page'])) {
+            $paginate_str = sprintf(' LIMIT %d, %d', 
+                ((int) $params['_page'] - 1) * (int) $params['_per_page'], 
+                (int) $params['_per_page']
+            );
+        }
+        return $paginate_str;
+    }
+
+    private static function order_by(mixed $params): string {
+        $order_by_str = "";
+        $order_by = $params['_order_by'] ?? null;
+        $orders = [];
+
+        if ($order_by !==  null) {
+            if (!is_array($order_by)) {
+                $order_by = [$params['_order_by']];
+            }
+
+            foreach ($order_by as $k => $v) {
+                if (is_int($k)) {
+                    $k = $v;
+                    $v = 'ASC';
+                } else {
+                    $v = strtoupper($v);
+                }
+
+                if ($v != 'ASC' && $v != 'DESC') {
+                    throw new ModelException("Invalid option for order_by().  Order must be ASC or DESC");
+                }
+
+                $orders[] = "$k $v";
+            }
+
+            $order_by_str = " ORDER BY ".join(', ', $orders);
+        }
+
+        return $order_by_str;
+    }
+
+    private static function get_options(mixed $params): array
+    {
+        $ret_arr = [[],[]];
+
+        foreach ($params as $k => $v) {
+            if (in_array($k, self::$__reserved_names__)) {
+                $ret_arr[1][$k] = $v;
+            } else {
+                $ret_arr[0][$k] = $v;
+            }
+        }
+
+        return $ret_arr;
     }
 
     /**
