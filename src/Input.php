@@ -340,7 +340,7 @@ class Input implements ArrayAccess, Iterator
  * 
  * @todo refactor
  */
-class InputObject 
+class InputObject
 {
     private string $name;
     private string $type;

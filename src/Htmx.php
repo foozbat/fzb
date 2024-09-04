@@ -11,7 +11,7 @@ namespace Fzb;
 
 use Exception;
 
-class HxtmException extends Exception {};
+class HtmxException extends Exception {};
 
 enum HtmxSwap: string
 {
@@ -118,11 +118,11 @@ class Htmx
      * @param string $url URL
      * @return void
      */
-    public static function location(string $url): void
+    public static function location(array|string $url): void
     {
         self::check_headers();
 
-        header("HX-Location: $url");
+        header("HX-Location: " . (is_array($url) ? json_encode($url) : $url));
     }
 
     /**
@@ -186,7 +186,7 @@ class Htmx
     {
         self::check_headers();
 
-        header("HX-Replace-Url: $swap");
+        header("HX-Reswap: ". $swap->value);
     }
 
     /**
@@ -252,6 +252,18 @@ class Htmx
         self::check_headers();
 
         header("HX-Trigger-After-Swap: ".self::json_encode_events($events));
+    }
+
+    /**
+     * Send no content, for triggering client side events only
+     *
+     * @return void
+     */
+    public static function no_content()
+    {
+        self::check_headers();
+        
+        http_response_code(204);
     }
 
     /* Helper Methods */

@@ -179,7 +179,7 @@ class Auth
     public function login_required()
     {
         if (!$this->is_authenticated) {
-            call_user_func($this->fail_callback);
+            call_user_func($this->fail_callback, $_SERVER['REQUEST_URI']);
         }
     }
 
