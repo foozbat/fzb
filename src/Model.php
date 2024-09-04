@@ -196,7 +196,7 @@ abstract class Model implements Iterator
         foreach ($properties as $property) {
             $name = $property->name;
 
-            if (isset($data[$name])) {
+            if (array_key_exists($name, $data)) {
                 switch ($property->getType()) {
                     case 'bool':
                         $this->{$name} = (bool) $data[$name];
@@ -261,6 +261,8 @@ abstract class Model implements Iterator
         $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
         $data = $this->db()->selectrow_assoc($query, $this->{$this::__primary_key__});
+
+        var_dump($data);
 
         if ($data === false) {
             return false;
