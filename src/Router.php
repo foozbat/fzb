@@ -347,6 +347,7 @@ class Router
                     if ($i == 0) continue;
                     $var_name = $rslt1[$i][0];
                     $var_val  = urldecode($rslt2[$i][0]);
+                    $var_val = explode('/', $var_val)[0]; // discard any trash after '/'
 
                     $var_name = ltrim($var_name, '{');
                     $var_name = rtrim($var_name, '}');

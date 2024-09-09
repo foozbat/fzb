@@ -45,6 +45,19 @@ class Input implements ArrayAccess, Iterator
         $this->read_all_inputs($inputs);
     }
 
+    public static function from_request(mixed ...$inputs): array {
+        $validation = new Input(...$inputs);
+        $ret_arr = [];
+
+        foreach ($validation as $var => $input) {
+            array_push($ret_arr, $input->value);
+        }
+
+        array_push($ret_arr, $validation);
+
+        return $ret_arr;
+    }
+
     /**
      * Reads a specified input name from get/post/etc and performs specified validation.
      *

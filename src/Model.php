@@ -38,7 +38,7 @@ abstract class Model implements Iterator
     private $__db_id__ = 0;
     protected int $__iter__ = 0;
 
-    private static $__reserved_names__ = ['_page', '_per_page', '_order_by'];
+    private static $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit'];
 
     /**
      * Constructor
@@ -407,6 +407,10 @@ abstract class Model implements Iterator
 
     private static function paginate(mixed $params): string {
         $paginate_str = "";
+
+        if (isset($params['_limit'])) {
+            throw new ModelException("Cannot use _limit when paginating.");
+        }
 
         if (isset($params['_page']) && isset($params['_per_page'])) {
             $paginate_str = sprintf(' LIMIT %d, %d', 

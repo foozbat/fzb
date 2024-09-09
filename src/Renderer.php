@@ -89,6 +89,7 @@ class Renderer
         }
 
         $this->render_vars[$name] = $this->process_var($value);
+        //var_dump($this->render_vars);
     }
 
     public function flag_error(string $error_name, bool $is_error)
@@ -148,6 +149,7 @@ class Renderer
     public function show(string $template_file)
     {
         ob_start();
+        //var_dump($this->render_vars);
         $this->render($template_file);
         ob_end_flush();
     }
