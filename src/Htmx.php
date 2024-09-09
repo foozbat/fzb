@@ -195,7 +195,7 @@ class Htmx
      * @param string $target CSS selector for new target.
      * @return void
      */
-    public function retarget(string $target): void
+    public static function retarget(string $target): void
     {
         self::check_headers();
 
@@ -208,7 +208,7 @@ class Htmx
      * @param string $select CSS selector for the part of the response to be swapped in
      * @return void
      */
-    public function reselect(string $select): void
+    public static function reselect(string $select): void
     {
         self::check_headers();
 
