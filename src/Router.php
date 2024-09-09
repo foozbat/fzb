@@ -418,4 +418,29 @@ class Router
     {
         return $this->path_vars;
     }
+
+    public function request_method()
+    {
+        return $_SERVER['REQUEST_METHOD'];
+    }
+
+    public function is_post()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'POST';
+    }
+
+    public function is_get()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'GET';
+    }
+
+    public function is_put()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'PUT';
+    }
+
+    public function is_delete()
+    {
+        return $_SERVER['REQUEST_METHOD'] == 'DELETE';
+    }
 }
