@@ -457,7 +457,7 @@ class Database
                     type AS type,
                     CASE WHEN notnull = 1 THEN 0 ELSE 1 END AS `null`, 
                     CASE WHEN pk = 1 THEN 'PRI' ELSE '' END AS `key`
-                    dflt_value AS `default`,
+                    dflt_value AS `default`, 
                 FROM pragma_table_info('$table')
             ");
         } else if ($this->pdo_options["driver"] == "pgsql") {
