@@ -314,6 +314,21 @@ class Database
     }
 
     /**
+     * Execues a query and returns the first column of each row
+     *
+     * @param string $query query to be executed
+     * @param mixed ...$params parameters to be bound to prepared statement
+     * @return mixed query results as array or null
+     */
+    public function selectall_array(string $query, mixed ...$params): mixed
+    {
+        $sth = $this->pdo->prepare($query);
+        $sth->execute($params);
+
+        return $sth->fetchAll();
+    }
+
+    /**
      * Last insert ID
      *
      * @return integer last insert ID
@@ -416,6 +431,55 @@ class Database
             return $this->selectcol_array("SELECT name FROM pragma_table_info('$table')");
         } else if ($this->pdo_options["driver"] == "pgsql") {
             return $this->selectcol_array("SELECT column_name FROM information_schema.columns WHERE table_name = ?", $table);
+        } else {
+            throw new DatabaseException("Database driver not supported.");
+        }
+    }
+
+    /**
+     * Gets the schema of a specified table
+     * 
+     * @todo Add support for more DBs
+     *
+     * @param string $table table to be checked
+     * @return mixed 2D array of schema or null
+     */
+    public function get_table_schema(string $table): mixed
+    {
+        if ($this->pdo_options["driver"] == "mysql") {
+            return $this->selectall_array("
+                EXPLAIN $table
+            ");
+        } else if ($this->pdo_options["driver"] == "sqlite") {
+            return $this->selectcol_array("
+                SELECT 
+                    name AS field, 
+                    type AS type,
+                    CASE WHEN notnull = 1 THEN 0 ELSE 1 END AS `null`, 
+                    CASE WHEN pk = 1 THEN 'PRI' ELSE '' END AS `key`
+                    dflt_value AS `default`,
+                FROM pragma_table_info('$table')
+            ");
+        } else if ($this->pdo_options["driver"] == "pgsql") {
+            return $this->selectcol_array("
+                SELECT 
+                    c.column_name AS field, 
+                    c.data_type AS type, 
+                    c.is_nullable AS `null`,
+                    CASE
+                        WHEN tc.constraint_type = 'PRIMARY KEY' THEN 'PRI'
+                        ELSE ''
+                    END AS `key`,
+                    c.column_default AS `default`
+                FROM information_schema.columns c
+                LEFT JOIN information_schema.key_column_usage kcu
+                    ON c.column_name = kcu.column_name 
+                    AND c.table_name = kcu.table_name
+                LEFT JOIN information_schema.table_constraints tc
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.constraint_type = 'PRIMARY KEY'
+                WHERE c.table_name = ?
+            ", $table);
         } else {
             throw new DatabaseException("Database driver not supported.");
         }
