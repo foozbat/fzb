@@ -42,13 +42,6 @@ abstract class Model implements Iterator
 
     private static $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
 
-    public static function __set_field_mappings(array $mappings)
-    {
-        echo "__set_field_mappings()";
-        self::$__field_mappings__ = $mappings;
-        var_dump($map);
-    }
-
     /**
      * Constructor
      *
@@ -79,49 +72,98 @@ abstract class Model implements Iterator
 
     private static function init()
     {
+        $bm = new Benchmark('orm_map');
+        $bm->start();
+
         $cls = get_called_class();
         
-        echo "INIT\n";
-        echo $cls;
+        // if metadata exists, do nothing
+        if (isset(self::$__meta__[$cls])) {
+            return;
+        }
 
-        if (!array_key_exists($cls, self::$__meta__)) {
-            // set the table name to name specified in derived class
-            $table = $cls::__table__;
-
-            // default table name to the lowercased class name if table is not specified
-            if ($table == '') {
-                if ($pos = strrpos($cls, '\\')) {
-                    $cls = substr($cls, $pos + 1);
-                }
-                $table = strtolower($cls);
+        // try to load pre-computed orm metadata
+        if (defined('ORM_CACHE_DIR')) {
+            $orm_cache_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
+            if (file_exists($orm_cache_filename)) {
+                self::$__meta__[$cls] = include $orm_cache_filename;
+                return;
             }
+        } 
+        
+        // compute orm metadata if needed
 
-            // refactor out
-            $table_columns = self::db()->get_column_names($table);
+        // set the table name to name specified in derived class
+        $table = $cls::__table__;
 
-            $properties = self::get_class_properties2();
-    
-            $orm_map = [];
+        // default table name to the lowercased class name if table is not specified
+        if ($table == '') {
+            if ($pos = strrpos($cls, '\\')) {
+                $cls = substr($cls, $pos + 1);
+            }
+            $table = strtolower($cls);
+        }
 
-            foreach ($properties as $i => $property) {
-                $name = $property->name;
-    
-                if (in_array($name, $table_columns) && !str_starts_with($name, "__") && !str_ends_with($name, "__")) {
-                    $orm_map[$name] = [
+        $schema = self::db()->get_table_schema($table);
+        $properties = self::get_class_properties();
+        $orm_map = [];
+
+        foreach ($schema as $column) {
+            foreach ($properties as $property) {
+                if ($column['Field'] == $property->name) {
+                    $orm_map[$column['Field']] = [
                         'obj_property_type' => (string) $property->getType(),
-                        'db_schema' => self::db()->get_table_schema($table)
+                        'db_field_type' => $column['Type']
                     ];
                 }
             }
-
-            self::$__meta__[$cls] = [
-                'table' => $table,
-                'mapping' => $orm_map
-            ];
         }
-        
-        var_dump(self::$__meta__[$cls]);
-        //var_dump(debug_backtrace());
+
+        self::$__meta__[$cls] = [
+            'table' => $table,
+            'orm_map' => $orm_map,
+            'schema' => $schema
+        ];
+
+        // save the computed orm-data to file if enabled
+        if (defined('ORM_CACHE_DIR')) {
+            $output_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
+            $output_code = "<?php\nreturn " . var_export(self::$__meta__[$cls], true) . ";\n";
+            file_put_contents($output_filename, $output_code);
+        }
+
+        $bm->end();
+    }
+
+    /**
+     * Helper static function to get the merged public properties of the class, recursively
+     *
+     * @param string $cls
+     * @param string $types
+     * @return void
+     */
+    private static function get_class_properties(string $cls=null, $types='public'){
+        if ($cls === null) {
+            $cls = get_called_class();
+        }
+        $ref = new ReflectionClass($cls);
+    
+        $props = $ref->getProperties();
+        $ret_arr = [];
+    
+        foreach($props as $prop){
+            $f = $prop->getName();
+            $ret_arr[$f] = $prop;
+        }
+    
+        if($parent_cls = $ref->getParentClass()){
+            $parent_ret_arr = self::get_class_properties($parent_cls->getName());//RECURSION
+            if(count($parent_ret_arr) > 0) {
+                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
+            }
+        }
+    
+        return $ret_arr;
     }
 
     /**
@@ -141,113 +183,21 @@ abstract class Model implements Iterator
     }
 
     /**
-     * Gets the table associated with the model
+     * Gets data from the class properties that are orm-mapped
      *
-     * @todo Add support for defaulting table name to the class name, if __table__ not specified.
-     * 
-     * @return string database table used by the model
+     * @return array object data
      */
-    static function table(): string
-    {
-        $cls = get_called_class();
-        $table = $cls::__table__;
-
-        if ($table == '') {
-            if ($pos = strrpos($cls, '\\')) {
-                $cls = substr($cls, $pos + 1);
-            }
-            $table = strtolower($cls);
-        }
-
-        return $table;
-    }
-
-    /**
-     * Gets a list of all of the models public and private member variables
-     *
-     * @return array list of all public and private member variables
-     */
-    private function get_mapped_properties(): array
-    {
-        $table_columns = $this->db()->get_column_names($this->table());
-
-        $properties = $this->get_class_properties();
-
-        foreach ($properties as $i => $property) {
-            $name = $property->name;
-
-            if ((str_starts_with($name, "__") && str_ends_with($name, "__")) ||
-                !in_array($name, $table_columns)) {
-                unset($properties[$i]);
-            }
-        }
-
-        return $properties;
-    }
-
-    private function get_class_properties($cls=null, $types='public'){
-        if ($cls === null) {
-            $cls = get_called_class();
-        }
-        $ref = new ReflectionClass($cls);
-    
-        $props = $ref->getProperties();
-        $ret_arr = [];
-    
-        foreach($props as $prop){
-            $f = $prop->getName();
-            $ret_arr[$f] = $prop;
-        }
-    
-        if($parent_cls = $ref->getParentClass()){
-            $parent_ret_arr = $this->get_class_properties($parent_cls->getName());//RECURSION
-            if(count($parent_ret_arr) > 0) {
-                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
-            }
-        }
-    
-        return $ret_arr;
-    }
-
-    private static function get_class_properties2($cls=null, $types='public'){
-        if ($cls === null) {
-            $cls = get_called_class();
-        }
-        $ref = new ReflectionClass($cls);
-    
-        $props = $ref->getProperties();
-        $ret_arr = [];
-    
-        foreach($props as $prop){
-            $f = $prop->getName();
-            $ret_arr[$f] = $prop;
-        }
-    
-        if($parent_cls = $ref->getParentClass()){
-            $parent_ret_arr = self::get_class_properties2($parent_cls->getName());//RECURSION
-            if(count($parent_ret_arr) > 0) {
-                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
-            }
-        }
-    
-        return $ret_arr;
-    }
-
-    private function get_model_data() {
+    private function get_model_data(): array {
         $data = [];
-        $properties = $this->get_mapped_properties();
+        $properties = self::$__meta__[get_called_class()]['orm_map'];
 
-        //var_dump($properties);
-
-        foreach ($properties as $property) {
-            $name = $property->name;
-
+        foreach ($properties as $name => $meta) {
             if ($name == 'updated_at') {
                 continue;
             }
 
             if (isset($this->{$name})) {
-                switch ($property->getType()) {
+                switch ($meta['obj_property_type']) {
                     case 'bool':
                         $data[$name] = (int) $this->{$name};
                         break;
@@ -271,15 +221,11 @@ abstract class Model implements Iterator
      */
     private function set_model_data(array $data): void
     {
-        $properties = $this->get_class_properties();
+        $properties = self::$__meta__[get_called_class()]['orm_map'];
 
-        //var_dump($properties);
-
-        foreach ($properties as $property) {
-            $name = $property->name;
-
+        foreach ($properties as $name => $meta) {
             if (array_key_exists($name, $data)) {
-                switch ($property->getType()) {
+                switch ($meta['obj_property_type']) {
                     case 'bool':
                         $this->{$name} = (bool) $data[$name];
                         break;
@@ -296,14 +242,6 @@ abstract class Model implements Iterator
                         $this->{$name} = $data[$name];
                 }
             }
-            
-            /*if (property_exists(get_class($this), $var) && isset($data[$var]) && !str_starts_with($var, "__") && !str_ends_with($var, "__")) {
-                if (gettype($this->{$var}) == 'boolean') {
-                    $this->{$var} = (bool) $data[$var];
-                } else {
-                    $this->{$var} = $data[$var];
-                }
-            }*/
         }
     }
 
@@ -315,9 +253,6 @@ abstract class Model implements Iterator
     public function save(): bool
     {
         $data = $this->get_model_data();
-
-        //var_dump($this::__primary_key__);
-        //var_dump($data[$this::__primary_key__] ?? null);
 
         $rows_affected = $this->db()->auto_insert_update(
             $this::__table__, 
@@ -343,8 +278,6 @@ abstract class Model implements Iterator
         $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
 
         $data = $this->db()->selectrow_assoc($query, $this->{$this::__primary_key__});
-
-        //var_dump($data);
 
         if ($data === false) {
             return false;
@@ -375,7 +308,7 @@ abstract class Model implements Iterator
     {
         $ret_arr = [];
         $cls = get_called_class();
-        $table = $cls::table();
+        $table =  $table = self::$__meta__[$cls]['table'];
 
         $query = "SELECT * FROM $table";
         $query .= self::order_by($params);
@@ -407,7 +340,7 @@ abstract class Model implements Iterator
 
         $ret_arr = [];
         $cls = get_called_class();
-        $table = $cls::table();
+        $table =  $table = self::$__meta__[$cls]['table'];
 
         $query = "SELECT * FROM $table";
         
@@ -434,7 +367,7 @@ abstract class Model implements Iterator
     public static function get_count(): int
     {
         $cls = get_called_class();
-        $table = $cls::table();
+        $table =  $table = self::$__meta__[$cls]['table'];
 
         return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
     }
@@ -442,7 +375,7 @@ abstract class Model implements Iterator
     public static function get_count_by(mixed ...$params): int
     {
         $cls = get_called_class();
-        $table = $cls::table();
+        $table =  $table = self::$__meta__[$cls]['table'];
 
         list($where, $query_values) = self::where($params);
 
@@ -455,7 +388,7 @@ abstract class Model implements Iterator
     {
         $ret_arr = [];
         $cls = get_called_class();
-        $table = $cls::table();
+        $table =  $table = self::$__meta__[$cls]['table'];
 
         [$params, $options] = self::get_options($params);
 
@@ -479,7 +412,7 @@ abstract class Model implements Iterator
     private static function where(mixed $params): array
     {
         $cls = get_called_class();
-        $table = $cls::table();
+        $table = self::$__meta__[$cls]['table'];
 
         $where = '';
         $query_fields = [];
