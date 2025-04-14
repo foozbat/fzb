@@ -451,26 +451,26 @@ class Database
                 EXPLAIN $table
             ");
         } else if ($this->pdo_options["driver"] == "sqlite") {
-            return $this->selectcol_array("
+            return $this->selectall_array("
                 SELECT 
-                    name AS field, 
-                    type AS type,
-                    CASE WHEN notnull = 1 THEN 0 ELSE 1 END AS `null`, 
-                    CASE WHEN pk = 1 THEN 'PRI' ELSE '' END AS `key`
-                    dflt_value AS `default`, 
+                    name AS Field, 
+                    type AS Type,
+                    CASE WHEN notnull = 1 THEN 'NO' ELSE 'YES' END AS `Null`, 
+                    CASE WHEN pk = 1 THEN 'PRI' ELSE '' END AS `Key`
+                    dflt_value AS `Default`, 
                 FROM pragma_table_info('$table')
             ");
         } else if ($this->pdo_options["driver"] == "pgsql") {
-            return $this->selectcol_array("
+            return $this->selectall_array("
                 SELECT 
-                    c.column_name AS field, 
-                    c.data_type AS type, 
-                    c.is_nullable AS `null`,
+                    c.column_name AS Field, 
+                    c.data_type AS Type, 
+                    c.is_nullable AS `Null`,
                     CASE
                         WHEN tc.constraint_type = 'PRIMARY KEY' THEN 'PRI'
                         ELSE ''
-                    END AS `key`,
-                    c.column_default AS `default`
+                    END AS `Key`,
+                    c.column_default AS `Default`
                 FROM information_schema.columns c
                 LEFT JOIN information_schema.key_column_usage kcu
                     ON c.column_name = kcu.column_name 

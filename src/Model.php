@@ -38,7 +38,16 @@ abstract class Model implements Iterator
     private $__db_id__ = 0;
     protected int $__iter__ = 0;
 
-    private static $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit'];
+    private static array $__meta__ = [];
+
+    private static $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
+
+    public static function __set_field_mappings(array $mappings)
+    {
+        echo "__set_field_mappings()";
+        self::$__field_mappings__ = $mappings;
+        var_dump($map);
+    }
 
     /**
      * Constructor
@@ -47,6 +56,8 @@ abstract class Model implements Iterator
      */
     public function __construct(mixed ...$params)
     {
+        self::init();
+
         // if derived model uses a different primary key, unset the default
         if ($this::__primary_key__ != 'id') {
             unset($this->{'id'});
@@ -64,6 +75,53 @@ abstract class Model implements Iterator
         if (sizeof($params) > 0) {
             $this->set_model_data($params);
         }
+    }
+
+    private static function init()
+    {
+        $cls = get_called_class();
+        
+        echo "INIT\n";
+        echo $cls;
+
+        if (!array_key_exists($cls, self::$__meta__)) {
+            // set the table name to name specified in derived class
+            $table = $cls::__table__;
+
+            // default table name to the lowercased class name if table is not specified
+            if ($table == '') {
+                if ($pos = strrpos($cls, '\\')) {
+                    $cls = substr($cls, $pos + 1);
+                }
+                $table = strtolower($cls);
+            }
+
+            // refactor out
+            $table_columns = self::db()->get_column_names($table);
+
+            $properties = self::get_class_properties2();
+    
+            $orm_map = [];
+
+            foreach ($properties as $i => $property) {
+                $name = $property->name;
+    
+                if (in_array($name, $table_columns) && !str_starts_with($name, "__") && !str_ends_with($name, "__")) {
+                    $orm_map[$name] = [
+                        'obj_property_type' => (string) $property->getType(),
+                        'db_schema' => self::db()->get_table_schema($table)
+                    ];
+                }
+            }
+
+            self::$__meta__[$cls] = [
+                'table' => $table,
+                'mapping' => $orm_map
+            ];
+        }
+        
+        var_dump(self::$__meta__[$cls]);
+        //var_dump(debug_backtrace());
     }
 
     /**
@@ -143,6 +201,30 @@ abstract class Model implements Iterator
     
         if($parent_cls = $ref->getParentClass()){
             $parent_ret_arr = $this->get_class_properties($parent_cls->getName());//RECURSION
+            if(count($parent_ret_arr) > 0) {
+                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
+            }
+        }
+    
+        return $ret_arr;
+    }
+
+    private static function get_class_properties2($cls=null, $types='public'){
+        if ($cls === null) {
+            $cls = get_called_class();
+        }
+        $ref = new ReflectionClass($cls);
+    
+        $props = $ref->getProperties();
+        $ret_arr = [];
+    
+        foreach($props as $prop){
+            $f = $prop->getName();
+            $ret_arr[$f] = $prop;
+        }
+    
+        if($parent_cls = $ref->getParentClass()){
+            $parent_ret_arr = self::get_class_properties2($parent_cls->getName());//RECURSION
             if(count($parent_ret_arr) > 0) {
                 $ret_arr = array_merge($parent_ret_arr, $ret_arr);
             }
@@ -262,7 +344,7 @@ abstract class Model implements Iterator
 
         $data = $this->db()->selectrow_assoc($query, $this->{$this::__primary_key__});
 
-        var_dump($data);
+        //var_dump($data);
 
         if ($data === false) {
             return false;
@@ -295,14 +377,9 @@ abstract class Model implements Iterator
         $cls = get_called_class();
         $table = $cls::table();
 
-        $page = (int) $params['_page'] ?? null;
-        $per_page = (int) $params['_per_page'] ?? null;
-
         $query = "SELECT * FROM $table";
         $query .= self::order_by($params);
         $query .= self::paginate($params);
-
-        var_dump($query);
 
         $cls::db()->prepare($query);
         $cls::db()->execute();
@@ -326,36 +403,19 @@ abstract class Model implements Iterator
      */
     public static function get_by(mixed ...$params): mixed
     {
+        self::init();
+
         $ret_arr = [];
         $cls = get_called_class();
         $table = $cls::table();
 
         $query = "SELECT * FROM $table";
         
-        if (sizeof($params) > 0) {
+        list($where, $query_values) = self::where($params);
 
-            [$params, $options] = self::get_options($params);
-
-            $table_columns = $cls::db()->get_column_names($table);
-            $query_fields = [];
-            $query_values = [];
-
-            foreach ($params as $field => $value) {
-                if (!in_array($field, $table_columns)) {
-                    throw new ModelException("Table column '$field' does not exist.");
-                }
-
-                array_push($query_fields, "$field = ?");
-                array_push($query_values, $value);
-            }
-
-            if (sizeof($query_values) > 0) {
-                $query .= " WHERE ".implode(" AND ", $query_fields);
-            }
-            
-            $query .= self::order_by($options);
-            $query .= self::paginate($options);
-        }
+        $query .= $where;
+        $query .= self::order_by($params);
+        $query .= self::paginate($params);
 
         $cls::db()->prepare($query);
         $cls::db()->execute(...$query_values);
@@ -373,11 +433,22 @@ abstract class Model implements Iterator
 
     public static function get_count(): int
     {
-        $ret_arr = [];
         $cls = get_called_class();
         $table = $cls::table();
 
         return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
+    }
+
+    public static function get_count_by(mixed ...$params): int
+    {
+        $cls = get_called_class();
+        $table = $cls::table();
+
+        list($where, $query_values) = self::where($params);
+
+        $query = "SELECT COUNT(*) FROM $table" . $where;
+
+        return (int) $cls::db()->selectcol_array($query, ...$query_values)[0];
     }
 
     public static function from_sql(string $query, mixed ...$params): mixed
@@ -403,6 +474,37 @@ abstract class Model implements Iterator
         } else {
             return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
         }
+    }
+
+    private static function where(mixed $params): array
+    {
+        $cls = get_called_class();
+        $table = $cls::table();
+
+        $where = '';
+        $query_fields = [];
+        $query_values = [];
+
+        if (sizeof($params) > 0) {
+            [$params, $options] = self::get_options($params);
+
+            $table_columns = $cls::db()->get_column_names($table);
+
+            foreach ($params as $field => $value) {
+                if (!in_array($field, $table_columns)) {
+                    throw new ModelException("Table column '$field' does not exist.");
+                }
+
+                array_push($query_fields, "$field = ?");
+                array_push($query_values, $value);
+            }
+
+            if (sizeof($query_values) > 0) {
+                $where = " WHERE ".implode(" AND ", $query_fields);
+            }
+        }
+
+        return [$where, $query_values];
     }
 
     private static function paginate(mixed $params): string {
