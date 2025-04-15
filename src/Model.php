@@ -70,16 +70,16 @@ abstract class Model implements Iterator
         }
     }
 
-    private static function init()
+    private static function init(): string
     {
-        $bm = new Benchmark('orm_map');
-        $bm->start();
+        //$bm = new Benchmark('orm_map');
+        //$bm->start();
 
         $cls = get_called_class();
         
         // if metadata exists, do nothing
         if (isset(self::$__meta__[$cls])) {
-            return;
+            return $cls;
         }
 
         // try to load pre-computed orm metadata
@@ -87,7 +87,7 @@ abstract class Model implements Iterator
             $orm_cache_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
             if (file_exists($orm_cache_filename)) {
                 self::$__meta__[$cls] = include $orm_cache_filename;
-                return;
+                return $cls;
             }
         } 
         
@@ -132,7 +132,9 @@ abstract class Model implements Iterator
             file_put_contents($output_filename, $output_code);
         }
 
-        $bm->end();
+        //$bm->end();
+
+        return $cls;
     }
 
     /**
@@ -188,8 +190,9 @@ abstract class Model implements Iterator
      * @return array object data
      */
     private function get_model_data(): array {
+        $cls = self::init();
+        $properties = self::$__meta__[$cls]['orm_map'];
         $data = [];
-        $properties = self::$__meta__[get_called_class()]['orm_map'];
 
         foreach ($properties as $name => $meta) {
             if ($name == 'updated_at') {
@@ -221,7 +224,8 @@ abstract class Model implements Iterator
      */
     private function set_model_data(array $data): void
     {
-        $properties = self::$__meta__[get_called_class()]['orm_map'];
+        $cls = self::init();
+        $properties = self::$__meta__[$cls]['orm_map'];
 
         foreach ($properties as $name => $meta) {
             if (array_key_exists($name, $data)) {
@@ -306,8 +310,9 @@ abstract class Model implements Iterator
      */
     public static function get_all(mixed ...$params): mixed
     {
+        $cls = self::init();
+
         $ret_arr = [];
-        $cls = get_called_class();
         $table =  $table = self::$__meta__[$cls]['table'];
 
         $query = "SELECT * FROM $table";
@@ -336,10 +341,9 @@ abstract class Model implements Iterator
      */
     public static function get_by(mixed ...$params): mixed
     {
-        self::init();
+        $cls = self::init();
 
         $ret_arr = [];
-        $cls = get_called_class();
         $table =  $table = self::$__meta__[$cls]['table'];
 
         $query = "SELECT * FROM $table";
@@ -366,16 +370,16 @@ abstract class Model implements Iterator
 
     public static function get_count(): int
     {
-        $cls = get_called_class();
-        $table =  $table = self::$__meta__[$cls]['table'];
+        $cls = self::init();
+        $table =  self::$__meta__[$cls]['table'];
 
         return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
     }
 
     public static function get_count_by(mixed ...$params): int
     {
-        $cls = get_called_class();
-        $table =  $table = self::$__meta__[$cls]['table'];
+        $cls = self::init();
+        $table =  self::$__meta__[$cls]['table'];
 
         list($where, $query_values) = self::where($params);
 
@@ -386,9 +390,9 @@ abstract class Model implements Iterator
 
     public static function from_sql(string $query, mixed ...$params): mixed
     {
+        $cls = self::init();
+        $table = self::$__meta__[$cls]['table'];
         $ret_arr = [];
-        $cls = get_called_class();
-        $table =  $table = self::$__meta__[$cls]['table'];
 
         [$params, $options] = self::get_options($params);
 
@@ -411,7 +415,7 @@ abstract class Model implements Iterator
 
     private static function where(mixed $params): array
     {
-        $cls = get_called_class();
+        $cls = self::init();
         $table = self::$__meta__[$cls]['table'];
 
         $where = '';

@@ -17,6 +17,8 @@ class UserSession extends Model
     public string $auth_token;
     public string $csrf_token;
     public string $fingerprint;
+    public string $sms_2fa_code;
+    public string $sms_2fa_expires_at;
 
     public function __construct(...$params)
     {
