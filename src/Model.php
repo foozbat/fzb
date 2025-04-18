@@ -121,6 +121,7 @@ abstract class Model implements Iterator
 
         self::$__meta__[$cls] = [
             'table' => $table,
+            'orm_fields' => array_keys($orm_map),
             'orm_map' => $orm_map,
             'schema' => $schema
         ];
@@ -313,7 +314,7 @@ abstract class Model implements Iterator
         $cls = self::init();
 
         $ret_arr = [];
-        $table =  $table = self::$__meta__[$cls]['table'];
+        $table = self::$__meta__[$cls]['table'];
 
         $query = "SELECT * FROM $table";
         $query .= self::order_by($params);
@@ -344,34 +345,43 @@ abstract class Model implements Iterator
         $cls = self::init();
 
         $ret_arr = [];
-        $table =  $table = self::$__meta__[$cls]['table'];
+        $table = self::$__meta__[$cls]['table'];
 
-        $query = "SELECT * FROM $table";
+        $query = "SELECT ";
+        $query .= self::select_fields($params);
+        $query .= "FROM $table";
         
         list($where, $query_values) = self::where($params);
 
+        $query .= self::left_join($params);
         $query .= $where;
         $query .= self::order_by($params);
         $query .= self::paginate($params);
+
+        //var_dump($query);
 
         $cls::db()->prepare($query);
         $cls::db()->execute(...$query_values);
 
         while ($row = $cls::db()->fetchrow_assoc()) {
-            array_push($ret_arr, new $cls(...$row));
+            array_push($ret_arr, self::parse_result_fields($row));
         }
 
         if (sizeof($ret_arr) == 0) {
             return null;
         } else {
-            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+            $ret = sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+            if (isset($params['_page']) && isset($params['_per_page'])) {
+                $ret = [$ret, self::get_count_by(...$params)];
+            }
+            return $ret;
         }
     }
 
     public static function get_count(): int
     {
         $cls = self::init();
-        $table =  self::$__meta__[$cls]['table'];
+        $table = self::$__meta__[$cls]['table'];
 
         return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
     }
@@ -379,19 +389,23 @@ abstract class Model implements Iterator
     public static function get_count_by(mixed ...$params): int
     {
         $cls = self::init();
-        $table =  self::$__meta__[$cls]['table'];
+        $table = self::$__meta__[$cls]['table'];
+
+        var_dump($params);
 
         list($where, $query_values) = self::where($params);
 
         $query = "SELECT COUNT(*) FROM $table" . $where;
+
+
 
         return (int) $cls::db()->selectcol_array($query, ...$query_values)[0];
     }
 
     public static function from_sql(string $query, mixed ...$params): mixed
     {
-        $cls = self::init();
-        $table = self::$__meta__[$cls]['table'];
+        $cls     = self::init();
+        $table   = self::$__meta__[$cls]['table'];
         $ret_arr = [];
 
         [$params, $options] = self::get_options($params);
@@ -403,7 +417,7 @@ abstract class Model implements Iterator
         $cls::db()->execute(...$params);
 
         while ($row = $cls::db()->fetchrow_assoc()) {
-            array_push($ret_arr, new $cls(...$row));
+            array_push($ret_arr, self::parse_result_fields($row));
         }
 
         if (sizeof($ret_arr) == 0) {
@@ -413,9 +427,69 @@ abstract class Model implements Iterator
         }
     }
 
+    public static function get_sql_fields(): string
+    {
+        $cls    = self::init();
+        $table  = self::$__meta__[$cls]['table'];
+        $fields = self::$__meta__[$cls]['orm_fields'];
+
+        $fields = array_map(function ($field) use ($table, $cls) { 
+            return "$table.$field  AS `$cls" . '__' . "$field`";
+        }, $fields);
+
+        return join(', ', $fields);
+    }
+    public static function select_fields(mixed $params): string
+    {
+        $cls    = self::init();
+        $table  = self::$__meta__[$cls]['table'];
+        $fields = self::$__meta__[$cls]['orm_fields'];
+
+        $fields = array_map(function ($field) use ($table, $cls) { 
+            return "$table.$field  AS `$cls" . '__' . "$field`";
+        }, $fields);
+
+        if (isset($params['_left_join'])) {
+            foreach ($params['_left_join'] as $join_cls => $join_params) {
+                $join_table = self::$__meta__[$join_cls]['table'];
+                $join_fields = self::$__meta__[$join_cls]['orm_fields'];
+
+                foreach ($join_fields as $join_field) {
+                    array_push($fields, "$join_table.$join_field  AS `$join_cls" . '__' . "$join_field`");
+                }
+            }
+        }
+
+        return join(', ', $fields);
+    }
+
+    private static function parse_result_fields(array $row): mixed
+    {
+        $objects = [];
+        $ret_array = [];
+        $tmp_array = [];
+
+        foreach ($row as $key => $value) {
+            if (str_contains($key, '__')) {
+                list ($obj, $field) = explode('__', $key, 2);
+                $tmp_array[$obj][$field] = $value;
+                unset($row[$key]);
+            } else {
+                $tmp_array[$key] = $value;
+            }
+        }
+
+        foreach ($tmp_array as $value) {
+            $ret_array[] = is_array($value) ? new $obj(...$value) : $value;
+        }
+
+        return sizeof($ret_array) == 1 ? $ret_array[0] : $ret_array;
+    }
+
     private static function where(mixed $params): array
     {
         $cls = self::init();
+
         $table = self::$__meta__[$cls]['table'];
 
         $where = '';
@@ -432,7 +506,7 @@ abstract class Model implements Iterator
                     throw new ModelException("Table column '$field' does not exist.");
                 }
 
-                array_push($query_fields, "$field = ?");
+                array_push($query_fields, "$table.$field = ?");
                 array_push($query_values, $value);
             }
 
@@ -444,7 +518,30 @@ abstract class Model implements Iterator
         return [$where, $query_values];
     }
 
-    private static function paginate(mixed $params): string {
+    private static function left_join(mixed $params): string
+    {
+        $cls = self::init();
+
+        $left_join_str = '';
+
+        if (isset($params['_left_join'])) {
+            // do some error checking
+
+            foreach ($params['_left_join'] as $join_cls => $join_params)
+            list($table_key, $join_table_key) = $join_params;
+            $table = $cls::__table__;
+            $join_table = $join_cls::__table__;
+
+            // 
+            $left_join_str .= " LEFT JOIN $join_table ON $table.$table_key = $join_table.$join_table_key";
+
+        }
+
+        return $left_join_str;
+    }
+
+    private static function paginate(mixed $params): string
+    {
         $paginate_str = "";
 
         if (isset($params['_limit'])) {
@@ -460,7 +557,11 @@ abstract class Model implements Iterator
         return $paginate_str;
     }
 
-    private static function order_by(mixed $params): string {
+    private static function order_by(mixed $params): string
+    {
+        $cls = self::init();
+        $table = self::$__meta__[$cls]['table'];
+
         $order_by_str = "";
         $order_by = $params['_order_by'] ?? null;
         $orders = [];
@@ -480,6 +581,11 @@ abstract class Model implements Iterator
 
                 if ($v != 'ASC' && $v != 'DESC') {
                     throw new ModelException("Invalid option for order_by().  Order must be ASC or DESC");
+                }
+
+                // if they didn't specify a table, add this table as default
+                if (!str_contains($k, '.')) {
+                    $k = "$table.$k";
                 }
 
                 $orders[] = "$k $v";
