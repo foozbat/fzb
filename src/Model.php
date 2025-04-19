@@ -72,9 +72,6 @@ abstract class Model implements Iterator
 
     private static function init(): string
     {
-        //$bm = new Benchmark('orm_map');
-        //$bm->start();
-
         $cls = get_called_class();
         
         // if metadata exists, do nothing
@@ -107,21 +104,22 @@ abstract class Model implements Iterator
         $schema = self::db()->get_table_schema($table);
         $properties = self::get_class_properties();
         $orm_map = [];
+        $orm_fields = [];
 
         foreach ($schema as $column) {
-            foreach ($properties as $property) {
-                if ($column['Field'] == $property->name) {
-                    $orm_map[$column['Field']] = [
-                        'obj_property_type' => (string) $property->getType(),
-                        'db_field_type' => $column['Type']
-                    ];
-                }
+            $orm_map[$column['Field']]['db_field_type'] = $column['Type'];
+        }
+
+        foreach ($properties as $property) {
+            $orm_map[$property->name]['obj_property_type'] = (string) $property->getType();
+            if (isset($orm_map[$property->name]['db_field_type'])) {
+                array_push($orm_fields, $property->name);
             }
         }
 
         self::$__meta__[$cls] = [
             'table' => $table,
-            'orm_fields' => array_keys($orm_map),
+            'orm_fields' => $orm_fields,
             'orm_map' => $orm_map,
             'schema' => $schema
         ];
@@ -192,15 +190,17 @@ abstract class Model implements Iterator
      */
     private function get_model_data(): array {
         $cls = self::init();
-        $properties = self::$__meta__[$cls]['orm_map'];
+        $properties = self::$__meta__[$cls]['orm_fields'];
         $data = [];
 
-        foreach ($properties as $name => $meta) {
+        foreach ($properties as $name) {
             if ($name == 'updated_at') {
                 continue;
             }
 
             if (isset($this->{$name})) {
+                $meta = self::$__meta__[$cls]['orm_map'][$name];
+
                 switch ($meta['obj_property_type']) {
                     case 'bool':
                         $data[$name] = (int) $this->{$name};
@@ -226,10 +226,12 @@ abstract class Model implements Iterator
     private function set_model_data(array $data): void
     {
         $cls = self::init();
-        $properties = self::$__meta__[$cls]['orm_map'];
+        $properties = self::$__meta__[$cls]['orm_fields'];
 
-        foreach ($properties as $name => $meta) {
+        foreach ($properties as $name) {
             if (array_key_exists($name, $data)) {
+                $meta = self::$__meta__[$cls]['orm_map'][$name];
+
                 switch ($meta['obj_property_type']) {
                     case 'bool':
                         $this->{$name} = (bool) $data[$name];
@@ -358,20 +360,18 @@ abstract class Model implements Iterator
         $query .= self::order_by($params);
         $query .= self::paginate($params);
 
-        //var_dump($query);
-
         $cls::db()->prepare($query);
         $cls::db()->execute(...$query_values);
 
         while ($row = $cls::db()->fetchrow_assoc()) {
-            array_push($ret_arr, self::parse_result_fields($row));
+            array_push($ret_arr, self::parse_result_fields($row, $params));
         }
 
         if (sizeof($ret_arr) == 0) {
             return null;
         } else {
             $ret = sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
-            if (isset($params['_page']) && isset($params['_per_page'])) {
+            if (isset($params['_get_count'])) {
                 $ret = [$ret, self::get_count_by(...$params)];
             }
             return $ret;
@@ -391,13 +391,9 @@ abstract class Model implements Iterator
         $cls = self::init();
         $table = self::$__meta__[$cls]['table'];
 
-        var_dump($params);
-
         list($where, $query_values) = self::where($params);
 
         $query = "SELECT COUNT(*) FROM $table" . $where;
-
-
 
         return (int) $cls::db()->selectcol_array($query, ...$query_values)[0];
     }
@@ -417,7 +413,7 @@ abstract class Model implements Iterator
         $cls::db()->execute(...$params);
 
         while ($row = $cls::db()->fetchrow_assoc()) {
-            array_push($ret_arr, self::parse_result_fields($row));
+            array_push($ret_arr, self::parse_result_fields($row, $params));
         }
 
         if (sizeof($ret_arr) == 0) {
@@ -451,6 +447,8 @@ abstract class Model implements Iterator
 
         if (isset($params['_left_join'])) {
             foreach ($params['_left_join'] as $join_cls => $join_params) {
+                $join_cls = $join_cls::init();
+
                 $join_table = self::$__meta__[$join_cls]['table'];
                 $join_fields = self::$__meta__[$join_cls]['orm_fields'];
 
@@ -463,8 +461,10 @@ abstract class Model implements Iterator
         return join(', ', $fields);
     }
 
-    private static function parse_result_fields(array $row): mixed
+    private static function parse_result_fields(array $row, mixed $params): mixed
     {
+        $cls = self::init();
+
         $objects = [];
         $ret_array = [];
         $tmp_array = [];
@@ -479,8 +479,20 @@ abstract class Model implements Iterator
             }
         }
 
-        foreach ($tmp_array as $value) {
-            $ret_array[] = is_array($value) ? new $obj(...$value) : $value;
+        foreach ($tmp_array as $key => $value) {
+            $is_joining = sizeof($ret_array) > 0 && isset($params['_left_join']);
+            $join_parent_property = $params['_left_join'][$key][2] ?? null;
+            $join_parent_property_type = self::$__meta__[$cls]['orm_map'][$join_parent_property]['obj_property_type'] ?? null;
+            
+            if ($join_parent_property_type !== null) {
+                $join_parent_property_type = ltrim($join_parent_property_type, '?');
+            }
+
+            if ($is_joining && $join_parent_property !== null && $join_parent_property_type !== null) {
+                $ret_array[0]->$join_parent_property = new $key(...$value);
+            } else {
+                $ret_array[] = is_array($value) ? new $key(...$value) : $value;
+            }
         }
 
         return sizeof($ret_array) == 1 ? $ret_array[0] : $ret_array;
@@ -527,14 +539,14 @@ abstract class Model implements Iterator
         if (isset($params['_left_join'])) {
             // do some error checking
 
-            foreach ($params['_left_join'] as $join_cls => $join_params)
-            list($table_key, $join_table_key) = $join_params;
             $table = $cls::__table__;
-            $join_table = $join_cls::__table__;
 
-            // 
-            $left_join_str .= " LEFT JOIN $join_table ON $table.$table_key = $join_table.$join_table_key";
+            foreach ($params['_left_join'] as $join_cls => $join_params) {
+                list($table_key, $join_table_key) = $join_params;
+                $join_table = $join_cls::__table__;
 
+                $left_join_str .= " LEFT JOIN $join_table ON $table.$table_key = $join_table.$join_table_key";
+            }
         }
 
         return $left_join_str;
