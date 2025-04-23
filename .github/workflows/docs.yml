@@ -18,11 +18,13 @@ jobs:
         with:
           php-version: '8.1'
 
-      - name: Install Composer dependencies
-        run: composer install --no-progress --no-suggest --prefer-dist
+      - name: Download phpDocumentor
+        run: |
+          curl -L https://phpdoc.org/phpDocumentor.phar -o phpDocumentor.phar
+          chmod +x phpDocumentor.phar
 
       - name: Generate Documentation
-        run: ./vendor/bin/phpdoc -d src -t docs/phpdoc
+        run: php phpDocumentor.phar -d src -t docs/phpdoc
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
