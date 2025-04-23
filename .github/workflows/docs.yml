@@ -24,7 +24,7 @@ jobs:
           chmod +x phpDocumentor.phar
 
       - name: Generate Documentation
-        run: php phpDocumentor.phar --config=phpdoc.xml
+        run: php phpDocumentor.phar --config=.phpdoc.xml
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
