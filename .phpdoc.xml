@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor configVersion="3">
+  <paths>
+    <directory>src</directory>
+  </paths>
+
+  <versions>
+    <version number="1.0.0">
+      <api>
+        <source dsn="src" />
+      </api>
+    </version>
+  </versions>
+
+  <transformations>
+    <template name="default" />
+  </transformations>
+
+  <settings>
+    <visibility>
+      <public>true</public>
+      <protected>false</protected>
+      <private>false</private>
+    </visibility>
+    <ignore-hidden>true</ignore-hidden>
+  </settings>
+</phpdocumentor>
