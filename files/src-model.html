@@ -67,6 +67,10 @@
     <a href="packages/FzbFramework.html" class="">FzbFramework</a>
 </h4>
 
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="packages/Fzb.html" class="">Fzb</a>
+</h4>
+
                         </section>
             
     <section class="phpdocumentor-sidebar__category -reports">
@@ -90,16 +94,22 @@
     <article class="phpdocumentor-element -file">
         <h2 class="phpdocumentor-content__title">Model.php</h2>
 
-            <p class="phpdocumentor-summary">Class Model</p>
+            <p class="phpdocumentor-summary">Simple ORM base class for database-backed models.</p>
 
 
-    <section class="phpdocumentor-description"><p>Simple ORM.  Maps a class's public and private members to a specified database table.
-Provides functionality to write and retrieve objects to/from the DB.
-Allows raw access to the database if desired.</p>
-<p>usage: class MyModel extends Fzb\Model</p>
-<p>notes: By default, a Model's public and private members will be mapped to DB colums,
-if they exist.  Protected members are not written to the DB,
-so structure your models accordingly.</p>
+    <section class="phpdocumentor-description"><p>Maps public and private members to a table, provides persistence and retrieval,
+and allows raw DB access for advanced use cases.</p>
+<h3>Usage</h3>
+<pre class="prettyprint"><code class="language-php">class MyModel extends Fzb\Model {
+    public $id;
+    public $title;
+}
+</code></pre>
+<h3>Notes</h3>
+<ul>
+<li>Public/private members are mapped to DB columns</li>
+<li>Protected members are ignored (not persisted)</li>
+</ul>
 </section>
 
 
@@ -114,7 +124,7 @@ so structure your models accordingly.</p>
                 </dt>
                 <dd class="phpdocumentor-tag-list__definition">
                                                                                 
-                                                 <section class="phpdocumentor-description"><p>Aaron Bishop (github.com/foozbat)</p>
+                                                 <section class="phpdocumentor-description"><p>Aaron Bishop <a href="https://github.com/foozbat">https://github.com/foozbat</a></p>
 </section>
 
                                     </dd>
