@@ -563,7 +563,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\Model",
             "name": "Model",
-            "summary": "",
+            "summary": "Simple\u0020ORM\u0020base\u0020class\u0020for\u0020database\u002Dbacked\u0020models.",
             "url": "classes/Fzb-Model.html"
         },                {
             "fqsen": "\\Fzb\\Model\u003A\u003A__construct\u0028\u0029",
@@ -1128,7 +1128,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\User",
             "name": "User",
-            "summary": "",
+            "summary": "Simple\u0020ORM\u0020base\u0020class\u0020for\u0020database\u002Dbacked\u0020models.",
             "url": "classes/Fzb-User.html"
         },                {
             "fqsen": "\\Fzb\\User\u003A\u003A__construct\u0028\u0029",
@@ -1168,7 +1168,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\UserSession",
             "name": "UserSession",
-            "summary": "",
+            "summary": "Simple\u0020ORM\u0020base\u0020class\u0020for\u0020database\u002Dbacked\u0020models.",
             "url": "classes/Fzb-UserSession.html"
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003A__construct\u0028\u0029",

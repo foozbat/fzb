@@ -118,8 +118,24 @@
 
     </aside>
 
-        
+            <p class="phpdocumentor-summary">Simple ORM base class for database-backed models.</p>
 
+
+    <section class="phpdocumentor-description"><p>Maps public and private members to a table, provides persistence and retrieval,
+and allows raw DB access for advanced use cases.</p>
+<h3>Usage</h3>
+<pre class="prettyprint"><code class="language-php">class MyModel extends Fzb\Model {
+    public $id;
+    public $title;
+}
+</code></pre>
+<h3>Notes</h3>
+<ul>
+<li>Public/private members are mapped to DB columns</li>
+<li>Protected members are ignored (not persisted)</li>
+<li>Iterable: allows the developer to iterate over a single model object or array of objects via foreach if desired.</li>
+</ul>
+</section>
 
 
 
