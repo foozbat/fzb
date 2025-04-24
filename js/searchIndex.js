@@ -41,11 +41,6 @@ Search.appendIndex(
             "summary": "Logs\u0020a\u0020user\u0020out.\u0020\u0020Invalidates\u0020the\u0020user\u0020session\u0020and\u0020deletes\u0020the\u0020auth\u0020token\u0020cookie.",
             "url": "classes/Fzb-Auth.html#method_logout"
         },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003Aset_auth_cookie\u0028\u0029",
-            "name": "set_auth_cookie",
-            "summary": "Helper\u0020function\u0020to\u0020set\u0020a\u0020cookie\u0020with\u0020the\u0020auth\u0020token",
-            "url": "classes/Fzb-Auth.html#method_set_auth_cookie"
-        },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003Aon_failure\u0028\u0029",
             "name": "on_failure",
             "summary": "",
@@ -81,31 +76,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Auth.html#property_csrf_validated"
         },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024user_cls",
-            "name": "user_cls",
-            "summary": "",
-            "url": "classes/Fzb-Auth.html#property_user_cls"
-        },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024user_session_cls",
-            "name": "user_session_cls",
-            "summary": "",
-            "url": "classes/Fzb-Auth.html#property_user_session_cls"
-        },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024auth_token_name",
-            "name": "auth_token_name",
-            "summary": "",
-            "url": "classes/Fzb-Auth.html#property_auth_token_name"
-        },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024csrf_token_name",
-            "name": "csrf_token_name",
-            "summary": "",
-            "url": "classes/Fzb-Auth.html#property_csrf_token_name"
-        },                {
-            "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024instance",
-            "name": "instance",
-            "summary": "",
-            "url": "classes/Fzb-Auth.html#property_instance"
-        },                {
             "fqsen": "\\Fzb\\Benchmark",
             "name": "Benchmark",
             "summary": "",
@@ -136,25 +106,10 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Benchmark.html#property_name"
         },                {
-            "fqsen": "\\Fzb\\Benchmark\u003A\u003A\u0024time_start",
-            "name": "time_start",
-            "summary": "",
-            "url": "classes/Fzb-Benchmark.html#property_time_start"
-        },                {
-            "fqsen": "\\Fzb\\Benchmark\u003A\u003A\u0024time_end",
-            "name": "time_end",
-            "summary": "",
-            "url": "classes/Fzb-Benchmark.html#property_time_end"
-        },                {
             "fqsen": "\\Fzb\\Benchmark\u003A\u003A\u0024time_total",
             "name": "time_total",
             "summary": "",
             "url": "classes/Fzb-Benchmark.html#property_time_total"
-        },                {
-            "fqsen": "\\Fzb\\Benchmark\u003A\u003A\u0024instances",
-            "name": "instances",
-            "summary": "",
-            "url": "classes/Fzb-Benchmark.html#property_instances"
         },                {
             "fqsen": "\\Fzb\\ConfigException",
             "name": "ConfigException",
@@ -180,16 +135,6 @@ Search.appendIndex(
             "name": "get_settings",
             "summary": "Gets\u0020a\u0020specified\u0020section\u0020from\u0020the\u0020config\u0020as\u0020an\u0020associative\u0020array",
             "url": "classes/Fzb-Config.html#method_get_settings"
-        },                {
-            "fqsen": "\\Fzb\\Config\u003A\u003A\u0024config",
-            "name": "config",
-            "summary": "",
-            "url": "classes/Fzb-Config.html#property_config"
-        },                {
-            "fqsen": "\\Fzb\\Config\u003A\u003A\u0024instance",
-            "name": "instance",
-            "summary": "",
-            "url": "classes/Fzb-Config.html#property_instance"
         },                {
             "fqsen": "\\Fzb\\DatabaseException",
             "name": "DatabaseException",
@@ -316,41 +261,6 @@ Search.appendIndex(
             "summary": "Gets\u0020a\u0020list\u0020of\u0020tables\u0020in\u0020the\u0020current\u0020database",
             "url": "classes/Fzb-Database.html#method_get_tables"
         },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024instance",
-            "name": "instance",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_instance"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024pdo",
-            "name": "pdo",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_pdo"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024pdo_options",
-            "name": "pdo_options",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_pdo_options"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024pdo_sth",
-            "name": "pdo_sth",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_pdo_sth"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024instances",
-            "name": "instances",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_instances"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024active_instance_id",
-            "name": "active_instance_id",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_active_instance_id"
-        },                {
-            "fqsen": "\\Fzb\\Database\u003A\u003A\u0024instance_id",
-            "name": "instance_id",
-            "summary": "",
-            "url": "classes/Fzb-Database.html#property_instance_id"
-        },                {
             "fqsen": "\\Fzb\\HtmxException",
             "name": "HtmxException",
             "summary": "",
@@ -461,16 +371,6 @@ Search.appendIndex(
             "summary": "Send\u0020no\u0020content,\u0020for\u0020triggering\u0020client\u0020side\u0020events\u0020only",
             "url": "classes/Fzb-Htmx.html#method_no_content"
         },                {
-            "fqsen": "\\Fzb\\Htmx\u003A\u003Acheck_headers\u0028\u0029",
-            "name": "check_headers",
-            "summary": "Checks\u0020if\u0020HTTP\u0020headers\u0020have\u0020been\u0020sent",
-            "url": "classes/Fzb-Htmx.html#method_check_headers"
-        },                {
-            "fqsen": "\\Fzb\\Htmx\u003A\u003Ajson_encode_events\u0028\u0029",
-            "name": "json_encode_events",
-            "summary": "Takes\u0020a\u0020list\u0020of\u0020events\u0020and\u0020JSON\u0020encodes\u0020them",
-            "url": "classes/Fzb-Htmx.html#method_json_encode_events"
-        },                {
             "fqsen": "\\Fzb\\HtmxSwap",
             "name": "HtmxSwap",
             "summary": "",
@@ -535,16 +435,6 @@ Search.appendIndex(
             "name": "from_request",
             "summary": "",
             "url": "classes/Fzb-Input.html#method_from_request"
-        },                {
-            "fqsen": "\\Fzb\\Input\u003A\u003Aread_input\u0028\u0029",
-            "name": "read_input",
-            "summary": "Reads\u0020a\u0020specified\u0020input\u0020name\u0020from\u0020get\/post\/etc\u0020and\u0020performs\u0020specified\u0020validation.",
-            "url": "classes/Fzb-Input.html#method_read_input"
-        },                {
-            "fqsen": "\\Fzb\\Input\u003A\u003Aread_all_inputs\u0028\u0029",
-            "name": "read_all_inputs",
-            "summary": "Wrapper\u0020for\u0020read_input\u0020which\u0020supports\u0020an\u0020array\u0020of\u0020inputs.",
-            "url": "classes/Fzb-Input.html#method_read_all_inputs"
         },                {
             "fqsen": "\\Fzb\\Input\u003A\u003Ais_missing\u0028\u0029",
             "name": "is_missing",
@@ -626,11 +516,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Input.html#method_valid"
         },                {
-            "fqsen": "\\Fzb\\Input\u003A\u003A\u0024inputs",
-            "name": "inputs",
-            "summary": "",
-            "url": "classes/Fzb-Input.html#property_inputs"
-        },                {
             "fqsen": "\\Fzb\\InputObject",
             "name": "InputObject",
             "summary": "InputObject\u0020Class",
@@ -645,16 +530,6 @@ Search.appendIndex(
             "name": "__toString",
             "summary": "",
             "url": "classes/Fzb-InputObject.html#method___toString"
-        },                {
-            "fqsen": "\\Fzb\\InputObject\u003A\u003A\u0024name",
-            "name": "name",
-            "summary": "",
-            "url": "classes/Fzb-InputObject.html#property_name"
-        },                {
-            "fqsen": "\\Fzb\\InputObject\u003A\u003A\u0024type",
-            "name": "type",
-            "summary": "",
-            "url": "classes/Fzb-InputObject.html#property_type"
         },                {
             "fqsen": "\\Fzb\\InputObject\u003A\u003A\u0024value",
             "name": "value",
@@ -696,30 +571,10 @@ Search.appendIndex(
             "summary": "Constructor",
             "url": "classes/Fzb-Model.html#method___construct"
         },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Ainit\u0028\u0029",
-            "name": "init",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_init"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aget_class_properties\u0028\u0029",
-            "name": "get_class_properties",
-            "summary": "Helper\u0020static\u0020function\u0020to\u0020get\u0020the\u0020merged\u0020public\u0020properties\u0020of\u0020the\u0020class,\u0020recursively",
-            "url": "classes/Fzb-Model.html#method_get_class_properties"
-        },                {
             "fqsen": "\\Fzb\\Model\u003A\u003Adb\u0028\u0029",
             "name": "db",
             "summary": "Gets\u0020the\u0020current\u0020Database\u0020object",
             "url": "classes/Fzb-Model.html#method_db"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aget_model_data\u0028\u0029",
-            "name": "get_model_data",
-            "summary": "Gets\u0020data\u0020from\u0020the\u0020class\u0020properties\u0020that\u0020are\u0020orm\u002Dmapped",
-            "url": "classes/Fzb-Model.html#method_get_model_data"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aset_model_data\u0028\u0029",
-            "name": "set_model_data",
-            "summary": "Sets\u0020public\u0020and\u0020private\u0020member\u0020variables\u0020to\u0020the\u0020values\u0020passed\u0020as\u0020an\u0020associative\u0020array",
-            "url": "classes/Fzb-Model.html#method_set_model_data"
         },                {
             "fqsen": "\\Fzb\\Model\u003A\u003Asave\u0028\u0029",
             "name": "save",
@@ -771,36 +626,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Model.html#method_select_fields"
         },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aparse_result_fields\u0028\u0029",
-            "name": "parse_result_fields",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_parse_result_fields"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Awhere\u0028\u0029",
-            "name": "where",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_where"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aleft_join\u0028\u0029",
-            "name": "left_join",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_left_join"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Apaginate\u0028\u0029",
-            "name": "paginate",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_paginate"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aorder_by\u0028\u0029",
-            "name": "order_by",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_order_by"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Aget_options\u0028\u0029",
-            "name": "get_options",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_get_options"
-        },                {
             "fqsen": "\\Fzb\\Model\u003A\u003Acurrent\u0028\u0029",
             "name": "current",
             "summary": "Iterator\u0020Methods\n\u0020\u0020Allows\u0020the\u0020developer\u0020to\u0020iterate\u0020over\u0020a\u0020single\u0020model\u0020object\u0020or\u0020array\u0020of\u0020objects\n\u0020\u0020via\u0020foreach\u0020if\u0020desired.",
@@ -851,26 +676,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Model.html#property_updated_at"
         },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003A\u0024__db_id__",
-            "name": "__db_id__",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#property___db_id__"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003A\u0024__iter__",
-            "name": "__iter__",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#property___iter__"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003A\u0024__meta__",
-            "name": "__meta__",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#property___meta__"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003A\u0024__reserved_names__",
-            "name": "__reserved_names__",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#property___reserved_names__"
-        },                {
             "fqsen": "\\Fzb\\RedisException",
             "name": "RedisException",
             "summary": "",
@@ -916,20 +721,10 @@ Search.appendIndex(
             "summary": "Executes\u0020a\u0020Redis\u0020command\u0020and\u0020returns\u0020the\u0020response",
             "url": "classes/Fzb-Redis.html#method_cmd"
         },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003Aget_response\u0028\u0029",
-            "name": "get_response",
-            "summary": "Gets\u0020the\u0020response\u0020of\u0020an\u0020executed\u0020command\nshould\u0020only\u0020be\u0020called\u0020after\u0020executing\u0020a\u0020command",
-            "url": "classes/Fzb-Redis.html#method_get_response"
-        },                {
             "fqsen": "\\Fzb\\Redis\u003A\u003Aparse_response\u0028\u0029",
             "name": "parse_response",
             "summary": "Parses\u0020a\u0020response\u0020from\u0020the\u0020server\u0020into\u0020a\u0020PHP\u0020data\u0020structure\nCalls\u0020itself\u0020recursively\u0020to\u0020handle\u0020nested\u0020arrays",
             "url": "classes/Fzb-Redis.html#method_parse_response"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003Asanitize\u0028\u0029",
-            "name": "sanitize",
-            "summary": "Sanitize",
-            "url": "classes/Fzb-Redis.html#method_sanitize"
         },                {
             "fqsen": "\\Fzb\\Redis\u003A\u003Aset\u0028\u0029",
             "name": "set",
@@ -981,41 +776,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Redis.html#constant_CHUNK_SIZE"
         },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024socket",
-            "name": "socket",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_socket"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024host",
-            "name": "host",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_host"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024port",
-            "name": "port",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_port"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024last_cmd",
-            "name": "last_cmd",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_last_cmd"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024instances",
-            "name": "instances",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_instances"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024active_instance_id",
-            "name": "active_instance_id",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_active_instance_id"
-        },                {
-            "fqsen": "\\Fzb\\Redis\u003A\u003A\u0024instance_id",
-            "name": "instance_id",
-            "summary": "",
-            "url": "classes/Fzb-Redis.html#property_instance_id"
-        },                {
             "fqsen": "\\Fzb\\RedisError",
             "name": "RedisError",
             "summary": "RedisError\u0020Class",
@@ -1030,11 +790,6 @@ Search.appendIndex(
             "name": "__toString",
             "summary": "",
             "url": "classes/Fzb-RedisError.html#method___toString"
-        },                {
-            "fqsen": "\\Fzb\\RedisError\u003A\u003A\u0024error",
-            "name": "error",
-            "summary": "",
-            "url": "classes/Fzb-RedisError.html#property_error"
         },                {
             "fqsen": "\\Fzb\\_load_tpl\u0028\u0029",
             "name": "_load_tpl",
@@ -1076,11 +831,6 @@ Search.appendIndex(
             "summary": "Flattens\u0020an\u0020associative\u0020array\u0020and\u0020assigns\u0020to\u0020render\u0020vars\u0020with\u0020key\u0020name\u0020as\u0020var\u0020name",
             "url": "classes/Fzb-Renderer.html#method_set_all"
         },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003Aprocess_var\u0028\u0029",
-            "name": "process_var",
-            "summary": "",
-            "url": "classes/Fzb-Renderer.html#method_process_var"
-        },                {
             "fqsen": "\\Fzb\\Renderer\u003A\u003Ashow\u0028\u0029",
             "name": "show",
             "summary": "Renders\u0020and\u0020displays\u0020a\u0020specified\u0020page",
@@ -1091,45 +841,10 @@ Search.appendIndex(
             "summary": "Renders\u0020the\u0020template\u0020and\u0020returns\u0020output\u0020as\u0020a\u0020string\u0020instead\u0020of\u0020sending\u0020to\u0020the\u0020browser",
             "url": "classes/Fzb-Renderer.html#method_render_as_string"
         },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003Arender\u0028\u0029",
-            "name": "render",
-            "summary": "Internal\u0020method\u0020for\u0020the\u0020rendering\u0020of\u0020pages.",
-            "url": "classes/Fzb-Renderer.html#method_render"
-        },                {
             "fqsen": "\\Fzb\\Renderer\u003A\u003Aredirect\u0028\u0029",
             "name": "redirect",
             "summary": "Send\u0020HTTP\u0020redirect\u0020header\nApplication\u0020should\u0020not\u0020send\u0020any\u0020more\u0020output\u0020to\u0020the\u0020browser\u0020after\u0020calling",
             "url": "classes/Fzb-Renderer.html#method_redirect"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003Asandbox_global_state\u0028\u0029",
-            "name": "sandbox_global_state",
-            "summary": "Sandboxes\u0020default\u0020global\u0020vars\u0020so\u0020that\u0020rogue\u0020templates\u0020cannot\u0020access\u0020them",
-            "url": "classes/Fzb-Renderer.html#method_sandbox_global_state"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003Arestore_global_state\u0028\u0029",
-            "name": "restore_global_state",
-            "summary": "Restores\u0020default\u0020global\u0020vars\u0020after\u0020rendering\u0020of\u0020template\u0020is\u0020complete",
-            "url": "classes/Fzb-Renderer.html#method_restore_global_state"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003A\u0024templates_dir",
-            "name": "templates_dir",
-            "summary": "",
-            "url": "classes/Fzb-Renderer.html#property_templates_dir"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003A\u0024render_vars",
-            "name": "render_vars",
-            "summary": "",
-            "url": "classes/Fzb-Renderer.html#property_render_vars"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003A\u0024reserved_var_names",
-            "name": "reserved_var_names",
-            "summary": "",
-            "url": "classes/Fzb-Renderer.html#property_reserved_var_names"
-        },                {
-            "fqsen": "\\Fzb\\Renderer\u003A\u003A\u0024global_state",
-            "name": "global_state",
-            "summary": "",
-            "url": "classes/Fzb-Renderer.html#property_global_state"
         },                {
             "fqsen": "\\Fzb\\_htmlspecialchars\u0028\u0029",
             "name": "_htmlspecialchars",
@@ -1211,11 +926,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-RenderVar.html#property_unsafe"
         },                {
-            "fqsen": "\\Fzb\\RenderVar\u003A\u003A\u0024iterator",
-            "name": "iterator",
-            "summary": "",
-            "url": "classes/Fzb-RenderVar.html#property_iterator"
-        },                {
             "fqsen": "\\Fzb\\RouterException",
             "name": "RouterException",
             "summary": "",
@@ -1241,25 +951,15 @@ Search.appendIndex(
             "summary": "interface\u0020for\u0020retrieving\u0020the\u0020Router\u0020singleton",
             "url": "classes/Fzb-Router.html#method_get_instance"
         },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003Afind_controllers\u0028\u0029",
-            "name": "find_controllers",
-            "summary": "Recursively\u0020searches\u0020for\u0020controllers\u0020in\u0020the\u0020specified\u0020directory\u0020and\u0020automagically\u0020generates\u0020route\u0020strings",
-            "url": "classes/Fzb-Router.html#method_find_controllers"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024controller_exists",
+            "fqsen": "\\Fzb\\Router\u003A\u003Acontroller_exists\u0028\u0029",
             "name": "controller_exists",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_controller_exists"
+            "summary": "Identifies\u0020if\u0020a\u0020controller\u0020exists\u0020for\u0020the\u0020requested\u0020URI\u0020path",
+            "url": "classes/Fzb-Router.html#method_controller_exists"
         },                {
             "fqsen": "\\Fzb\\Router\u003A\u003Aget_controller\u0028\u0029",
             "name": "get_controller",
             "summary": "Returns\u0020path\u0020to\u0020the\u0020proper\u0020controller\u0020based\u0020on\u0020uri\u0020path",
             "url": "classes/Fzb-Router.html#method_get_controller"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003Adetermine_controller\u0028\u0029",
-            "name": "determine_controller",
-            "summary": "Determines\u0020which\u0020controller\u0020to\u0020use\u0020based\u0020on\u0020the\u0020leading\u0020elements\u0020in\u0020the\u0020request\u0020URI\u0020path",
-            "url": "classes/Fzb-Router.html#method_determine_controller"
         },                {
             "fqsen": "\\Fzb\\Router\u003A\u003Aget_controller_path\u0028\u0029",
             "name": "get_controller_path",
@@ -1366,51 +1066,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Router.html#constant_variable_regex"
         },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024route_path",
-            "name": "route_path",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_route_path"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024controller_route",
-            "name": "controller_route",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_controller_route"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024controllers",
-            "name": "controllers",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_controllers"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024controllers_dir",
-            "name": "controllers_dir",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_controllers_dir"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024default_controller",
-            "name": "default_controller",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_default_controller"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024routes",
-            "name": "routes",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_routes"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024route_prefix",
-            "name": "route_prefix",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_route_prefix"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024path_vars",
-            "name": "path_vars",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_path_vars"
-        },                {
-            "fqsen": "\\Fzb\\Router\u003A\u003A\u0024instance",
-            "name": "instance",
-            "summary": "",
-            "url": "classes/Fzb-Router.html#property_instance"
-        },                {
             "fqsen": "\\Fzb\\SMS2FAException",
             "name": "SMS2FAException",
             "summary": "",
@@ -1440,21 +1095,6 @@ Search.appendIndex(
             "name": "send_code",
             "summary": "",
             "url": "classes/Fzb-SMS2FA.html#method_send_code"
-        },                {
-            "fqsen": "\\Fzb\\SMS2FA\u003A\u003Aclear_code\u0028\u0029",
-            "name": "clear_code",
-            "summary": "",
-            "url": "classes/Fzb-SMS2FA.html#method_clear_code"
-        },                {
-            "fqsen": "\\Fzb\\SMS2FA\u003A\u003A\u0024code_length",
-            "name": "code_length",
-            "summary": "",
-            "url": "classes/Fzb-SMS2FA.html#property_code_length"
-        },                {
-            "fqsen": "\\Fzb\\SMS2FA\u003A\u003A\u0024expires_in_seconds",
-            "name": "expires_in_seconds",
-            "summary": "",
-            "url": "classes/Fzb-SMS2FA.html#property_expires_in_seconds"
         },                {
             "fqsen": "\\Fzb\\SSEException",
             "name": "SSEException",
@@ -1501,45 +1141,10 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-TOTP.html#method_validate_code"
         },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003Agenerate_code\u0028\u0029",
-            "name": "generate_code",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#method_generate_code"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003Abase32_decode\u0028\u0029",
-            "name": "base32_decode",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#method_base32_decode"
-        },                {
             "fqsen": "\\Fzb\\TOTP\u003A\u003Agenerate_secret\u0028\u0029",
             "name": "generate_secret",
             "summary": "",
             "url": "classes/Fzb-TOTP.html#method_generate_secret"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003A\u0024secret",
-            "name": "secret",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#property_secret"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003A\u0024digits",
-            "name": "digits",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#property_digits"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003A\u0024time_step",
-            "name": "time_step",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#property_time_step"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003A\u0024algo",
-            "name": "algo",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#property_algo"
-        },                {
-            "fqsen": "\\Fzb\\TOTP\u003A\u003A\u0024alphabet",
-            "name": "alphabet",
-            "summary": "",
-            "url": "classes/Fzb-TOTP.html#property_alphabet"
         },                {
             "fqsen": "\\Fzb\\UserException",
             "name": "UserException",
