@@ -14,12 +14,12 @@
             <source dsn=".">
                 <path>src</path>
             </source>
+            <visibility>
+                <public>true</public>
+                <protected>false</protected>
+                <private>false</private>
+            </visibility>
+            <ignore-hidden>true</ignore-hidden>
         </api>
-        <visibility>
-            <public>true</public>
-            <protected>false</protected>
-            <private>false</private>
-        </visibility>
-        <ignore-hidden>true</ignore-hidden>
     </version>
 </phpdocumentor>
