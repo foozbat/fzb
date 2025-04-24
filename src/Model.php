@@ -16,8 +16,8 @@
  * ### Notes
  * - Public/private members are mapped to DB columns
  * - Protected members are ignored (not persisted)
+ * - Iterable: allows the developer to iterate over a single model object or array of objects via foreach if desired.
  *
- * @package Fzb
  * @author Aaron Bishop <https://github.com/foozbat>
  */
 declare(strict_types=1);
@@ -629,32 +629,43 @@ abstract class Model implements Iterator
         return $ret_arr;
     }
 
-    /**
-     * Iterator Methods
-     *   Allows the developer to iterate over a single model object or array of objects
-     *   via foreach if desired.
-     */
+    // Iterator Methods
 
+    /**
+      * @internal
+      */
     public function current(): mixed
     {
         return $this;
     }
 
+    /**
+      * @internal
+      */
     public function next(): void
     {
         $this->__iter__++;
     }
 
+    /**
+      * @internal
+      */
     public function valid(): bool
     {
         return $this->__iter__ == 0;
     }
 
+    /**
+      * @internal
+      */
     public function key(): mixed
     {
         return $this->__iter__;
     }
 
+    /**
+      * @internal
+      */
     public function rewind(): void
     {
         $this->__iter__ = 0;
