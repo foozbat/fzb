@@ -626,31 +626,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-Model.html#method_select_fields"
         },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Acurrent\u0028\u0029",
-            "name": "current",
-            "summary": "Iterator\u0020Methods\n\u0020\u0020Allows\u0020the\u0020developer\u0020to\u0020iterate\u0020over\u0020a\u0020single\u0020model\u0020object\u0020or\u0020array\u0020of\u0020objects\n\u0020\u0020via\u0020foreach\u0020if\u0020desired.",
-            "url": "classes/Fzb-Model.html#method_current"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Anext\u0028\u0029",
-            "name": "next",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_next"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Avalid\u0028\u0029",
-            "name": "valid",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_valid"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Akey\u0028\u0029",
-            "name": "key",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_key"
-        },                {
-            "fqsen": "\\Fzb\\Model\u003A\u003Arewind\u0028\u0029",
-            "name": "rewind",
-            "summary": "",
-            "url": "classes/Fzb-Model.html#method_rewind"
-        },                {
             "fqsen": "\\Fzb\\Model\u003A\u003A__primary_key__",
             "name": "__primary_key__",
             "summary": "",
