@@ -556,11 +556,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-InputObject.html#property_is_invalid"
         },                {
-            "fqsen": "\\Fzb\\ModelException",
-            "name": "ModelException",
-            "summary": "",
-            "url": "classes/Fzb-ModelException.html"
-        },                {
             "fqsen": "\\Fzb\\Model",
             "name": "Model",
             "summary": "Simple\u0020ORM\u0020base\u0020class\u0020for\u0020database\u002Dbacked\u0020models.",
