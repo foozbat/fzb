@@ -9,7 +9,6 @@
         <output>docs/phpdoc</output>
     </paths>
     <version number="1.0.0">
-        <default-package-name>Fzb Framework</default-package-name>
         <api>
             <source dsn=".">
                 <path>src</path>
@@ -18,6 +17,7 @@
             <ignore hidden="true" symlinks="true">
                 <path>tests/**/*</path>
             </ignore>
+            <default-package-name>Fzb Framework</default-package-name>
         </api>
     </version>
 </phpdocumentor>
