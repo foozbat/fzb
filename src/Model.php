@@ -1,20 +1,25 @@
 <?php
 /**
- * Class Model
- * 
- * Simple ORM.  Maps a class's public and private members to a specified database table.
- * Provides functionality to write and retrieve objects to/from the DB.
- * Allows raw access to the database if desired.
- * 
- * usage: class MyModel extends Fzb\Model
- * 
- * notes: By default, a Model's public and private members will be mapped to DB colums,
- *        if they exist.  Protected members are not written to the DB,
- *        so structure your models accordingly.
- * 
- * @author Aaron Bishop (github.com/foozbat)
+ * Simple ORM base class for database-backed models.
+ *
+ * Maps public and private members to a table, provides persistence and retrieval,
+ * and allows raw DB access for advanced use cases.
+ *
+ * ### Usage
+ * ```php
+ * class MyModel extends Fzb\Model {
+ *     public $id;
+ *     public $title;
+ * }
+ * ```
+ *
+ * ### Notes
+ * - Public/private members are mapped to DB columns
+ * - Protected members are ignored (not persisted)
+ *
+ * @package Fzb
+ * @author Aaron Bishop <https://github.com/foozbat>
  */
-
 declare(strict_types=1);
 
 namespace Fzb;
