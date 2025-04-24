@@ -5,21 +5,21 @@
         xmlns="https://www.phpdoc.org"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/phpDocumentor/phpDocumentor/master/data/xsd/phpdoc.xsd"
 >
-    <default-package-name>Fzb Framework</default-package-name>
     <paths>
         <output>docs/phpdoc</output>
     </paths>
     <version number="1.0.0">
+        <default-package-name>Fzb Framework</default-package-name>
         <api>
             <source dsn=".">
                 <path>src</path>
             </source>
         </api>
+        <visibility>
+            <public>true</public>
+            <protected>false</protected>
+            <private>false</private>
+        </visibility>
+        <ignore-hidden>true</ignore-hidden>
     </version>
-    <visibility>
-        <public>true</public>
-        <protected>false</protected>
-        <private>false</private>
-    </visibility>
-    <ignore-hidden>true</ignore-hidden>
 </phpdocumentor>
