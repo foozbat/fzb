@@ -1,4 +1,15 @@
 <?php
+declare(strict_types=1);
+
+namespace Fzb;
+
+use Exception;
+use Iterator;
+use ReflectionClass;
+use DateTime;
+
+class ModelException extends Exception { }
+
 /**
  * Simple ORM base class for database-backed models.
  *
@@ -20,17 +31,6 @@
  *
  * @author Aaron Bishop <https://github.com/foozbat>
  */
-declare(strict_types=1);
-
-namespace Fzb;
-
-use Exception;
-use Iterator;
-use ReflectionClass;
-use DateTime;
-
-class ModelException extends Exception { }
-
 abstract class Model implements Iterator
 {
     const __primary_key__ = 'id';
