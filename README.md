@@ -1,23 +1,74 @@
-# fzb
-Class libraries for FZB Framework.
+# FZB Framework
 
-**Requires PHP 8.1!**
+A lightweight PHP 8.1+ web framework offering a modular approach to building modern web applications.
 
-**Work in progress!  Expect functionality to break!**
+---
 
-FZB Framework is a lightweight web framework that implements modern PHP 8.1 features.  It provides a router, input validator, template renderer, DB abstration layer, and lightweight ORM.  It currently is designed as a drop-in framework for deploying on shared/dedicated Apache servers, but will eventually include the ability to be run as a stand-alone application server.
+## 🚀 Features
 
-To use, add to your composer.json:
-```
+- **Router** – Define clean and intuitive routes for your application.
+- **Input Validator** – Easily validate and sanitize user inputs.
+- **Template Renderer** – Render views with a simple and flexible templating engine.
+- **Database Abstraction Layer** – Interact with your database using a consistent and straightforward API.
+- **Lightweight ORM** – Map database records to PHP objects effortlessly.
+- **htmx Integration** – Static methods for htmx use cases.
+- And many more!
+
+---
+
+## ⚙️ Requirements
+
+- PHP 8.1 or higher
+- Composer
+
+---
+
+## 📦 Installation
+
+Add the following to your `composer.json` file:
+
+```json
+{
     "require": {
         "fzb/fzb": "dev-master"
     }
+}
 ```
+
 Then run:
-```
+```bash
 composer update
 ```
 
-You can use as many or as few Fzb objects as you need in your project.
+## 🛠️ Usage
 
-Documentation forthcoming...
+You can use individual components of the FZB Framework as needed.
+For example, to use the router:
+
+```php
+use Fzb\Router;
+
+$router = new Router();
+$router->get('/home', function() {
+    echo 'Welcome Home!';
+});
+```
+
+## 🧪 Testing
+
+Tests are located in the tests directory.
+To run the tests:
+```bash
+composer test
+```
+Make sure PHPUnit is installed and configured
+
+## ⚠️ License & Usage
+
+This project is licensed under the **FZB Source-Available License**.
+
+- You may use the code as-is for personal or internal projects.
+- Contributions are welcome via pull requests.
+- You **may not fork**, redistribute, or rebrand this codebase without explicit written permission from the author.
+
+See [LICENSE](LICENSE) for full terms.

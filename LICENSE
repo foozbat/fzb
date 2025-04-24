@@ -1,21 +1,17 @@
-MIT License
+FZB Source-Available License
 
-Copyright (c) 2022 foozbat
+Copyright (c) 2025 Aaron Bishop
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted to any individual or organization to use, read, and contribute to this software for non-commercial or internal purposes, provided that:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The software is not forked, redistributed, sublicensed, or used to create derivative works that are publicly shared under a different name or ownership.
+2. The original copyright notice and this license remain intact.
+3. Any contributions submitted to this project are made under the understanding that:
+   - You are granting the project owner (Aaron Bishop) full rights to use, modify, and relicense the contribution.
+   - You will not claim ownership of the project or re-release it under a different identity.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Use of this software does not imply any transfer of ownership, rights, or permissions beyond those expressly granted above.
+
+This software is provided "as is", without warranty of any kind, express or implied. The project owner reserves the right to modify or revoke this license at any time.
+
+For commercial licensing, please contact the project owner directly.

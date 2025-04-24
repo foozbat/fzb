@@ -8,6 +8,9 @@ use Iterator;
 use ReflectionClass;
 use DateTime;
 
+/**
+ * @internal
+ */
 class ModelException extends Exception { }
 
 /**
@@ -19,8 +22,8 @@ class ModelException extends Exception { }
  * ### Usage
  * ```php
  * class MyModel extends Fzb\Model {
- *     public $id;
- *     public $title;
+ *     public string $my_field1;
+ *     public string $my_field2;
  * }
  * ```
  *
