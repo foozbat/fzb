@@ -15,7 +15,9 @@
                 <path>src</path>
             </source>
             <visibility>public</visibility>
-            <ignore-hidden>true</ignore-hidden>
+            <ignore hidden="true" symlinks="true">
+                <path>tests/**/*</path>
+            </ignore>
         </api>
     </version>
 </phpdocumentor>
