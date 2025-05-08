@@ -519,7 +519,7 @@ abstract class Model implements Iterator
         if (sizeof($params) > 0) {
             [$params, $options] = self::get_options($params);
 
-            $table_columns = $cls::db()->get_column_names($table);
+            $table_columns = self::$__meta__[$cls]['orm_fields']; //$cls::db()->get_column_names($table);
 
             foreach ($params as $field => $value) {
                 if (!in_array($field, $table_columns)) {
