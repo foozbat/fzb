@@ -31,6 +31,8 @@ class Auth
 
     private static $instance = null;
 
+    private $fail_callback;
+
     /**
      * Constructor
      */

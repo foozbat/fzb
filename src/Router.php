@@ -23,8 +23,8 @@ class Router
     private string $controller_route = '/';
     private array $controllers = array();
     private bool $controller_exists = false;
-    private string $controllers_dir;
-    private string $default_controller;
+    private ?string $controllers_dir;
+    private ?string $default_controller;
 
     private array $routes = array();
     private string $route_prefix = "";
@@ -41,7 +41,7 @@ class Router
      * @param string|null $default_controller
      * @throws RouterException
      */
-    function __construct(string $controllers_dir = null, string $default_controller = null)
+    function __construct(?string $controllers_dir = null, ?string $default_controller = null)
     {
         // I'm a singleton
         if (self::$instance !== null) {
@@ -238,7 +238,7 @@ class Router
      * @param callable $func callback function to be executed for the route endpoint
      * @return void
      */
-    public function add(mixed $method = 'GET', mixed $path = null, callable $func = null): void
+    public function add(mixed $method = 'GET', mixed $path = null, ?callable $func = null): void
     {
         if (!is_array($path))   $path = array($path);
         if (!is_array($method)) $method = array($method);

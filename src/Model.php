@@ -151,7 +151,7 @@ abstract class Model implements Iterator
      * @param string $types
      * @return void
      */
-    private static function get_class_properties(string $cls=null, $types='public'){
+    private static function get_class_properties(?string $cls=null, $types='public'){
         if ($cls === null) {
             $cls = get_called_class();
         }
