@@ -22,7 +22,7 @@ class SSE
     /**
      * Constructor
      */
-    function __construct(callable $event_stream, callable $shutdown = null)
+    function __construct(callable $event_stream, ?callable $shutdown = null)
     {
         if (!is_callable($event_stream)) {
             throw new SSEException("SSE must be provided with a valid callback for the event stream.");
@@ -35,7 +35,7 @@ class SSE
             register_shutdown_function($shutdown);
         }
         
-       if (ob_get_level()) {
+        if (ob_get_level()) {
             ob_end_clean();
         }
 
@@ -58,7 +58,9 @@ class SSE
         echo "data: $data" . PHP_EOL;
         echo PHP_EOL;
     
-        ob_end_flush();
+        if (ob_get_level()) {
+            ob_end_flush();
+        }
         flush();
     }
 }

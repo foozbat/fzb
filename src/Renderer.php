@@ -34,7 +34,7 @@ class Renderer
      * @param string|null $templates_dir Directory that holds all templates
      * @throws RendererException if the templates directory is not specified in the constructor or by define()
      */
-    function __construct(string $templates_dir = null)
+    function __construct(?string $templates_dir = null)
     {
         if ($templates_dir !== null) {
             $this->templates_dir = $templates_dir;
