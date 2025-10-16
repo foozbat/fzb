@@ -46,7 +46,9 @@ class SSE
         header("Connection: keep-alive");
 
         while (!connection_aborted()) {
+            $this->message('starting event stream', 'test');
             $event_stream($this);
+            $this->message('ending event stream', 'test');
         }
         $this->message('aborted', 'aborted');
     }
