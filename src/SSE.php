@@ -48,6 +48,7 @@ class SSE
         while (!connection_aborted()) {
             $event_stream($this);
         }
+        $this->message('aborted', 'aborted');
     }
 
     public function message(string $message, string $data, ?string $id = null): void
