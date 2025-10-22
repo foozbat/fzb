@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: php-actions/composer@v6
       - name: PHPUnit Tests
-        uses: php-actions/phpunit@master
+        uses: php-actions/phpunit@v4
         env:
           TEST_NAME: Scarlett
         with:
