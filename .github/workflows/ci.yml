@@ -13,4 +13,4 @@ jobs:
         uses: php-actions/phpunit@v4
         with:
           version: 12.4.1
-          bootstrap: vendor/autoload.php
+          configuration: phpunit.xml
