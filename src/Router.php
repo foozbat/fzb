@@ -23,8 +23,8 @@ class Router
     private string $controller_route = '/';
     private array $controllers = array();
     private bool $controller_exists = false;
-    private ?string $controllers_dir;
-    private ?string $default_controller;
+    private ?string $controllers_dir = null;
+    private ?string $default_controller = null;
 
     private array $routes = array();
     private string $route_prefix = "";

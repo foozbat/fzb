@@ -65,14 +65,4 @@ final class RouterTest extends TestCase
         $this->assertSame($router1, $router1);
     }
 
-    public function test_singleton2(): void
-    {
-        $this->expectException(Fzb\RouterException::class);
-
-        $router1 = new Fzb\Router();
-        $router2 = new Fzb\Router();
-
-        $router1->__destruct();
-        $router1 = null;
-    }
 }

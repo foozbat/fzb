@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-	<bootstrap>vendor/autoload.php</bootstrap>
 	<coverage>
 		<include>
 			<directory suffix=".php">src</directory>
@@ -10,6 +9,11 @@
 			<text outputFile="php://stdout" showUncoveredFiles="true"/>
 		</report>
 	</coverage>
+	<filter>
+		<whitelist>
+			<directory suffix=".php">src</directory>
+		</whitelist>
+	</filter>
 	<testsuites>
 		<testsuite name="main">
 			<directory suffix="Test.php">.</directory>
