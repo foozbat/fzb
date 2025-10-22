@@ -1,3 +1,5 @@
+[![CI](https://github.com/foozbat/fzb/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/foozbat/fzb/actions/workflows/ci.yml)
+
 # FZB Framework
 
 A lightweight PHP 8.1+ web framework offering a modular approach to building modern web applications.
