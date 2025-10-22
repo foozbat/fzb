@@ -12,6 +12,4 @@ jobs:
       - name: PHPUnit Tests
         uses: php-actions/phpunit@v4
         with:
-          version: 9.6
-          configuration: phpunit.xml
-          args: --coverage-text
+          bootstrap: vendor/autoload.php
