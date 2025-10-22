@@ -8,7 +8,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - uses: php-actions/composer@v6
       - name: PHPUnit Tests
         uses: php-actions/phpunit@v4
         with:
-          configuration: "phpunit.xml"
+          version: 9.6
+          configuration: phpunit.xml
+          args: --coverage-text

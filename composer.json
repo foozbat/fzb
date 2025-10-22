@@ -12,8 +12,7 @@
 		"ext-curl": "*",
 		"ext-dom": "*",
 		"ext-json": "*",
-		"ext-sqlite3": "*",
-		"phpunit/phpunit": "^9.6"
+		"ext-sqlite3": "*"
 	},
 	"autoload": {
 		"psr-4": {
