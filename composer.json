@@ -12,7 +12,8 @@
 		"ext-curl": "*",
 		"ext-dom": "*",
 		"ext-json": "*",
-		"ext-sqlite3": "*"
+		"ext-sqlite3": "*",
+		"phpstan/phpstan": "*"
 	},
 	"autoload": {
 		"psr-4": {
