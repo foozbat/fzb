@@ -149,7 +149,6 @@ class Redis
         }
 
         $this->last_cmd = implode(' ', $args);
-        $this->last_cmd_raw = $cmd;
 
         socket_write($this->socket, $cmd, strlen($cmd));
         
@@ -309,11 +308,8 @@ class Redis
             array_push($args, $v);
         }
 
-        //var_dump($args);
-
         $resp = $this->cmd('HSET', $key, ...$args);
-        //var_dump($this->last_cmd_raw);
-        //var_dump($resp);
+
         return $resp;
     }
 
