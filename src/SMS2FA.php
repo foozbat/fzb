@@ -55,7 +55,8 @@ class SMS2FA
 
     private function clear_code(UserSession $session): void
     {
-        unset($session->sms_2fa_code, $session->sms_2fa_expires_at);
+        $session->sms_2fa_code = null;
+        $session->sms_2fa_expires_at = null;
         $session->save();
     }
 }

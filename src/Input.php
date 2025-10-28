@@ -136,7 +136,7 @@ class Input implements ArrayAccess, Iterator
                         throw new InputException('Invalid input sanitization option.');
                     }
                 } else if ($tag == 'validate_flags:') {
-                    $flags = explode(',', $options);
+                    $flags = explode(',', $option);
                 }
             }
         }

@@ -23,7 +23,7 @@ class TOTP
     private int $digits;
     private int $time_step;
     private string $algo;
-    private string $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    private static string $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
     public function __construct(string $secret, int $digits = 6, int $time_step = 30, string $algo = 'sha1')
     {
@@ -78,7 +78,7 @@ class TOTP
         $b32 = strtoupper(preg_replace('/[^A-Z2-7]/', '', $b32));
 
         foreach (str_split($b32) as $char) {
-            $binary .= str_pad(decbin(strpos($this->alphabet, $char)), 5, '0', STR_PAD_LEFT);
+            $binary .= str_pad(decbin(strpos(self::$alphabet, $char)), 5, '0', STR_PAD_LEFT);
         }
 
         $data = '';
@@ -96,7 +96,7 @@ class TOTP
         $secret = '';
 
         for ($i = 0; $i < $length; $i++) {
-            $secret .= $this->alphabet[random_int(0, strlen($chars) - 1)];
+            $secret .= self::$alphabet[random_int(0, strlen(self::$alphabet) - 1)];
         }
 
         return $secret;

@@ -84,16 +84,17 @@ class RenderVar implements ArrayAccess, Iterator
      */
     public function __call(string $method, array $args): mixed
     {
-        if (method_exists($this->unsafe, $method)) {
-            $ret = $this->unsafe->$method(...$args);
-            if ($ret !== null) {
-                if (is_string($this->unsafe->{$name}) || is_object($this->unsafe->{$name})) {
-                    return new RenderVar($ret);
-                } else {
-                    return _htmlspecialchars($ret);
-                }
+        if (!method_exists($this->unsafe, $method)) {
+            throw new \BadMethodCallException("Method $method does not exist on class " . get_class($this->unsafe));
+        }
+        
+        $ret = $this->unsafe->$method(...$args);
+        if ($ret !== null) {
+            if (is_string($ret) || is_object($ret)) {
+                return new RenderVar($ret);
             }
         }
+        return _htmlspecialchars($ret);
     }
 
     /**
@@ -158,7 +159,7 @@ class RenderVar implements ArrayAccess, Iterator
  * @param mixed $data Data to be rendered HTML-safe
  * @return void HTML-safe output or RenderVar
  */
-function _htmlspecialchars(mixed $data)
+function _htmlspecialchars(mixed $data): mixed
 {
     if (is_array($data)) {
         foreach ($data as $key => $value ) {
