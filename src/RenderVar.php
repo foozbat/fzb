@@ -157,7 +157,7 @@ class RenderVar implements ArrayAccess, Iterator
  * Wrapper for htmlspecialchars to support arrays and objects
  *
  * @param mixed $data Data to be rendered HTML-safe
- * @return void HTML-safe output or RenderVar
+ * @return mixed HTML-safe output or RenderVar
  */
 function _htmlspecialchars(mixed $data): mixed
 {

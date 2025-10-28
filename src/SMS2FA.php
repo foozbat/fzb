@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fzb;
 
+use Exception;
+
 class SMS2FAException extends Exception { }
 
 class SMS2FA
