@@ -6,6 +6,7 @@ use Fzb\Model;
 use Fzb\Model\Column;
 use Fzb\Model\Table;
 use Fzb\Model\Type;
+use DateTime;
 
 #[Table]
 class Base extends Model
