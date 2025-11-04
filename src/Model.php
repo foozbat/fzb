@@ -16,20 +16,31 @@ class ModelException extends Exception {}
 
 class Model implements Iterator
 {
+    public static ?Database $db = null;
     private static array $metadata = [];
     protected int $__iter__ = 0;
+    private static array $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
 
     public function __construct()
     {
         self::init();
     }
 
-    private static function init(): string
+    private static function init(bool $no_cache=false): string
     {
         $cls = get_called_class();
 
+        // get db instance if it exists
+        if (!(self::$db instanceof Database)) {
+            self::$db = Database::get_instance();
+
+            if (is_null(self::$db)) {
+                throw new ModelException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
+            }
+        }
+
         // load metadata if exists
-        if (defined('ORM_CACHE_DIR')) {
+        if (defined('ORM_CACHE_DIR') && !$no_cache) {
             $orm_cache_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
             if (file_exists($orm_cache_filename)) {
                 self::$metadata[$cls] = include $orm_cache_filename;
@@ -70,6 +81,10 @@ class Model implements Iterator
                     $attribute_cls = self::get_short_name($attr->getName());
 
                     if ($attribute_cls === 'Column') {
+                        if (in_array($property_name, self::$__reserved_names__)) {
+                            throw new ModelException("Property name '$property_name' is reserved for ORM operations. Please rename the property.");
+                        }
+
                         self::$metadata[$cls]['columns'][$property_name] = [];
                     }
 
@@ -80,50 +95,70 @@ class Model implements Iterator
         
         var_dump(self::$metadata[$cls]);
 
-        // save the computed orm-data to file if enabled
-        if (defined('ORM_CACHE_DIR')) {
-            $output_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
-            $output_code = "<?php\nreturn " . var_export(self::$metadata[$cls], true) . ";\n";
-            file_put_contents($output_filename, $output_code);
-        }
-
         return $cls;
     }
 
     // ai generated slop, fix as needed
     public static function migrate(): void
     {
-        $cls = self::init();
+        $cls = self::init(no_cache: true);
+
         $metadata = self::$metadata[$cls];
-        $table = $metadata['table'];
         
         // Generate CREATE TABLE query
+        $SQL = '';
         $columns = [];
-        $foreign_keys = [];
-        $indexes = [];
+        $table_keys = [];
+
+        // check if table exists
+        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$metadata['table']->name}'");
+        $existing_table_columns = [];
+        if (!$table_exists) {
+            $sql = "CREATE TABLE IF NOT EXISTS `{$metadata['table']->name}` (\n";
+        } else {
+            $sql = "ALTER TABLE `{$metadata['table']->name}` (\n  ";
+            $existing_table_columns = self::$db->get_column_names($metadata['table']->name);
+        }
 
         foreach ($metadata['columns'] as $column_name => $attributes) {
             foreach ($attributes as $attr) {
                 if ($attr instanceof Model\Column) {
-                    $columns[] = $attr->toSQL($column_name);
-                } else if ($attr instanceof Model\ForeignKey) {
-                    $foreign_keys[] = $attr->toSQL($column_name);
-                } else if ($attr instanceof Model\Index) {
-                    $indexes[] = $attr->toSQL($column_name);
+                    $columns[] = ($table_exists ? (in_array($column_name, $existing_table_columns) ? 'CHANGE COLUMN' : 'ADD COLUMN') : '') . $attr->to_sql($column_name);
+                } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
+                    // check if key exists
+
+                    $table_keys[] = $attr->to_sql($column_name);
                 }
             }
         }
 
-        $sql = "CREATE TABLE `{$table->name}` (\n  " . implode(",\n  ", $columns);
-        if (!empty($foreign_keys)) {
-            $sql .= ",\n  " . implode(",\n  ", $foreign_keys);
+        $sql .= implode(",\n  ", $columns);
+
+        if (!empty($table_keys)) {
+            $sql .= ",\n  " . implode(",\n  ", $table_keys);
         }
-        if (!empty($indexes)) {
-            $sql .= ",\n  " . implode(",\n  ", $indexes);
-        }
-        $sql .= "\n) " . $table->getTableOptions();
-        
+        $sql .= "\n) " . $metadata['table']->to_sql();
+
         echo $sql . "\n";
+
+        $rslt = self::$db->query($sql);
+
+        // if successful,save the computed orm-data to file if enabled
+        if (defined('ORM_CACHE_DIR')) {
+            $output_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
+            $output_code = "<?php\nreturn " . var_export(self::$metadata[$cls], true) . ";\n";
+            file_put_contents($output_filename, $output_code);
+        }
+    }
+
+    public function load(): bool
+    {
+        $cls = get_called_class();
+        $metadata = self::$metadata[$cls];
+
+        // Implement data loading logic here, e.g., from a database
+        // This is a placeholder implementation
+        return true;
     }
 
 

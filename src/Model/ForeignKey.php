@@ -16,7 +16,7 @@ class ForeignKey
         public readonly ?ReferentialAction $on_update = null
     ) {}
 
-    public function toSQL(string $name): string
+    public function to_sql(string $name): string
     {
         $sql = "FOREIGN KEY (`{$name}`) REFERENCES `{$this->references}`(`{$this->reference_column}`)";
         

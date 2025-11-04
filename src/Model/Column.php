@@ -18,7 +18,7 @@ class Column
         public mixed $default = null
     ) {}
 
-    public function toSQL(string $name): string
+    public function to_sql(string $name): string
     {
         $type = strtoupper($this->type->value);
         if ($this->length && in_array($this->type, [Type::VARCHAR, Type::CHAR, Type::BINARY, Type::VARBINARY, Type::BIT, Type::TINYINT, Type::SMALLINT, Type::MEDIUMINT, Type::INT, Type::BIGINT, Type::DECIMAL, Type::FLOAT, Type::DOUBLE])) {

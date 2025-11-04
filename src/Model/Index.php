@@ -17,16 +17,16 @@ class Index
         public readonly ?string $comment = null
     ) {}
 
-    public function toSQL(string $column_name): string
+    public function to_sql(string $column_name): string
     {
-        $index_name = $this->name ?? "idx_{$column_name}";
+        $this->name = $this->name ?? "idx_{$column_name}";
         
         $sql = "";
         if ($this->type !== null) {
             $sql .= $this->type->value . " ";
         }
         
-        $sql .= "INDEX `{$index_name}` (`{$column_name}`";
+        $sql .= "INDEX `{$this->name}` (`{$column_name}`";
         
         if ($this->length !== null) {
             $sql .= "({$this->length})";

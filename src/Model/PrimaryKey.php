@@ -6,4 +6,9 @@ namespace Fzb\Model;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class PrimaryKey { }
+class PrimaryKey {
+    public function to_sql(string $name): string
+    {
+        return "PRIMARY KEY (`{$name}`)";
+    }
+}
