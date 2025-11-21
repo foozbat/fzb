@@ -368,25 +368,32 @@ class Database
      * @param mixed $table_key_value table primary key value (for updates)
      * @return integer
      */
-    public function auto_insert_update(string $table, array $data_array, mixed $table_key = null, mixed $table_key_value = null): int
+    public function auto_insert_update(string $table, array $data_array, mixed $table_key = null, mixed $table_key_value = null, bool $validate_schema = true): int
     {
-        $tables = $this->get_tables();
+        if ($validate_schema) {
+            $tables = $this->get_tables();
 
-        if (!in_array($table, $tables)) {
-            throw new DatabaseException("auto_insert_update: table '$table' does not exist.");
-        }
-
-        $table_columns = $this->get_column_names($table);
-
-        $row_exists = 0;
-
-        if ($table_key != null && $table_key_value != null) {
-            if (!in_array($table_key, $table_columns)) {
-                throw new DatabaseException("auto_insert_update: table key '$table_key' does not exist.");
+            if (!in_array($table, $tables)) {
+                throw new DatabaseException("auto_insert_update: table '$table' does not exist.");
             }
-
-            $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM $table WHERE $table_key = ?", $table_key_value);
         }
+
+        $table_columns = array_keys($data_array);
+        
+        if ($validate_schema) {
+            $table_columns = $this->get_column_names($table);
+
+            $row_exists = 0;
+
+            if ($table_key != null && $table_key_value != null) {
+                if (!in_array($table_key, $table_columns)) {
+                    throw new DatabaseException("auto_insert_update: table key '$table_key' does not exist.");
+                }
+
+            }
+        }
+
+        $row_exists = $this->selectrow_array("SELECT COUNT(*) FROM $table WHERE $table_key = ?", $table_key_value)[0] > 0;
         
         $query = '';
         $insert_fields = array();
