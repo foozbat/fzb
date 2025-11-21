@@ -21,12 +21,132 @@ class Model implements Iterator
     protected int $__iter__ = 0;
     private static array $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
 
-    public function __construct()
+    public function __construct(mixed ...$params)
     {
         self::init();
+
+        // if any model params were passed to constructor, set them
+        if (sizeof($params) > 0) {
+            $this->set_model_data($params);
+        }
     }
 
-    private static function init(bool $no_cache=false): string
+    /**
+     * Sets public and private member variables to the values passed as an associative array
+     *
+     * @param array $data data to set class members to
+     * @return void
+     */
+    private function set_model_data(array $data): void
+    {
+        $cls = self::init();
+
+        foreach (self::$metadata[$cls]['columns'] as $name => $attributes) {
+            if (array_key_exists($name, $data)) {
+                switch ($attributes['type']) {
+                    case 'bool':
+                        $this->{$name} = (bool) $data[$name];
+                        break;
+                    case 'int':
+                        $this->{$name} = (int) $data[$name];
+                        break;
+                    case 'float':
+                        $this->{$name} = (float) $data[$name];
+                        break;
+                    case 'DateTime':
+                        $this->{$name} = new DateTime($data[$name]);
+                        break;
+                    default:
+                        $this->{$name} = $data[$name];
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets data from the class properties that are orm-mapped
+     *
+     * @return array object data
+     */
+    private function get_model_data(): array {
+        $cls = self::init();
+        $data = [];
+
+        foreach (self::$metadata[$cls]['columns'] as $name => $attributes) {
+            if ($name == 'updated_at') {
+                continue;
+            }
+
+            if (isset($this->{$name})) {
+                switch ($attributes['type']) {
+                    case 'bool':
+                        $data[$name] = (int) $this->{$name};
+                        break;
+                    case 'DateTime':
+                        $data[$name] = $this->{$name}->format('Y-m-d H:i:s');
+                        break;
+                    default:
+                        $data[$name] = $this->{$name};
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Saves the model's current data to the database
+     *
+     * @return bool if save was successful or not
+     */
+    public function save(): bool
+    {
+        $cls = self::init();
+        $data = $this->get_model_data();
+
+        $rows_affected = self::$db->auto_insert_update(
+            self::$metadata[$cls]['table']->name, 
+            $data, 
+            self::$metadata[$cls]['primary_key'],
+            $data[self::$metadata[$cls]['primary_key']] ?? null
+        );
+
+        return $rows_affected > 0;
+    }
+
+    /**
+     * Loads a model's data from the database
+     *
+     * @return bool if load was successful or not
+     */
+    public function load(): bool
+    {
+        $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+
+        $data = self::$db->selectrow_assoc($query, $this->{$this::__primary_key__});
+
+        if ($data === false) {
+            return false;
+        } else {
+            $this->set_model_data($data);
+        }
+
+        return true;
+    }
+
+    public function delete(): bool
+    {
+        if (isset($this->{$this::__primary_key__})) {
+            $query = "DELETE FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+
+            return self::$db->query($query, $this->{$this::__primary_key__}) > 0;
+        }
+        
+        return false;
+    }    
+
+
+    private static function init(bool $no_cache = false): string
     {
         $cls = get_called_class();
 
@@ -52,6 +172,7 @@ class Model implements Iterator
         self::$metadata[$cls] = [
             'table' => new Model\Table(name: self::default_table_name()),
             'columns' => [],
+            'primary_key' => null
         ];
 
         $heirarchy = self::get_reverse_reflection();
@@ -85,61 +206,194 @@ class Model implements Iterator
                             throw new ModelException("Property name '$property_name' is reserved for ORM operations. Please rename the property.");
                         }
 
-                        self::$metadata[$cls]['columns'][$property_name] = [];
+                        self::$metadata[$cls]['columns'][$property_name] = [
+                            'type' => $property->getType() ? $property->getType()->getName() : 'mixed',
+                            'attributes' => []
+                        ];
+                    } else if ($attribute_cls === 'PrimaryKey') {
+                        self::$metadata[$cls]['primary_key'] = $property_name;
+                    }   
+
+                    if (!array_key_exists($property_name, self::$metadata[$cls]['columns'])) {
+                        throw new ModelException("ORM attribute '$attribute_cls' applied to property '$property_name' which is not defined as a Column.");
                     }
 
-                    array_push(self::$metadata[$cls]['columns'][$property_name], $attr->newInstance());
+                    $attr_cls = $attr->getName();
+                    $attribute_instance = new $attr_cls(...$attr->getArguments(), table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
+
+                    array_push(self::$metadata[$cls]['columns'][$property_name]['attributes'], $attribute_instance);
                 }
             }
         }
+
+        // final validation
+        if (is_null(self::$metadata[$cls]['primary_key'])) {
+            throw new ModelException("No primary key defined for model class '$cls'.  A primary key must be defined using the PrimaryKey attribute.");
+        }
         
-        var_dump(self::$metadata[$cls]);
+        //var_dump(self::$metadata[$cls]);
 
         return $cls;
     }
 
     // ai generated slop, fix as needed
-    public static function migrate(): void
+    public static function migrate(bool $test_run = false): void
     {
-        $cls = self::init(no_cache: true);
+        $cls = self::init();
 
+        $old_metadata = self::$metadata[$cls] ?? null;
+        $table_changed = false;
+        $changes = [
+            'columns_to_add' => [],
+            'columns_to_modify' => [],
+            'keys_to_add' => [],
+            'keys_to_drop' => [],
+            'keys_to_modify' => [],
+        ];
+
+        self::init(no_cache: true);
         $metadata = self::$metadata[$cls];
         
+        // compare old and new metadata to determine changes
+        if ($old_metadata !== null) {
+            // Check for new or modified columns
+            foreach ($metadata['columns'] as $column_name => $column_meta) {
+                if (!isset($old_metadata['columns'][$column_name])) {
+                    // New column
+                    array_push($changes['columns_to_add'], $column_name);
+                } else {
+                    // Check if column definition changed
+                    $new_column_attr = $column_meta['attributes'][0];
+                    $old_column_attr = $old_metadata['columns'][$column_name]['attributes'][0];
+                    
+                    if (serialize($new_column_attr) !== serialize($old_column_attr)) {
+                        array_push($changes['columns_to_modify'], $column_name);
+                    }
+                }
+            }
+
+            // Check for new, modified, or dropped keys (indexes, foreign keys, etc.)
+            $old_keys = [];
+            $new_keys = [];
+
+            // Collect old keys
+            foreach ($old_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
+                        $key_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                        $old_keys[$key_id] = $attr;
+                    }
+                }
+            }
+
+            // Collect new keys
+            foreach ($metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
+                        $key_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                        $new_keys[$key_id] = $attr;
+                    }
+                }
+            }
+
+            // Find keys to add
+            foreach ($new_keys as $key_id => $attr) {
+                if (!isset($old_keys[$key_id])) {
+                    $changes['keys_to_add'][] = $attr;
+                } else {
+                    // Check if key definition changed
+                    if (serialize($attr) !== serialize($old_keys[$key_id])) {
+                        $changes['keys_to_modify'][] = $attr;
+                    }
+                }
+            }
+
+            // Find keys to drop
+            foreach ($old_keys as $key_id => $attr) {
+                if (!isset($new_keys[$key_id])) {
+                    $changes['keys_to_drop'][] = $attr;
+                }
+            }
+
+            $table_changed = !empty($changes['columns_to_add']) || 
+                           !empty($changes['columns_to_modify']) || 
+                           !empty($changes['keys_to_add']) || 
+                           !empty($changes['keys_to_drop']) || 
+                           !empty($changes['keys_to_modify']);
+        }
+
         // Generate CREATE TABLE query
-        $SQL = '';
+        $sql = '';
         $columns = [];
         $table_keys = [];
 
         // check if table exists
-        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$metadata['table']->name}'");
-        $existing_table_columns = [];
-        if (!$table_exists) {
-            $sql = "CREATE TABLE IF NOT EXISTS `{$metadata['table']->name}` (\n";
+        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$metadata['table']->name}'")[0] ?? false;
+        $alter_table = $table_exists && $table_changed;
+
+        if ($alter_table) {
+            $sql = "ALTER TABLE `{$metadata['table']->name}`\n  ";
+        } else if(!$table_exists) {
+           $sql = "CREATE TABLE IF NOT EXISTS `{$metadata['table']->name}` (\n";
         } else {
-            $sql = "ALTER TABLE `{$metadata['table']->name}` (\n  ";
-            $existing_table_columns = self::$db->get_column_names($metadata['table']->name);
+            return; // no changes needed
         }
 
-        foreach ($metadata['columns'] as $column_name => $attributes) {
-            foreach ($attributes as $attr) {
+        foreach ($metadata['columns'] as $column_name => $column_meta) {
+            foreach ($column_meta['attributes'] as $attr) {
                 if ($attr instanceof Model\Column) {
-                    $columns[] = ($table_exists ? (in_array($column_name, $existing_table_columns) ? 'CHANGE COLUMN' : 'ADD COLUMN') : '') . $attr->to_sql($column_name);
+                    if ($alter_table) {
+                        $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
+                        
+                        if (in_array($column_name, $changes['columns_to_add']) && !$column_exists) {
+                            $columns[] = $attr->to_add_sql();
+                        } else if (in_array($column_name, $changes['columns_to_modify'])) {
+                            $columns[] = $attr->to_modify_sql();
+                        }
+                    } else {
+                        $columns[] = $attr->to_sql();
+                    }
                 } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
-                    // check if key exists
-
-                    $table_keys[] = $attr->to_sql($column_name);
+                    if (!$alter_table) {
+                        $table_keys[] = $attr->to_sql();
+                    }
                 }
             }
         }
 
-        $sql .= implode(",\n  ", $columns);
+        if ($alter_table) {
+            foreach ($changes['keys_to_drop'] as $attr) {
+                $table_keys[] = $attr->to_drop_sql();
+            }
+            var_dump($changes['keys_to_modify']);
+            foreach ($changes['keys_to_modify'] as $mod) {
+                $table_keys[] = $mod->to_modify_sql();
+            }
+            foreach ($changes['keys_to_add'] as $attr) {
+                $table_keys[] = $attr->to_add_sql();
+            }
+        }
+        
+        if (!empty($columns)) {
+            $sql .= implode(",\n  ", $columns);
+        }
 
         if (!empty($table_keys)) {
-            $sql .= ",\n  " . implode(",\n  ", $table_keys);
+            if (!empty($columns)) {
+                $sql .= ",\n";
+            }
+            $sql .= implode(",\n  ", $table_keys);
         }
-        $sql .= "\n) " . $metadata['table']->to_sql();
+        if (!$alter_table) {
+            $sql .= "\n) " . $metadata['table']->to_sql();
+        }
 
         echo $sql . "\n";
+        
+        if ($test_run) {
+            
+            return;
+        }
 
         $rslt = self::$db->query($sql);
 
@@ -150,17 +404,6 @@ class Model implements Iterator
             file_put_contents($output_filename, $output_code);
         }
     }
-
-    public function load(): bool
-    {
-        $cls = get_called_class();
-        $metadata = self::$metadata[$cls];
-
-        // Implement data loading logic here, e.g., from a database
-        // This is a placeholder implementation
-        return true;
-    }
-
 
     /**
      * Static Helper Methods

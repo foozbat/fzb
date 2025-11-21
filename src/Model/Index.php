@@ -7,43 +7,54 @@ namespace Fzb\Model;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Index
+class Index extends ModelAttribute
 {
     public function __construct(
         public readonly ?IndexType $type = null,
-        public readonly ?string $name = null,
         public readonly ?int $length = null,
         public readonly ?IndexAlgorithm $algorithm = null,
-        public readonly ?string $comment = null
+        public readonly ?string $comment = null,
+        public readonly ?string $table_name = null,
+        public readonly ?string $column_name = null
     ) {}
 
-    public function to_sql(string $column_name): string
+    public function to_sql(): string
     {
-        $this->name = $this->name ?? "idx_{$column_name}";
-        
         $sql = "";
-        if ($this->type !== null) {
+        if ($this->type !== null)
             $sql .= $this->type->value . " ";
-        }
-        
-        $sql .= "INDEX `{$this->name}` (`{$column_name}`";
-        
-        if ($this->length !== null) {
+
+        $sql .= "INDEX `idx_{$this->column_name}` (`{$this->column_name}`";
+
+        if ($this->length !== null)
             $sql .= "({$this->length})";
-        }
         
         $sql .= ")";
         
-        if ($this->algorithm !== null) {
+        if ($this->algorithm !== null)
             $sql .= " USING {$this->algorithm->value}";
-        }
         
-        if ($this->comment !== null) {
+        if ($this->comment !== null)
             $sql .= " COMMENT '" . addslashes($this->comment) . "'";
-        }
         
         return $sql;
     }
+
+    public function to_add_sql(): string
+    {
+        return "ADD " . $this->to_sql();
+    }
+
+    public function to_modify_sql(): string
+    {
+        return $this->to_drop_sql() . ",\n  " . $this->to_add_sql();
+    }
+
+    public function to_drop_sql(): string
+    {
+        return "DROP INDEX `idx_{$this->column_name}`";
+    }
+
 }
 
 enum IndexType: string {
