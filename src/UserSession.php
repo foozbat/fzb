@@ -4,20 +4,35 @@ declare(strict_types=1);
 
 namespace Fzb;
 
+use Model\Table;
+use Model\Column;
+use Model\Type;
 use Exception;
 
 class UserSessionException extends Exception { }
 
-class UserSession extends Model
+#[Table('user_sessions')]
+class UserSession extends Model\Base
 {
-    const __table__ = 'user_sessions';
-
+    #[Column(type: Type::INT)]
     public int $user_id;
+
+    #[Column(type: Type::BOOL)]
     public bool $logged_in;
+
+    #[Column(type: Type::VARCHAR, length: 255)]
     public string $auth_token;
+
+    #[Column(type: Type::VARCHAR, length: 255)]
     public string $csrf_token;
+
+    #[Column(type: Type::VARCHAR, length: 255)]
     public string $fingerprint;
+
+    #[Column(type: Type::VARCHAR, length: 255, nullable: true)]
     public ?string $sms_2fa_code;
+
+    #[Column(type: Type::VARCHAR, length: 255, nullable: true)]
     public ?string $sms_2fa_expires_at;
 
     public function __construct(...$params)

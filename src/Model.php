@@ -11,7 +11,6 @@ use Exception;
 use Iterator;
 use ReflectionClass;
 
-
 class ModelException extends Exception {}
 
 class Model implements Iterator
@@ -21,6 +20,11 @@ class Model implements Iterator
     protected int $__iter__ = 0;
     private static array $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
 
+    /**
+     * Constructor
+     *
+     * @param mixed ...$params values to set model members variables to upon creation
+     */
     public function __construct(mixed ...$params)
     {
         self::init();
@@ -54,7 +58,7 @@ class Model implements Iterator
                         $this->{$name} = (float) $data[$name];
                         break;
                     case 'DateTime':
-                        $this->{$name} = new DateTime($data[$name]);
+                        $this->{$name} = new \DateTime($data[$name]);
                         break;
                     default:
                         $this->{$name} = $data[$name];
@@ -121,9 +125,11 @@ class Model implements Iterator
      */
     public function load(): bool
     {
-        $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+        $cls = self::init();
 
-        $data = self::$db->selectrow_assoc($query, $this->{$this::__primary_key__});
+        $query = "SELECT * FROM ".self::$metadata[$cls]['table']->name." WHERE ".self::$metadata[$cls]['primary_key']."=?";
+
+        $data = self::$db->selectrow_assoc($query, $this->{self::$metadata[$cls]['primary_key']});
 
         if ($data === false) {
             return false;
@@ -136,15 +142,291 @@ class Model implements Iterator
 
     public function delete(): bool
     {
-        if (isset($this->{$this::__primary_key__})) {
-            $query = "DELETE FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+        $cls = self::init();
 
-            return self::$db->query($query, $this->{$this::__primary_key__}) > 0;
+        if (isset($this->{self::$metadata[$cls]['primary_key']})) {
+            $query = "DELETE FROM ".self::$metadata[$cls]['table']->name." WHERE ".self::$metadata[$cls]['primary_key']."=?";
+
+            return self::$db->query($query, $this->{self::$metadata[$cls]['primary_key']}) > 0;
         }
         
         return false;
+    }
+
+    /**
+     * Gets model objects by where .. and clause of specified parameters
+     *
+     * @param mixed ...$params variadic parameters to be checked
+     * @return mixed a single or array of model objects or null
+     */
+    public static function get_by(mixed ...$params): mixed
+    {
+        $cls = self::init();
+
+        $ret_arr = [];
+        $table = self::$metadata[$cls]['table']->name;
+
+        $query = "SELECT ";
+        $query .= self::select_fields($params);
+        $query .= "FROM $table";
+        
+        list($where, $query_values) = self::where($params);
+
+        $query .= self::left_join($params);
+        $query .= $where;
+        $query .= self::order_by($params);
+        $query .= self::paginate($params);
+
+        self::$db->prepare($query);
+        self::$db->execute(...$query_values);
+
+        while ($row = self::$db->fetchrow_assoc()) {
+            array_push($ret_arr, self::parse_result_fields($row, $params));
+        }
+
+        if (sizeof($ret_arr) == 0) {
+            return null;
+        } else {
+            $ret = sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+            if (isset($params['_get_count'])) {
+                $ret = [$ret, self::get_count_by(...$params)];
+            }
+            return $ret;
+        }
+    }
+
+    public static function get_count(): int
+    {
+        $cls = self::init();
+        $table = self::$metadata[$cls]['table']->name;
+
+        return (int) self::$db->selectcol_array("SELECT COUNT(*) FROM $table")[0];
+    }
+
+    public static function get_count_by(mixed ...$params): int
+    {
+        $cls = self::init();
+        $table = self::$metadata[$cls]['table']->name;
+
+        list($where, $query_values) = self::where($params);
+
+        $query = "SELECT COUNT(*) FROM $table" . $where;
+
+        return (int) self::$db->selectcol_array($query, ...$query_values)[0];
+    }
+
+    public static function from_sql(string $query, mixed ...$params): mixed
+    {
+        $cls     = self::init();
+        $table   = self::$metadata[$cls]['table']->name;
+        $ret_arr = [];
+
+        [$params, $options] = self::get_options($params);
+
+        $query .= self::order_by($options);
+        $query .= self::paginate($options);
+
+        self::$db->prepare($query);
+        self::$db->execute(...$params);
+
+        while ($row = self::$db->fetchrow_assoc()) {
+            array_push($ret_arr, self::parse_result_fields($row, $params));
+        }
+
+        if (sizeof($ret_arr) == 0) {
+            return null;
+        } else {
+            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
+        }
+    }
+
+    public static function select_fields(mixed $params): string
+    {
+        $cls    = self::init();
+        $table  = self::$metadata[$cls]['table']->name;
+        $fields = array_keys(self::$metadata[$cls]['columns']);
+
+        $fields = array_map(function ($field) use ($table, $cls) { 
+            return "$table.$field  AS `$cls" . '__' . "$field`";
+        }, $fields);
+
+        if (isset($params['_left_join'])) {
+            foreach ($params['_left_join'] as $join_cls => $join_params) {
+                $join_cls = $join_cls::init();
+
+                $join_table = self::$__meta__[$join_cls]['table'];
+                $join_fields = self::$__meta__[$join_cls]['orm_fields'];
+
+                foreach ($join_fields as $join_field) {
+                    array_push($fields, "$join_table.$join_field  AS `$join_cls" . '__' . "$join_field`");
+                }
+            }
+        }
+
+        return join(', ', $fields);
     }    
 
+    private static function parse_result_fields(array $row, mixed $params): mixed
+    {
+        $cls = self::init();
+
+        $objects = [];
+        $ret_array = [];
+        $tmp_array = [];
+
+        foreach ($row as $key => $value) {
+            if (str_contains($key, '__')) {
+                list ($obj, $field) = explode('__', $key, 2);
+                $tmp_array[$obj][$field] = $value;
+                unset($row[$key]);
+            } else {
+                $tmp_array[$key] = $value;
+            }
+        }
+
+        foreach ($tmp_array as $key => $value) {
+            $is_joining = sizeof($ret_array) > 0 && isset($params['_left_join']);
+            $join_parent_property = $params['_left_join'][$key][2] ?? null;
+            $join_parent_property_type = self::$__meta__[$cls]['orm_map'][$join_parent_property]['obj_property_type'] ?? null;
+            
+            if ($join_parent_property_type !== null) {
+                $join_parent_property_type = ltrim($join_parent_property_type, '?');
+            }
+
+            if ($is_joining && $join_parent_property !== null && $join_parent_property_type !== null) {
+                $ret_array[0]->$join_parent_property = new $key(...$value);
+            } else {
+                $ret_array[] = is_array($value) ? new $key(...$value) : $value;
+            }
+        }
+
+        return sizeof($ret_array) == 1 ? $ret_array[0] : $ret_array;
+    }
+
+    private static function where(mixed $params): array
+    {
+        $cls = self::init();
+
+        $table = self::$metadata[$cls]['table']->name;
+
+        $where = '';
+        $query_fields = [];
+        $query_values = [];
+
+        if (sizeof($params) > 0) {
+            [$params, $options] = self::get_options($params);
+
+            $table_columns = array_keys(self::$metadata[$cls]['columns']);
+
+            foreach ($params as $field => $value) {
+                if (!in_array($field, $table_columns)) {
+                    throw new ModelException("Table column '$field' does not exist.");
+                }
+
+                array_push($query_fields, "$table.$field = ?");
+                array_push($query_values, $value);
+            }
+
+            if (sizeof($query_values) > 0) {
+                $where = " WHERE ".implode(" AND ", $query_fields);
+            }
+        }
+
+        return [$where, $query_values];
+    }
+
+    private static function left_join(mixed $params): string
+    {
+        $cls = self::init();
+
+        $left_join_str = '';
+
+        if (isset($params['_left_join'])) {
+            // do some error checking
+
+            $table = self::$metadata[$cls]['table']->name;
+
+            foreach ($params['_left_join'] as $join_cls => $join_params) {
+                list($table_key, $join_table_key) = $join_params;
+                $join_table = self::$metadata[$join_cls]['table']->name;
+                $left_join_str .= " LEFT JOIN $join_table ON $table.$table_key = $join_table.$join_table_key";
+            }
+        }
+
+        return $left_join_str;
+    }    
+
+    private static function paginate(mixed $params): string
+    {
+        $paginate_str = "";
+
+        if (isset($params['_limit'])) {
+            throw new ModelException("Cannot use _limit when paginating.");
+        }
+
+        if (isset($params['_page']) && isset($params['_per_page'])) {
+            $paginate_str = sprintf(' LIMIT %d, %d', 
+                ((int) $params['_page'] - 1) * (int) $params['_per_page'], 
+                (int) $params['_per_page']
+            );
+        }
+        return $paginate_str;
+    }    
+
+    private static function order_by(mixed $params): string
+    {
+        $cls = self::init();
+        $table = self::$metadata[$cls]['table']->name;
+
+        $order_by_str = "";
+        $order_by = $params['_order_by'] ?? null;
+        $orders = [];
+
+        if ($order_by !==  null) {
+            if (!is_array($order_by)) {
+                $order_by = [$params['_order_by']];
+            }
+
+            foreach ($order_by as $k => $v) {
+                if (is_int($k)) {
+                    $k = $v;
+                    $v = 'ASC';
+                } else {
+                    $v = strtoupper($v);
+                }
+
+                if ($v != 'ASC' && $v != 'DESC') {
+                    throw new ModelException("Invalid option for order_by().  Order must be ASC or DESC");
+                }
+
+                // if they didn't specify a table, add this table as default
+                if (!str_contains($k, '.')) {
+                    $k = "$table.$k";
+                }
+
+                $orders[] = "$k $v";
+            }
+
+            $order_by_str = " ORDER BY ".join(', ', $orders);
+        }
+
+        return $order_by_str;
+    }
+
+    private static function get_options(mixed $params): array
+    {
+        $ret_arr = [[],[]];
+
+        foreach ($params as $k => $v) {
+            if (in_array($k, self::$__reserved_names__)) {
+                $ret_arr[1][$k] = $v;
+            } else {
+                $ret_arr[0][$k] = $v;
+            }
+        }
+
+        return $ret_arr;
+    }
 
     private static function init(bool $no_cache = false): string
     {
@@ -236,166 +518,139 @@ class Model implements Iterator
         return $cls;
     }
 
-    // ai generated slop, fix as needed
+
     public static function migrate(bool $test_run = false): void
     {
         $cls = self::init();
 
         $old_metadata = self::$metadata[$cls] ?? null;
-        $table_changed = false;
-        $changes = [
-            'columns_to_add' => [],
-            'columns_to_modify' => [],
-            'keys_to_add' => [],
-            'keys_to_drop' => [],
-            'keys_to_modify' => [],
-        ];
-
         self::init(no_cache: true);
-        $metadata = self::$metadata[$cls];
-        
-        // compare old and new metadata to determine changes
-        if ($old_metadata !== null) {
-            // Check for new or modified columns
-            foreach ($metadata['columns'] as $column_name => $column_meta) {
-                if (!isset($old_metadata['columns'][$column_name])) {
-                    // New column
-                    array_push($changes['columns_to_add'], $column_name);
-                } else {
-                    // Check if column definition changed
-                    $new_column_attr = $column_meta['attributes'][0];
-                    $old_column_attr = $old_metadata['columns'][$column_name]['attributes'][0];
-                    
-                    if (serialize($new_column_attr) !== serialize($old_column_attr)) {
-                        array_push($changes['columns_to_modify'], $column_name);
-                    }
-                }
-            }
-
-            // Check for new, modified, or dropped keys (indexes, foreign keys, etc.)
-            $old_keys = [];
-            $new_keys = [];
-
-            // Collect old keys
-            foreach ($old_metadata['columns'] as $column_name => $column_meta) {
-                foreach ($column_meta['attributes'] as $attr) {
-                    if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
-                        $key_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
-                        $old_keys[$key_id] = $attr;
-                    }
-                }
-            }
-
-            // Collect new keys
-            foreach ($metadata['columns'] as $column_name => $column_meta) {
-                foreach ($column_meta['attributes'] as $attr) {
-                    if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
-                        $key_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
-                        $new_keys[$key_id] = $attr;
-                    }
-                }
-            }
-
-            // Find keys to add
-            foreach ($new_keys as $key_id => $attr) {
-                if (!isset($old_keys[$key_id])) {
-                    $changes['keys_to_add'][] = $attr;
-                } else {
-                    // Check if key definition changed
-                    if (serialize($attr) !== serialize($old_keys[$key_id])) {
-                        $changes['keys_to_modify'][] = $attr;
-                    }
-                }
-            }
-
-            // Find keys to drop
-            foreach ($old_keys as $key_id => $attr) {
-                if (!isset($new_keys[$key_id])) {
-                    $changes['keys_to_drop'][] = $attr;
-                }
-            }
-
-            $table_changed = !empty($changes['columns_to_add']) || 
-                           !empty($changes['columns_to_modify']) || 
-                           !empty($changes['keys_to_add']) || 
-                           !empty($changes['keys_to_drop']) || 
-                           !empty($changes['keys_to_modify']);
-        }
-
-        // Generate CREATE TABLE query
-        $sql = '';
-        $columns = [];
-        $table_keys = [];
+        $new_metadata = self::$metadata[$cls];
 
         // check if table exists
-        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$metadata['table']->name}'")[0] ?? false;
-        $alter_table = $table_exists && $table_changed;
+        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$new_metadata['table']->name}'")[0] ?? false;
 
-        if ($alter_table) {
-            $sql = "ALTER TABLE `{$metadata['table']->name}`\n  ";
-        } else if(!$table_exists) {
-           $sql = "CREATE TABLE IF NOT EXISTS `{$metadata['table']->name}` (\n";
-        } else {
-            return; // no changes needed
-        }
+        // if table doesn't exist, create a new one
+        if(!$table_exists) {
+            $sql = "CREATE TABLE IF NOT EXISTS `{$new_metadata['table']->name}` (\n";
+            $columns = [];
+            $table_keys = [];
 
-        foreach ($metadata['columns'] as $column_name => $column_meta) {
-            foreach ($column_meta['attributes'] as $attr) {
-                if ($attr instanceof Model\Column) {
-                    if ($alter_table) {
-                        $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
-                        
-                        if (in_array($column_name, $changes['columns_to_add']) && !$column_exists) {
-                            $columns[] = $attr->to_add_sql();
-                        } else if (in_array($column_name, $changes['columns_to_modify'])) {
-                            $columns[] = $attr->to_modify_sql();
-                        }
-                    } else {
+            foreach ($new_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    if ($attr instanceof Model\Column) {
                         $columns[] = $attr->to_sql();
-                    }
-                } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
-                    if (!$alter_table) {
+                    } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
                         $table_keys[] = $attr->to_sql();
                     }
                 }
             }
-        }
 
-        if ($alter_table) {
-            foreach ($changes['keys_to_drop'] as $attr) {
-                $table_keys[] = $attr->to_drop_sql();
-            }
-            var_dump($changes['keys_to_modify']);
-            foreach ($changes['keys_to_modify'] as $mod) {
-                $table_keys[] = $mod->to_modify_sql();
-            }
-            foreach ($changes['keys_to_add'] as $attr) {
-                $table_keys[] = $attr->to_add_sql();
-            }
-        }
-        
-        if (!empty($columns)) {
+            // assemble columns
             $sql .= implode(",\n  ", $columns);
-        }
 
-        if (!empty($table_keys)) {
-            if (!empty($columns)) {
-                $sql .= ",\n";
+            // assemble keys
+            if (!empty($table_keys)) {
+                $sql .= ",\n  " . implode(",\n  ", $table_keys);
             }
-            $sql .= implode(",\n  ", $table_keys);
-        }
-        if (!$alter_table) {
-            $sql .= "\n) " . $metadata['table']->to_sql();
-        }
 
-        echo $sql . "\n";
+            $sql .= "\n) " . $new_metadata['table']->to_sql();
+
+            echo $sql . "\n";
         
-        if ($test_run) {
-            
-            return;
-        }
+            if ($test_run) {
+                return;
+            }
 
-        $rslt = self::$db->query($sql);
+            self::$db->query($sql);
+        } else {
+            $table_changed = false;
+ 
+            $to_add = [];
+            $to_modify = [];
+            $to_drop = [];
+
+            // Collect old attributes
+            foreach ($old_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    $attr_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                    $old_attrs[$attr_id] = $attr;
+                }
+            }
+
+            // Collect new attributes
+            foreach ($new_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    $attr_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                    $new_attrs[$attr_id] = $attr;
+                }
+            }
+            
+            // Determine changes
+            foreach ($new_attrs as $attr_id => $attr) {
+                if (!isset($old_attrs[$attr_id])) {
+                    $to_add[] = $attr;
+                } else {
+                    if (serialize($attr) !== serialize($old_attrs[$attr_id])) {
+                        $to_modify[] = $attr;
+                    }
+                }
+            }
+
+            // Determine drops
+            foreach ($old_attrs as $attr_id => $attr) {
+                if (!isset($new_attrs[$attr_id])) {     
+                    $to_drop[] = $attr;
+                }
+            }
+
+            $table_changed = !empty($to_add) || !empty($to_modify) || !empty($to_drop);
+
+            if (!$table_changed) {
+                return; // no changes needed
+            }
+
+            $alter_sql = "ALTER TABLE `{$new_metadata['table']->name}` ";
+
+            // add new attributes
+            foreach ($to_add as $attr) {
+                if ($attr instanceof Model\Column) {
+                    $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$new_metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
+                    if ($column_exists) {
+                        continue;
+                    }
+                } else if ($attr instanceof Model\ForeignKey) {
+                    self::$db->query($alter_sql . $attr->to_add_index_sql());
+                    self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                } else {
+                    self::$db->query($alter_sql . $attr->to_add_sql());
+                }
+            }
+
+            // modify existing attributes
+            foreach ($to_modify as $attr) {
+                if ($attr instanceof Model\ForeignKey) {
+                    self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                    self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                    self::$db->query($alter_sql . $attr->to_add_index_sql());
+                    self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                } else {
+                     self::$db->query($alter_sql . $attr->to_modify_sql());
+                }
+            }
+
+            // drop removed attributes
+            foreach ($to_drop as $attr) {
+                if ($attr instanceof Model\Column) {
+                    continue; // columns are not dropped automatically
+                } else if ($attr instanceof Model\ForeignKey) {
+                    self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                    self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                } else {
+                    self::$db->query($alter_sql . $attr->to_drop_sql());
+                }
+            }
+        }
 
         // if successful,save the computed orm-data to file if enabled
         if (defined('ORM_CACHE_DIR')) {

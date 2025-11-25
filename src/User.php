@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Fzb;
 
+use Model\Table;
+use Model\Column;
+use Model\Type;
 use Exception;
 
 class UserException extends Exception { }
 
-class User extends Model
+#[Table('users')]
+class User extends Model\Base
 {
-    const __table__ = 'users';
-
+    #[Column(type: Type::VARCHAR, length: 255)]
     public string $username;
+
+    #[Column(type: Type::VARCHAR, length: 255)]
     public string $password;
 
     public function __construct(...$params)

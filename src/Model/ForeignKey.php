@@ -18,19 +18,14 @@ class ForeignKey extends ModelAttribute
         public readonly ?string $column_name = null
     ) {}
 
-    public function to_sql(): string
-    {
-        return $this->index_sql() . ",\n  " . $this->constraint_sql();
-    }
-
     private function index_sql(): string
     {
-        return "INDEX `idx_{$this->table_name}_{$this->column_name}` (`{$this->column_name}`)";
+        return "INDEX `idx_{$this->column_name}` (`{$this->column_name}`)";
     }
 
     private function constraint_sql(): string
     {
-        $sql = "CONSTRAINT `fk_{$this->table_name}_{$this->column_name}` FOREIGN KEY (`{$this->column_name}`) REFERENCES `{$this->references}`(`{$this->reference_column}`)";
+        $sql = "CONSTRAINT `fk_{$this->column_name}` FOREIGN KEY (`{$this->column_name}`) REFERENCES `{$this->references}`(`{$this->reference_column}`)";
 
         if ($this->on_delete !== null)
             $sql .= " ON DELETE {$this->on_delete->value}";
@@ -40,19 +35,31 @@ class ForeignKey extends ModelAttribute
         return $sql;
     }
 
-    public function to_add_sql(): string
+    public function to_sql(): string
     {
-        return "ADD " . $this->index_sql() . ",\n  ADD " . $this->constraint_sql();
+        return $this->index_sql() . ",\n  " . $this->constraint_sql();
     }
 
-    public function to_modify_sql(): string
+    public function to_add_index_sql(): string
     {
-        return $this->to_drop_sql() . ",\n  " . $this->to_add_sql();
+        return "ADD " . $this->index_sql();
     }
 
-    public function to_drop_sql(): string
+    public function to_add_fk_sql(): string
     {
-        return "DROP FOREIGN KEY `fk_{$this->table_name}_{$this->column_name}`,\n  DROP INDEX `idx_{$this->table_name}_{$this->column_name}`";
+        $sql = "ADD " . $this->constraint_sql();
+            
+        return $sql;
+    }
+
+    public function to_drop_fk_sql(): string
+    {
+        return "DROP FOREIGN KEY `fk_{$this->column_name}`";
+    }
+
+    public function to_drop_index_sql(): string
+    {
+        return "DROP INDEX `idx_{$this->column_name}`";
     }
 
 }
