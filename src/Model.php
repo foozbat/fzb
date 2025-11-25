@@ -463,10 +463,23 @@ class Model implements Iterator
         foreach ($heirarchy as $r) {
             // class level metadata
             foreach ($r->getAttributes() as $attr) {
-                $attribute_cls = self::get_short_name($attr->getName());
+                $attr_name = $attr->getName();
+                
+                // Resolve the fully qualified class name
+                if (!class_exists($attr_name)) {
+                    // Try common namespace prefixes
+                    if (class_exists("Fzb\\Model\\$attr_name")) {
+                        $attr_name = "Fzb\\Model\\$attr_name";
+                    } elseif (class_exists("Fzb\\$attr_name")) {
+                        $attr_name = "Fzb\\$attr_name";
+                    }
+                }
+                
+                $attribute_cls = self::get_short_name($attr_name);
 
                 if ($attribute_cls === 'Table') {
-                    self::$metadata[$cls]['table'] = $attr->newInstance();
+                    $args = $attr->getArguments();
+                    self::$metadata[$cls]['table'] = new \Fzb\Model\Table(...$args);
                 } else {
                     // other class-level attributes can be handled here
                 }
@@ -477,11 +490,29 @@ class Model implements Iterator
                 $property_name = $property->getName();
 
                 foreach ($property->getAttributes() as $attr) {
-                    if (!class_exists($attr->getName())) {
-                        throw new ModelException("Model attribute class " . $attr->getName() . " does not exist.  Don't forget use statement.");
+                    $attr_name = $attr->getName();
+                    
+                    // Resolve the fully qualified class name
+                    if (!class_exists($attr_name)) {
+                        // Try common namespace patterns
+                        $possible_names = [
+                            "Fzb\\Model\\$attr_name",
+                            "Fzb\\$attr_name"
+                        ];
+                        
+                        foreach ($possible_names as $possible) {
+                            if (class_exists($possible)) {
+                                $attr_name = $possible;
+                                break;
+                            }
+                        }
+                        
+                        if (!class_exists($attr_name)) {
+                            throw new ModelException("Model attribute class " . $attr->getName() . " does not exist.  Don't forget use statement.");
+                        }
                     }
 
-                    $attribute_cls = self::get_short_name($attr->getName());
+                    $attribute_cls = self::get_short_name($attr_name);
 
                     if ($attribute_cls === 'Column') {
                         if (in_array($property_name, self::$__reserved_names__)) {
@@ -500,8 +531,7 @@ class Model implements Iterator
                         throw new ModelException("ORM attribute '$attribute_cls' applied to property '$property_name' which is not defined as a Column.");
                     }
 
-                    $attr_cls = $attr->getName();
-                    $attribute_instance = new $attr_cls(...$attr->getArguments(), table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
+                    $attribute_instance = new $attr_name(...$attr->getArguments(), table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
 
                     array_push(self::$metadata[$cls]['columns'][$property_name]['attributes'], $attribute_instance);
                 }
@@ -532,6 +562,7 @@ class Model implements Iterator
 
         // if table doesn't exist, create a new one
         if(!$table_exists) {
+            echo "Creating table '{$new_metadata['table']->name}'...\n";
             $sql = "CREATE TABLE IF NOT EXISTS `{$new_metadata['table']->name}` (\n";
             $columns = [];
             $table_keys = [];
@@ -564,6 +595,7 @@ class Model implements Iterator
 
             self::$db->query($sql);
         } else {
+            echo "Altering table '{$new_metadata['table']->name}'...\n";
             $table_changed = false;
  
             $to_add = [];
@@ -606,48 +638,49 @@ class Model implements Iterator
 
             $table_changed = !empty($to_add) || !empty($to_modify) || !empty($to_drop);
 
-            if (!$table_changed) {
-                return; // no changes needed
-            }
+            if ($table_changed) {
+                $alter_sql = "ALTER TABLE `{$new_metadata['table']->name}` ";
 
-            $alter_sql = "ALTER TABLE `{$new_metadata['table']->name}` ";
-
-            // add new attributes
-            foreach ($to_add as $attr) {
-                if ($attr instanceof Model\Column) {
-                    $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$new_metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
-                    if ($column_exists) {
-                        continue;
+                // add new attributes
+                foreach ($to_add as $attr) {
+                    if ($attr instanceof Model\Column) {
+                        echo "Adding column '{$attr->name}'...\n";
+                        $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$new_metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
+                        if ($column_exists) {
+                            continue;
+                        } else {
+                            self::$db->query($alter_sql . $attr->to_add_sql());
+                        }
+                    } else if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_add_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_add_sql());
                     }
-                } else if ($attr instanceof Model\ForeignKey) {
-                    self::$db->query($alter_sql . $attr->to_add_index_sql());
-                    self::$db->query($alter_sql . $attr->to_add_fk_sql());
-                } else {
-                    self::$db->query($alter_sql . $attr->to_add_sql());
                 }
-            }
 
-            // modify existing attributes
-            foreach ($to_modify as $attr) {
-                if ($attr instanceof Model\ForeignKey) {
-                    self::$db->query($alter_sql . $attr->to_drop_fk_sql());
-                    self::$db->query($alter_sql . $attr->to_drop_index_sql());
-                    self::$db->query($alter_sql . $attr->to_add_index_sql());
-                    self::$db->query($alter_sql . $attr->to_add_fk_sql());
-                } else {
-                     self::$db->query($alter_sql . $attr->to_modify_sql());
+                // modify existing attributes
+                foreach ($to_modify as $attr) {
+                    if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                        self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_modify_sql());
+                    }
                 }
-            }
 
-            // drop removed attributes
-            foreach ($to_drop as $attr) {
-                if ($attr instanceof Model\Column) {
-                    continue; // columns are not dropped automatically
-                } else if ($attr instanceof Model\ForeignKey) {
-                    self::$db->query($alter_sql . $attr->to_drop_fk_sql());
-                    self::$db->query($alter_sql . $attr->to_drop_index_sql());
-                } else {
-                    self::$db->query($alter_sql . $attr->to_drop_sql());
+                // drop removed attributes
+                foreach ($to_drop as $attr) {
+                    if ($attr instanceof Model\Column) {
+                        continue; // columns are not dropped automatically
+                    } else if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                        self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_drop_sql());
+                    }
                 }
             }
         }

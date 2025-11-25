@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Fzb;
 
-use Model\Table;
-use Model\Column;
-use Model\Type;
+use Fzb\Model\Table;
+use Fzb\Model\Column;
+use Fzb\Model\Type;
 use Exception;
 
 class UserException extends Exception { }
 
 #[Table('users')]
-class User extends Model\Base
+class User extends Base
 {
     #[Column(type: Type::VARCHAR, length: 255)]
     public string $username;

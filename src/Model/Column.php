@@ -76,6 +76,7 @@ enum Type: string {
     case FLOAT = 'float';
     case DOUBLE = 'double';
     case BIT = 'bit';
+    case BOOLEAN = 'boolean';
     
     // String types
     case CHAR = 'char';
