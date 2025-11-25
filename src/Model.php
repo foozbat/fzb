@@ -287,7 +287,7 @@ class Model implements Iterator
         foreach ($tmp_array as $key => $value) {
             $is_joining = sizeof($ret_array) > 0 && isset($params['_left_join']);
             $join_parent_property = $params['_left_join'][$key][2] ?? null;
-            $join_parent_property_type = self::$__meta__[$cls]['orm_map'][$join_parent_property]['obj_property_type'] ?? null;
+            $join_parent_property_type = self::$metadata[$cls]['columns'][$join_parent_property]['type'] ?? null;
             
             if ($join_parent_property_type !== null) {
                 $join_parent_property_type = ltrim($join_parent_property_type, '?');
