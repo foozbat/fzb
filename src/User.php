@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fzb;
 
+use Fzb\Model\Base;
 use Fzb\Model\Table;
 use Fzb\Model\Column;
 use Fzb\Model\Type;

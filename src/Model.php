@@ -254,8 +254,8 @@ class Model implements Iterator
             foreach ($params['_left_join'] as $join_cls => $join_params) {
                 $join_cls = $join_cls::init();
 
-                $join_table = self::$__meta__[$join_cls]['table'];
-                $join_fields = self::$__meta__[$join_cls]['orm_fields'];
+                $join_table = self::$metadata[$join_cls]['table']->name;
+                $join_fields = array_keys(self::$metadata[$join_cls]['columns']);
 
                 foreach ($join_fields as $join_field) {
                     array_push($fields, "$join_table.$join_field  AS `$join_cls" . '__' . "$join_field`");

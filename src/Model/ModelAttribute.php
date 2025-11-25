@@ -5,6 +5,8 @@ namespace Fzb\Model;
 
 class ModelAttribute
 {
+    public function __construct() {}
+    
     public static function __set_state(array $properties)
     {
         $cls = get_called_class();
