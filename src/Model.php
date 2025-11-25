@@ -1,4 +1,8 @@
 <?php
+/**
+ * 
+ */
+
 declare(strict_types=1);
 
 namespace Fzb;
@@ -6,49 +10,15 @@ namespace Fzb;
 use Exception;
 use Iterator;
 use ReflectionClass;
-use DateTime;
 
-/**
- * @internal
- */
-class ModelException extends Exception { }
+class ModelException extends Exception {}
 
-/**
- * Simple ORM base class for database-backed models.
- *
- * Maps public and private members to a table, provides persistence and retrieval,
- * and allows raw DB access for advanced use cases.
- *
- * ### Usage
- * ```php
- * class MyModel extends Fzb\Model {
- *     public string $my_field1;
- *     public string $my_field2;
- * }
- * ```
- *
- * ### Notes
- * - Public/private members are mapped to DB columns
- * - Protected members are ignored (not persisted)
- * - Iterable: allows the developer to iterate over a single model object or array of objects via foreach if desired.
- *
- * @author Aaron Bishop <https://github.com/foozbat>
- */
-abstract class Model implements Iterator
+class Model implements Iterator
 {
-    const __primary_key__ = 'id';
-    const __table__ = '';
-
-    public int $id;
-    public DateTime $created_at;
-    public DateTime $updated_at;
-
-    private $__db_id__ = 0;
+    public static ?Database $db = null;
+    private static array $metadata = [];
     protected int $__iter__ = 0;
-
-    private static array $__meta__ = [];
-
-    private static $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
+    private static array $__reserved_names__ = ['_page', '_per_page', '_order_by', '_limit', '_left_join'];
 
     /**
      * Constructor
@@ -59,137 +29,42 @@ abstract class Model implements Iterator
     {
         self::init();
 
-        // if derived model uses a different primary key, unset the default
-        if ($this::__primary_key__ != 'id') {
-            unset($this->{'id'});
-        }
-
-        // if a primary key is passed to constructor, set primary key member
-        /*if (isset($params[self::__primary_key__])) {
-            $this->{$this::__primary_key__} = $params[self::__primary_key__];
-            if (!$this->load()) {
-                throw new Exception('id_not_found');
-            }
-        }*/
-        
         // if any model params were passed to constructor, set them
         if (sizeof($params) > 0) {
             $this->set_model_data($params);
         }
     }
 
-    private static function init(): string
-    {
-        $cls = get_called_class();
-        
-        // if metadata exists, do nothing
-        if (isset(self::$__meta__[$cls])) {
-            return $cls;
-        }
-
-        // try to load pre-computed orm metadata
-        if (defined('ORM_CACHE_DIR')) {
-            $orm_cache_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
-            if (file_exists($orm_cache_filename)) {
-                self::$__meta__[$cls] = include $orm_cache_filename;
-                return $cls;
-            }
-        } 
-        
-        // compute orm metadata if needed
-
-        // set the table name to name specified in derived class
-        $table = $cls::__table__;
-
-        // default table name to the lowercased class name if table is not specified
-        if ($table == '') {
-            if ($pos = strrpos($cls, '\\')) {
-                $cls = substr($cls, $pos + 1);
-            }
-            $table = strtolower($cls);
-        }
-
-        $schema = self::db()->get_table_schema($table);
-        $properties = self::get_class_properties();
-        $orm_map = [];
-        $orm_fields = [];
-
-        foreach ($schema as $column) {
-            $orm_map[$column['Field']]['db_field_type'] = $column['Type'];
-        }
-
-        foreach ($properties as $property) {
-            $orm_map[$property->name]['obj_property_type'] = (string) $property->getType();
-            if (isset($orm_map[$property->name]['db_field_type'])) {
-                array_push($orm_fields, $property->name);
-            }
-        }
-
-        self::$__meta__[$cls] = [
-            'table' => $table,
-            'orm_fields' => $orm_fields,
-            'orm_map' => $orm_map,
-            'schema' => $schema
-        ];
-
-        // save the computed orm-data to file if enabled
-        if (defined('ORM_CACHE_DIR')) {
-            $output_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
-            $output_code = "<?php\nreturn " . var_export(self::$__meta__[$cls], true) . ";\n";
-            file_put_contents($output_filename, $output_code);
-        }
-
-        //$bm->end();
-
-        return $cls;
-    }
-
     /**
-     * Helper static function to get the merged public properties of the class, recursively
+     * Sets public and private member variables to the values passed as an associative array
      *
-     * @param string $cls
-     * @param string $types
+     * @param array $data data to set class members to
      * @return void
      */
-    private static function get_class_properties(?string $cls=null, $types='public'): array
+    private function set_model_data(array $data): void
     {
-        if ($cls === null) {
-            $cls = get_called_class();
-        }
-        $ref = new ReflectionClass($cls);
-    
-        $props = $ref->getProperties();
-        $ret_arr = [];
-    
-        foreach($props as $prop){
-            $f = $prop->getName();
-            $ret_arr[$f] = $prop;
-        }
-    
-        if($parent_cls = $ref->getParentClass()){
-            $parent_ret_arr = self::get_class_properties($parent_cls->getName());//RECURSION
-            if(count($parent_ret_arr) > 0) {
-                $ret_arr = array_merge($parent_ret_arr, $ret_arr);
+        $cls = self::init();
+
+        foreach (self::$metadata[$cls]['columns'] as $name => $attributes) {
+            if (array_key_exists($name, $data)) {
+                switch ($attributes['type']) {
+                    case 'bool':
+                        $this->{$name} = (bool) $data[$name];
+                        break;
+                    case 'int':
+                        $this->{$name} = (int) $data[$name];
+                        break;
+                    case 'float':
+                        $this->{$name} = (float) $data[$name];
+                        break;
+                    case 'DateTime':
+                        $this->{$name} = new \DateTime($data[$name]);
+                        break;
+                    default:
+                        $this->{$name} = $data[$name];
+                }
             }
         }
-    
-        return $ret_arr;
-    }
-
-    /**
-     * Gets the current Database object
-     *
-     * @todo Add support for multiple concurrent databases
-     * 
-     * @return Database current Database object
-     */
-    static function db(): Database
-    {
-        $db = Database::get_instance();
-        if (is_null($db)) {
-            throw new ModelException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
-        }
-        return $db;
     }
 
     /**
@@ -199,18 +74,15 @@ abstract class Model implements Iterator
      */
     private function get_model_data(): array {
         $cls = self::init();
-        $properties = self::$__meta__[$cls]['orm_fields'];
         $data = [];
 
-        foreach ($properties as $name) {
+        foreach (self::$metadata[$cls]['columns'] as $name => $attributes) {
             if ($name == 'updated_at') {
                 continue;
             }
 
             if (isset($this->{$name})) {
-                $meta = self::$__meta__[$cls]['orm_map'][$name];
-
-                switch ($meta['obj_property_type']) {
+                switch ($attributes['type']) {
                     case 'bool':
                         $data[$name] = (int) $this->{$name};
                         break;
@@ -227,59 +99,21 @@ abstract class Model implements Iterator
     }
 
     /**
-     * Sets public and private member variables to the values passed as an associative array
-     *
-     * @param array $data data to set class members to
-     * @return void
-     */
-    private function set_model_data(array $data): void
-    {
-        $cls = self::init();
-        $properties = self::$__meta__[$cls]['orm_fields'];
-
-        foreach ($properties as $name) {
-            if (array_key_exists($name, $data)) {
-                $meta = self::$__meta__[$cls]['orm_map'][$name];
-
-                switch ($meta['obj_property_type']) {
-                    case 'bool':
-                        $this->{$name} = (bool) $data[$name];
-                        break;
-                    case 'int':
-                        $this->{$name} = (int) $data[$name];
-                        break;
-                    case 'float':
-                        $this->{$name} = (float) $data[$name];
-                        break;
-                    case 'DateTime':
-                        $this->{$name} = new DateTime($data[$name]);
-                        break;
-                    default:
-                        $this->{$name} = $data[$name];
-                }
-            }
-        }
-    }
-
-    /**
      * Saves the model's current data to the database
      *
      * @return bool if save was successful or not
      */
     public function save(): bool
     {
+        $cls = self::init();
         $data = $this->get_model_data();
 
-        $rows_affected = $this->db()->auto_insert_update(
-            $this::__table__, 
+        $rows_affected = self::$db->auto_insert_update(
+            self::$metadata[$cls]['table']->name, 
             $data, 
-            $this::__primary_key__ ?? null,
-            $data[$this::__primary_key__] ?? null
+            self::$metadata[$cls]['primary_key'],
+            $data[self::$metadata[$cls]['primary_key']] ?? null
         );
-
-        if (!isset($data[$this::__primary_key__])) {
-            $this->{$this::__primary_key__} = (int) $this->db()->last_insert_id();
-        }
 
         return $rows_affected > 0;
     }
@@ -291,9 +125,11 @@ abstract class Model implements Iterator
      */
     public function load(): bool
     {
-        $query = "SELECT * FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+        $cls = self::init();
 
-        $data = $this->db()->selectrow_assoc($query, $this->{$this::__primary_key__});
+        $query = "SELECT * FROM ".self::$metadata[$cls]['table']->name." WHERE ".self::$metadata[$cls]['primary_key']."=?";
+
+        $data = self::$db->selectrow_assoc($query, $this->{self::$metadata[$cls]['primary_key']});
 
         if ($data === false) {
             return false;
@@ -306,43 +142,15 @@ abstract class Model implements Iterator
 
     public function delete(): bool
     {
-        if (isset($this->{$this::__primary_key__})) {
-            $query = "DELETE FROM ".$this::__table__." WHERE ".$this::__primary_key__."=?";
+        $cls = self::init();
 
-            return $this->db()->query($query, $this->{$this::__primary_key__}) > 0;
+        if (isset($this->{self::$metadata[$cls]['primary_key']})) {
+            $query = "DELETE FROM ".self::$metadata[$cls]['table']->name." WHERE ".self::$metadata[$cls]['primary_key']."=?";
+
+            return self::$db->query($query, $this->{self::$metadata[$cls]['primary_key']}) > 0;
         }
         
         return false;
-    }
-
-    /**
-     * Gets all model objects stored in DB
-     *
-     * @return mixed a single or array of model objects or null
-     */
-    public static function get_all(mixed ...$params): mixed
-    {
-        $cls = self::init();
-
-        $ret_arr = [];
-        $table = self::$__meta__[$cls]['table'];
-
-        $query = "SELECT * FROM $table";
-        $query .= self::order_by($params);
-        $query .= self::paginate($params);
-
-        $cls::db()->prepare($query);
-        $cls::db()->execute();
-
-        while ($row = $cls::db()->fetchrow_assoc()) {
-            array_push($ret_arr, new $cls(...$row));
-        }
-
-        if (sizeof($ret_arr) == 0) {
-            return null;
-        } else {
-            return sizeof($ret_arr) == 1 ? $ret_arr[0] : $ret_arr;
-        }
     }
 
     /**
@@ -356,7 +164,7 @@ abstract class Model implements Iterator
         $cls = self::init();
 
         $ret_arr = [];
-        $table = self::$__meta__[$cls]['table'];
+        $table = self::$metadata[$cls]['table']->name;
 
         $query = "SELECT ";
         $query .= self::select_fields($params);
@@ -369,10 +177,10 @@ abstract class Model implements Iterator
         $query .= self::order_by($params);
         $query .= self::paginate($params);
 
-        $cls::db()->prepare($query);
-        $cls::db()->execute(...$query_values);
+        self::$db->prepare($query);
+        self::$db->execute(...$query_values);
 
-        while ($row = $cls::db()->fetchrow_assoc()) {
+        while ($row = self::$db->fetchrow_assoc()) {
             array_push($ret_arr, self::parse_result_fields($row, $params));
         }
 
@@ -390,27 +198,27 @@ abstract class Model implements Iterator
     public static function get_count(): int
     {
         $cls = self::init();
-        $table = self::$__meta__[$cls]['table'];
+        $table = self::$metadata[$cls]['table']->name;
 
-        return (int) $cls::db()->selectcol_array("SELECT COUNT(*) FROM $table")[0];
+        return (int) self::$db->selectcol_array("SELECT COUNT(*) FROM $table")[0];
     }
 
     public static function get_count_by(mixed ...$params): int
     {
         $cls = self::init();
-        $table = self::$__meta__[$cls]['table'];
+        $table = self::$metadata[$cls]['table']->name;
 
         list($where, $query_values) = self::where($params);
 
         $query = "SELECT COUNT(*) FROM $table" . $where;
 
-        return (int) $cls::db()->selectcol_array($query, ...$query_values)[0];
+        return (int) self::$db->selectcol_array($query, ...$query_values)[0];
     }
 
     public static function from_sql(string $query, mixed ...$params): mixed
     {
         $cls     = self::init();
-        $table   = self::$__meta__[$cls]['table'];
+        $table   = self::$metadata[$cls]['table']->name;
         $ret_arr = [];
 
         [$params, $options] = self::get_options($params);
@@ -418,10 +226,10 @@ abstract class Model implements Iterator
         $query .= self::order_by($options);
         $query .= self::paginate($options);
 
-        $cls::db()->prepare($query);
-        $cls::db()->execute(...$params);
+        self::$db->prepare($query);
+        self::$db->execute(...$params);
 
-        while ($row = $cls::db()->fetchrow_assoc()) {
+        while ($row = self::$db->fetchrow_assoc()) {
             array_push($ret_arr, self::parse_result_fields($row, $params));
         }
 
@@ -432,23 +240,11 @@ abstract class Model implements Iterator
         }
     }
 
-    public static function get_sql_fields(): string
-    {
-        $cls    = self::init();
-        $table  = self::$__meta__[$cls]['table'];
-        $fields = self::$__meta__[$cls]['orm_fields'];
-
-        $fields = array_map(function ($field) use ($table, $cls) { 
-            return "$table.$field  AS `$cls" . '__' . "$field`";
-        }, $fields);
-
-        return join(', ', $fields);
-    }
     public static function select_fields(mixed $params): string
     {
         $cls    = self::init();
-        $table  = self::$__meta__[$cls]['table'];
-        $fields = self::$__meta__[$cls]['orm_fields'];
+        $table  = self::$metadata[$cls]['table']->name;
+        $fields = array_keys(self::$metadata[$cls]['columns']);
 
         $fields = array_map(function ($field) use ($table, $cls) { 
             return "$table.$field  AS `$cls" . '__' . "$field`";
@@ -458,8 +254,8 @@ abstract class Model implements Iterator
             foreach ($params['_left_join'] as $join_cls => $join_params) {
                 $join_cls = $join_cls::init();
 
-                $join_table = self::$__meta__[$join_cls]['table'];
-                $join_fields = self::$__meta__[$join_cls]['orm_fields'];
+                $join_table = self::$metadata[$join_cls]['table']->name;
+                $join_fields = array_keys(self::$metadata[$join_cls]['columns']);
 
                 foreach ($join_fields as $join_field) {
                     array_push($fields, "$join_table.$join_field  AS `$join_cls" . '__' . "$join_field`");
@@ -468,7 +264,7 @@ abstract class Model implements Iterator
         }
 
         return join(', ', $fields);
-    }
+    }    
 
     private static function parse_result_fields(array $row, mixed $params): mixed
     {
@@ -491,7 +287,7 @@ abstract class Model implements Iterator
         foreach ($tmp_array as $key => $value) {
             $is_joining = sizeof($ret_array) > 0 && isset($params['_left_join']);
             $join_parent_property = $params['_left_join'][$key][2] ?? null;
-            $join_parent_property_type = self::$__meta__[$cls]['orm_map'][$join_parent_property]['obj_property_type'] ?? null;
+            $join_parent_property_type = self::$metadata[$cls]['columns'][$join_parent_property]['type'] ?? null;
             
             if ($join_parent_property_type !== null) {
                 $join_parent_property_type = ltrim($join_parent_property_type, '?');
@@ -511,7 +307,7 @@ abstract class Model implements Iterator
     {
         $cls = self::init();
 
-        $table = self::$__meta__[$cls]['table'];
+        $table = self::$metadata[$cls]['table']->name;
 
         $where = '';
         $query_fields = [];
@@ -520,7 +316,7 @@ abstract class Model implements Iterator
         if (sizeof($params) > 0) {
             [$params, $options] = self::get_options($params);
 
-            $table_columns = self::$__meta__[$cls]['orm_fields']; //$cls::db()->get_column_names($table);
+            $table_columns = array_keys(self::$metadata[$cls]['columns']);
 
             foreach ($params as $field => $value) {
                 if (!in_array($field, $table_columns)) {
@@ -548,18 +344,17 @@ abstract class Model implements Iterator
         if (isset($params['_left_join'])) {
             // do some error checking
 
-            $table = $cls::__table__;
+            $table = self::$metadata[$cls]['table']->name;
 
             foreach ($params['_left_join'] as $join_cls => $join_params) {
                 list($table_key, $join_table_key) = $join_params;
-                $join_table = $join_cls::__table__;
-
+                $join_table = self::$metadata[$join_cls]['table']->name;
                 $left_join_str .= " LEFT JOIN $join_table ON $table.$table_key = $join_table.$join_table_key";
             }
         }
 
         return $left_join_str;
-    }
+    }    
 
     private static function paginate(mixed $params): string
     {
@@ -576,12 +371,12 @@ abstract class Model implements Iterator
             );
         }
         return $paginate_str;
-    }
+    }    
 
     private static function order_by(mixed $params): string
     {
         $cls = self::init();
-        $table = self::$__meta__[$cls]['table'];
+        $table = self::$metadata[$cls]['table']->name;
 
         $order_by_str = "";
         $order_by = $params['_order_by'] ?? null;
@@ -633,7 +428,302 @@ abstract class Model implements Iterator
         return $ret_arr;
     }
 
-    // Iterator Methods
+    private static function init(bool $no_cache = false): string
+    {
+        $cls = get_called_class();
+
+        // get db instance if it exists
+        if (!(self::$db instanceof Database)) {
+            self::$db = Database::get_instance();
+
+            if (is_null(self::$db)) {
+                throw new ModelException("Fzb\Database object could not be found.  A database object must be instantiated before using this object.");
+            }
+        }
+
+        // load metadata if exists
+        if (defined('ORM_CACHE_DIR') && !$no_cache) {
+            $orm_cache_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
+            if (file_exists($orm_cache_filename)) {
+                self::$metadata[$cls] = include $orm_cache_filename;
+                return $cls;
+            }
+        } 
+
+        // generate metadata from ORM attributes
+        self::$metadata[$cls] = [
+            'table' => new Model\Table(name: self::default_table_name()),
+            'columns' => [],
+            'primary_key' => null
+        ];
+
+        $heirarchy = self::get_reverse_reflection();
+
+        // traverse from base class to derived
+        foreach ($heirarchy as $r) {
+            // class level metadata
+            foreach ($r->getAttributes() as $attr) {
+                $attr_name = $attr->getName();
+                
+                // Resolve the fully qualified class name
+                if (!class_exists($attr_name)) {
+                    // Try common namespace prefixes
+                    if (class_exists("Fzb\\Model\\$attr_name")) {
+                        $attr_name = "Fzb\\Model\\$attr_name";
+                    } elseif (class_exists("Fzb\\$attr_name")) {
+                        $attr_name = "Fzb\\$attr_name";
+                    }
+                }
+                
+                $attribute_cls = self::get_short_name($attr_name);
+
+                if ($attribute_cls === 'Table') {
+                    $args = $attr->getArguments();
+                    self::$metadata[$cls]['table'] = new \Fzb\Model\Table(...$args);
+                } else {
+                    // other class-level attributes can be handled here
+                }
+            }
+
+            // property level metadata
+            foreach ($r->getProperties() as $property) {
+                $property_name = $property->getName();
+
+                foreach ($property->getAttributes() as $attr) {
+                    $attr_name = $attr->getName();
+                    
+                    // Resolve the fully qualified class name
+                    if (!class_exists($attr_name)) {
+                        // Try common namespace patterns
+                        $possible_names = [
+                            "Fzb\\Model\\$attr_name",
+                            "Fzb\\$attr_name"
+                        ];
+                        
+                        foreach ($possible_names as $possible) {
+                            if (class_exists($possible)) {
+                                $attr_name = $possible;
+                                break;
+                            }
+                        }
+                        
+                        if (!class_exists($attr_name)) {
+                            throw new ModelException("Model attribute class " . $attr->getName() . " does not exist.  Don't forget use statement.");
+                        }
+                    }
+
+                    $attribute_cls = self::get_short_name($attr_name);
+
+                    if ($attribute_cls === 'Column') {
+                        if (in_array($property_name, self::$__reserved_names__)) {
+                            throw new ModelException("Property name '$property_name' is reserved for ORM operations. Please rename the property.");
+                        }
+
+                        self::$metadata[$cls]['columns'][$property_name] = [
+                            'type' => $property->getType() ? $property->getType()->getName() : 'mixed',
+                            'attributes' => []
+                        ];
+                    } else if ($attribute_cls === 'PrimaryKey') {
+                        self::$metadata[$cls]['primary_key'] = $property_name;
+                    }   
+
+                    if (!array_key_exists($property_name, self::$metadata[$cls]['columns'])) {
+                        throw new ModelException("ORM attribute '$attribute_cls' applied to property '$property_name' which is not defined as a Column.");
+                    }
+
+                    $attribute_instance = new $attr_name(...$attr->getArguments(), table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
+
+                    array_push(self::$metadata[$cls]['columns'][$property_name]['attributes'], $attribute_instance);
+                }
+            }
+        }
+
+        // final validation
+        if (is_null(self::$metadata[$cls]['primary_key'])) {
+            throw new ModelException("No primary key defined for model class '$cls'.  A primary key must be defined using the PrimaryKey attribute.");
+        }
+        
+        //var_dump(self::$metadata[$cls]);
+
+        return $cls;
+    }
+
+
+    public static function migrate(bool $test_run = false): void
+    {
+        $cls = self::init();
+
+        $old_metadata = self::$metadata[$cls] ?? null;
+        self::init(no_cache: true);
+        $new_metadata = self::$metadata[$cls];
+
+        // check if table exists
+        $table_exists = self::$db->selectrow_array("SHOW TABLES LIKE '{$new_metadata['table']->name}'")[0] ?? false;
+
+        // if table doesn't exist, create a new one
+        if(!$table_exists) {
+            echo "Creating table '{$new_metadata['table']->name}'...\n";
+            $sql = "CREATE TABLE IF NOT EXISTS `{$new_metadata['table']->name}` (\n";
+            $columns = [];
+            $table_keys = [];
+
+            foreach ($new_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    if ($attr instanceof Model\Column) {
+                        $columns[] = $attr->to_sql();
+                    } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
+                        $table_keys[] = $attr->to_sql();
+                    }
+                }
+            }
+
+            // assemble columns
+            $sql .= implode(",\n  ", $columns);
+
+            // assemble keys
+            if (!empty($table_keys)) {
+                $sql .= ",\n  " . implode(",\n  ", $table_keys);
+            }
+
+            $sql .= "\n) " . $new_metadata['table']->to_sql();
+
+            echo $sql . "\n";
+        
+            if ($test_run) {
+                return;
+            }
+
+            self::$db->query($sql);
+        } else {
+            echo "Altering table '{$new_metadata['table']->name}'...\n";
+            $table_changed = false;
+ 
+            $to_add = [];
+            $to_modify = [];
+            $to_drop = [];
+
+            // Collect old attributes
+            foreach ($old_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    $attr_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                    $old_attrs[$attr_id] = $attr;
+                }
+            }
+
+            // Collect new attributes
+            foreach ($new_metadata['columns'] as $column_name => $column_meta) {
+                foreach ($column_meta['attributes'] as $attr) {
+                    $attr_id = $attr->name ?? (get_class($attr) . '_' . $column_name);
+                    $new_attrs[$attr_id] = $attr;
+                }
+            }
+            
+            // Determine changes
+            foreach ($new_attrs as $attr_id => $attr) {
+                if (!isset($old_attrs[$attr_id])) {
+                    $to_add[] = $attr;
+                } else {
+                    if (serialize($attr) !== serialize($old_attrs[$attr_id])) {
+                        $to_modify[] = $attr;
+                    }
+                }
+            }
+
+            // Determine drops
+            foreach ($old_attrs as $attr_id => $attr) {
+                if (!isset($new_attrs[$attr_id])) {     
+                    $to_drop[] = $attr;
+                }
+            }
+
+            $table_changed = !empty($to_add) || !empty($to_modify) || !empty($to_drop);
+
+            if ($table_changed) {
+                $alter_sql = "ALTER TABLE `{$new_metadata['table']->name}` ";
+
+                // add new attributes
+                foreach ($to_add as $attr) {
+                    if ($attr instanceof Model\Column) {
+                        echo "Adding column '{$attr->name}'...\n";
+                        $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$new_metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
+                        if ($column_exists) {
+                            continue;
+                        } else {
+                            self::$db->query($alter_sql . $attr->to_add_sql());
+                        }
+                    } else if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_add_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_add_sql());
+                    }
+                }
+
+                // modify existing attributes
+                foreach ($to_modify as $attr) {
+                    if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                        self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_index_sql());
+                        self::$db->query($alter_sql . $attr->to_add_fk_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_modify_sql());
+                    }
+                }
+
+                // drop removed attributes
+                foreach ($to_drop as $attr) {
+                    if ($attr instanceof Model\Column) {
+                        continue; // columns are not dropped automatically
+                    } else if ($attr instanceof Model\ForeignKey) {
+                        self::$db->query($alter_sql . $attr->to_drop_fk_sql());
+                        self::$db->query($alter_sql . $attr->to_drop_index_sql());
+                    } else {
+                        self::$db->query($alter_sql . $attr->to_drop_sql());
+                    }
+                }
+            }
+        }
+
+        // if successful,save the computed orm-data to file if enabled
+        if (defined('ORM_CACHE_DIR')) {
+            $output_filename = ORM_CACHE_DIR . '/' . str_replace('\\', '_', $cls) . '.php';
+            $output_code = "<?php\nreturn " . var_export(self::$metadata[$cls], true) . ";\n";
+            file_put_contents($output_filename, $output_code);
+        }
+    }
+
+    /**
+     * Static Helper Methods
+     */
+
+    private static function get_reverse_reflection(): array
+    {
+        $cls = get_called_class();
+
+        $ret = [];
+        for ($r = new ReflectionClass($cls); $r; $r = $r->getParentClass()) {
+            array_unshift($ret, $r);
+        }
+
+        return $ret;
+    }
+
+    private static function default_table_name(): string
+    {
+        $cls = get_called_class();
+        return strtolower(self::get_short_name($cls));
+    }
+
+    private static function get_short_name(string $cls): string
+    {
+        $class_parts = explode('\\', $cls);
+        return end($class_parts);
+    }
+
+    /**
+     * Iterator Methods
+     */
 
     /**
       * @internal
