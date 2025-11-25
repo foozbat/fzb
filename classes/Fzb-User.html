@@ -59,6 +59,12 @@
                                     <h4 class="phpdocumentor-sidebar__root-namespace">
     <a href="namespaces/fzb.html" class="">Fzb</a>
 </h4>
+    <ul class="phpdocumentor-list">
+                    <li>
+                <a href="namespaces/fzb-model.html" class="">Model</a>
+                
+            </li>
+            </ul>
 
                         </section>
                 <section class="phpdocumentor-sidebar__category -packages">
@@ -93,7 +99,7 @@
     User
 
         <span class="phpdocumentor-element__extends">
-        extends <a href="classes/Fzb-Model.html"><abbr title="\Fzb\Model">Model</abbr></a>
+        extends <a href="classes/Fzb-Model-Base.html"><abbr title="\Fzb\Model\Base">Base</abbr></a>
     </span>
     
             <div class="phpdocumentor-element__package">
@@ -114,35 +120,31 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">11</span>
+    <span class="phpdocumentor-element-found-in__line">15</span>
 
     </aside>
 
-            <p class="phpdocumentor-summary">Simple ORM base class for database-backed models.</p>
-
-
-    <section class="phpdocumentor-description"><p>Maps public and private members to a table, provides persistence and retrieval,
-and allows raw DB access for advanced use cases.</p>
-<h3>Usage</h3>
-<pre class="prettyprint"><code class="language-php">class MyModel extends Fzb\Model {
-    public string $my_field1;
-    public string $my_field2;
-}
-</code></pre>
-<h3>Notes</h3>
-<ul>
-<li>Public/private members are mapped to DB columns</li>
-<li>Protected members are ignored (not persisted)</li>
-<li>Iterable: allows the developer to iterate over a single model object or array of objects via foreach if desired.</li>
-</ul>
-</section>
+        
 
 
 
 
+    
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-User.html#attributes" class="headerlink"><i class="fas fa-link"></i></a>
 
-
-
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Table.html"><abbr title="\Fzb\Model\Table">Table</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        &#039;users&#039;
+    </dd>
+    </dl>
+                    </section>
+    
 <h3 id="toc">
     Table of Contents
     <a href="classes/Fzb-User.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
@@ -155,25 +157,6 @@ and allows raw DB access for advanced use cases.</p>
 
 
 
-<h4 id="toc-constants">
-    Constants
-    <a href="classes/Fzb-User.html#toc-constants" class="headerlink"><i class="fas fa-link"></i></a>
-
-</h4>
-<dl class="phpdocumentor-table-of-contents">
-            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
-    <a class="" href="classes/Fzb-Model.html#constant___primary_key__">__primary_key__</a>
-    <span>
-        &nbsp;= &#039;id&#039;                            </span>
-</dt>
-
-            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
-    <a class="" href="classes/Fzb-User.html#constant___table__">__table__</a>
-    <span>
-        &nbsp;= &#039;users&#039;                            </span>
-</dt>
-
-    </dl>
 
 
 <h4 id="toc-properties">
@@ -183,13 +166,19 @@ and allows raw DB access for advanced use cases.</p>
 </h4>
 <dl class="phpdocumentor-table-of-contents">
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
-    <a class="" href="classes/Fzb-Model.html#property_created_at">$created_at</a>
+    <a class="" href="classes/Fzb-Model-Base.html#property_created_at">$created_at</a>
     <span>
                         &nbsp;: <abbr title="\DateTime">DateTime</abbr>            </span>
 </dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
-    <a class="" href="classes/Fzb-Model.html#property_id">$id</a>
+    <a class="" href="classes/Fzb-Model.html#property_db">$db</a>
+    <span>
+                        &nbsp;: <a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a>|null            </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a class="" href="classes/Fzb-Model-Base.html#property_id">$id</a>
     <span>
                         &nbsp;: int            </span>
 </dt>
@@ -201,7 +190,7 @@ and allows raw DB access for advanced use cases.</p>
 </dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
-    <a class="" href="classes/Fzb-Model.html#property_updated_at">$updated_at</a>
+    <a class="" href="classes/Fzb-Model-Base.html#property_updated_at">$updated_at</a>
     <span>
                         &nbsp;: <abbr title="\DateTime">DateTime</abbr>            </span>
 </dt>
@@ -234,13 +223,6 @@ and allows raw DB access for advanced use cases.</p>
 </dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_db">db()</a>
-    <span>
-                                &nbsp;: <a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a>    </span>
-</dt>
-<dd>Gets the current Database object</dd>
-
-            <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model.html#method_delete">delete()</a>
     <span>
                                 &nbsp;: bool    </span>
@@ -251,13 +233,6 @@ and allows raw DB access for advanced use cases.</p>
     <span>
                                 &nbsp;: mixed    </span>
 </dt>
-
-            <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_get_all">get_all()</a>
-    <span>
-                                &nbsp;: mixed    </span>
-</dt>
-<dd>Gets all model objects stored in DB</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model.html#method_get_by">get_by()</a>
@@ -279,17 +254,17 @@ and allows raw DB access for advanced use cases.</p>
 </dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_get_sql_fields">get_sql_fields()</a>
-    <span>
-                                &nbsp;: string    </span>
-</dt>
-
-            <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model.html#method_load">load()</a>
     <span>
                                 &nbsp;: bool    </span>
 </dt>
 <dd>Loads a model&#039;s data from the database</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Fzb-Model.html#method_migrate">migrate()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model.html#method_save">save()</a>
@@ -315,75 +290,6 @@ and allows raw DB access for advanced use cases.</p>
 
 
         
-    <section class="phpdocumentor-constants">
-        <h3 class="phpdocumentor-elements__header" id="constants">
-            Constants
-            <a href="classes/Fzb-User.html#constants" class="headerlink"><i class="fas fa-link"></i></a>
-
-        </h3>
-                    <article class="phpdocumentor-element -constant -public ">
-    <h4 class="phpdocumentor-element__name" id="constant___primary_key__">
-        __primary_key__
-        <a href="classes/Fzb-Model.html#constant___primary_key__" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h4>
-
-    <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
-    :
-    <span class="phpdocumentor-element-found-in__line">39</span>
-
-    </aside>
-
-    
-    
-    <code class="phpdocumentor-signature phpdocumentor-code ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-        <span class="phpdocumentor-signature__type">mixed</span>
-    <span class="phpdocumentor-signature__name">__primary_key__</span>
-    = <span class="phpdocumentor-signature__default-value">&#039;id&#039;</span>
-</code>
-
-
-    
-    
-    
-
-    
-
-</article>
-                    <article class="phpdocumentor-element -constant -public ">
-    <h4 class="phpdocumentor-element__name" id="constant___table__">
-        __table__
-        <a href="classes/Fzb-User.html#constant___table__" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h4>
-
-    <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
-    :
-    <span class="phpdocumentor-element-found-in__line">13</span>
-
-    </aside>
-
-    
-    
-    <code class="phpdocumentor-signature phpdocumentor-code ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-        <span class="phpdocumentor-signature__type">mixed</span>
-    <span class="phpdocumentor-signature__name">__table__</span>
-    = <span class="phpdocumentor-signature__default-value">&#039;users&#039;</span>
-</code>
-
-
-    
-    
-    
-
-    
-
-</article>
-            </section>
 
         
     <section class="phpdocumentor-properties">
@@ -401,15 +307,15 @@ and allows raw DB access for advanced use cases.</p>
 >
     <h4 class="phpdocumentor-element__name" id="property_created_at">
         $created_at
-        <a href="classes/Fzb-Model.html#property_created_at" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Base.html#property_created_at" class="headerlink"><i class="fas fa-link"></i></a>
 
         <span class="phpdocumentor-element__modifiers">
                                             </span>
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Base.php"><a href="files/src-model-base.html"><abbr title="src/Model/Base.php">Base.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">43</span>
+    <span class="phpdocumentor-element-found-in__line">19</span>
 
     </aside>
 
@@ -425,9 +331,65 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
-    
+        
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-Model-Base.html#property_created_at#attributes" class="headerlink"><i class="fas fa-link"></i></a>
+
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Column.html"><abbr title="\Fzb\Model\Column">Column</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        $type: \Fzb\Model\Type::DATETIME
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $null: false
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $default: \Fzb\Model\Time::CURRENT_TIMESTAMP
+    </dd>
+    </dl>
+                    </section>
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+            -static                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_db">
+        $db
+        <a href="classes/Fzb-Model.html#property_db" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">18</span>
+
+    </aside>
 
     
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">public</span>
+        <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type"><a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a>|null</span>
+    <span class="phpdocumentor-signature__name">$db</span>
+     = <span class="phpdocumentor-signature__default-value">null</span></code>
+
+    
+    
+    
+
+        
+        
 
 </article>
                     <article
@@ -439,15 +401,15 @@ and allows raw DB access for advanced use cases.</p>
 >
     <h4 class="phpdocumentor-element__name" id="property_id">
         $id
-        <a href="classes/Fzb-Model.html#property_id" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Base.html#property_id" class="headerlink"><i class="fas fa-link"></i></a>
 
         <span class="phpdocumentor-element__modifiers">
                                             </span>
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Base.php"><a href="files/src-model-base.html"><abbr title="src/Model/Base.php">Base.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">42</span>
+    <span class="phpdocumentor-element-found-in__line">15</span>
 
     </aside>
 
@@ -463,9 +425,36 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
-    
+        
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-Model-Base.html#property_id#attributes" class="headerlink"><i class="fas fa-link"></i></a>
 
-    
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Column.html"><abbr title="\Fzb\Model\Column">Column</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        $type: \Fzb\Model\Type::INT
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $unsigned: true
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $null: false
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $auto_increment: true
+    </dd>
+    </dl>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-PrimaryKey.html"><abbr title="\Fzb\Model\PrimaryKey">PrimaryKey</abbr></a>]
+    </dt>
+    </dl>
+                    </section>
+        
 
 </article>
                     <article
@@ -485,7 +474,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">16</span>
+    <span class="phpdocumentor-element-found-in__line">21</span>
 
     </aside>
 
@@ -501,9 +490,25 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
-    
+        
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-User.html#property_password#attributes" class="headerlink"><i class="fas fa-link"></i></a>
 
-    
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Column.html"><abbr title="\Fzb\Model\Column">Column</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        $type: \Fzb\Model\Type::VARCHAR
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $length: 255
+    </dd>
+    </dl>
+                    </section>
+        
 
 </article>
                     <article
@@ -515,15 +520,15 @@ and allows raw DB access for advanced use cases.</p>
 >
     <h4 class="phpdocumentor-element__name" id="property_updated_at">
         $updated_at
-        <a href="classes/Fzb-Model.html#property_updated_at" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Base.html#property_updated_at" class="headerlink"><i class="fas fa-link"></i></a>
 
         <span class="phpdocumentor-element__modifiers">
                                             </span>
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Base.php"><a href="files/src-model-base.html"><abbr title="src/Model/Base.php">Base.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">44</span>
+    <span class="phpdocumentor-element-found-in__line">22</span>
 
     </aside>
 
@@ -539,9 +544,31 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
-    
+        
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-Model-Base.html#property_updated_at#attributes" class="headerlink"><i class="fas fa-link"></i></a>
 
-    
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Column.html"><abbr title="\Fzb\Model\Column">Column</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        $type: \Fzb\Model\Type::DATETIME
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $null: false
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $default: \Fzb\Model\Time::CURRENT_TIMESTAMP
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $on_update: \Fzb\Model\Time::CURRENT_TIMESTAMP
+    </dd>
+    </dl>
+                    </section>
+        
 
 </article>
                     <article
@@ -561,7 +588,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">15</span>
+    <span class="phpdocumentor-element-found-in__line">18</span>
 
     </aside>
 
@@ -577,9 +604,25 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
-    
+        
+            <section class="phpdocumentor-attributes">
+            <h5 class="phpdocumentor-elements__header" id="attributes">
+                Attributes <a href="classes/Fzb-User.html#property_username#attributes" class="headerlink"><i class="fas fa-link"></i></a>
 
-    
+            </h5>
+                            <dl class="phpdocumentor-argument-list">
+    <dt class="phpdocumentor-argument-list__entry">
+        #[<a href="classes/Fzb-Model-Column.html"><abbr title="\Fzb\Model\Column">Column</abbr></a>]
+    </dt>
+        <dd class="phpdocumentor-argument-list__entry">
+        $type: \Fzb\Model\Type::VARCHAR
+    </dd>
+        <dd class="phpdocumentor-argument-list__entry">
+        $length: 255
+    </dd>
+    </dl>
+                    </section>
+        
 
 </article>
             </section>
@@ -604,7 +647,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">18</span>
+    <span class="phpdocumentor-element-found-in__line">24</span>
 
     </aside>
 
@@ -633,8 +676,8 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
     
 </article>
                     <article
@@ -651,7 +694,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">30</span>
+    <span class="phpdocumentor-element-found-in__line">36</span>
 
     </aside>
 
@@ -684,70 +727,11 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
-            </section>
-
-</article>
-                    <article
-        class="phpdocumentor-element
-            -method
-            -public
-                                    -static                    "
->
-    <h4 class="phpdocumentor-element__name" id="method_db">
-        db()
-        <a href="classes/Fzb-Model.html#method_db" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h4>
-    <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
-    :
-    <span class="phpdocumentor-element-found-in__line">186</span>
-
-    </aside>
-
-        <p class="phpdocumentor-summary">Gets the current Database object</p>
-
-    <code class="phpdocumentor-code phpdocumentor-signature ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">db</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a></span></code>
-
-    <div class="phpdocumentor-label-line">
-        </div>
-    
-    
-    
-    
-    <h5 class="phpdocumentor-tag-list__heading" id="tags">
-        Tags
-        <a href="classes/Fzb-Model.html#method_db#tags" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h5>
-    <dl class="phpdocumentor-tag-list">
-                                    <dt class="phpdocumentor-tag-list__entry">
-                    <span class="phpdocumentor-tag__name">todo</span>
-                </dt>
-                <dd class="phpdocumentor-tag-list__definition">
-                                                                                
-                                                 <section class="phpdocumentor-description"><p>Add support for multiple concurrent databases</p>
-</section>
-
-                                    </dd>
-                                            </dl>
-
-    
-
-            <section>
-        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
-        <span class="phpdocumentor-signature__response_type"><a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a></span>
-                    &mdash;
-                <section class="phpdocumentor-description"><p>current Database object</p>
-</section>
-
             </section>
 
 </article>
@@ -765,7 +749,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">307</span>
+    <span class="phpdocumentor-element-found-in__line">143</span>
 
     </aside>
 
@@ -781,8 +765,8 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
@@ -803,7 +787,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">410</span>
+    <span class="phpdocumentor-element-found-in__line">218</span>
 
     </aside>
 
@@ -836,62 +820,9 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
-    
-
-    
-</article>
-                    <article
-        class="phpdocumentor-element
-            -method
-            -public
-                                    -static                    "
->
-    <h4 class="phpdocumentor-element__name" id="method_get_all">
-        get_all()
-        <a href="classes/Fzb-Model.html#method_get_all" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h4>
-    <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
-    :
-    <span class="phpdocumentor-element-found-in__line">323</span>
-
-    </aside>
-
-        <p class="phpdocumentor-summary">Gets all model objects stored in DB</p>
-
-    <code class="phpdocumentor-code phpdocumentor-signature ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_all</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
-
-    <div class="phpdocumentor-label-line">
-        </div>
+        
     
     
-        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
-    <dl class="phpdocumentor-argument-list">
-                    <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
-                            </dt>
-            <dd class="phpdocumentor-argument-list__definition">
-                
-            </dd>
-            </dl>
-
-    
-
-    
-
-            <section>
-        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
-        <span class="phpdocumentor-signature__response_type">mixed</span>
-                    &mdash;
-                <section class="phpdocumentor-description"><p>a single or array of model objects or null</p>
-</section>
-
-            </section>
-
 </article>
                     <article
         class="phpdocumentor-element
@@ -907,7 +838,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">354</span>
+    <span class="phpdocumentor-element-found-in__line">162</span>
 
     </aside>
 
@@ -936,8 +867,8 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">mixed</span>
@@ -962,7 +893,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">390</span>
+    <span class="phpdocumentor-element-found-in__line">198</span>
 
     </aside>
 
@@ -978,8 +909,8 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">int</span>
@@ -1000,7 +931,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">398</span>
+    <span class="phpdocumentor-element-found-in__line">206</span>
 
     </aside>
 
@@ -1026,49 +957,11 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">int</span>
-            </section>
-
-</article>
-                    <article
-        class="phpdocumentor-element
-            -method
-            -public
-                                    -static                    "
->
-    <h4 class="phpdocumentor-element__name" id="method_get_sql_fields">
-        get_sql_fields()
-        <a href="classes/Fzb-Model.html#method_get_sql_fields" class="headerlink"><i class="fas fa-link"></i></a>
-
-    </h4>
-    <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
-    :
-    <span class="phpdocumentor-element-found-in__line">435</span>
-
-    </aside>
-
-    
-    <code class="phpdocumentor-code phpdocumentor-signature ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_sql_fields</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">string</span></code>
-
-    <div class="phpdocumentor-label-line">
-        </div>
-    
-    
-    
-    
-
-    
-
-            <section>
-        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
-        <span class="phpdocumentor-signature__response_type">string</span>
             </section>
 
 </article>
@@ -1086,7 +979,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">292</span>
+    <span class="phpdocumentor-element-found-in__line">126</span>
 
     </aside>
 
@@ -1103,8 +996,8 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
@@ -1114,6 +1007,50 @@ and allows raw DB access for advanced use cases.</p>
 
             </section>
 
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                    -static                    "
+>
+    <h4 class="phpdocumentor-element__name" id="method_migrate">
+        migrate()
+        <a href="classes/Fzb-Model.html#method_migrate" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">552</span>
+
+    </aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">migrate</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$test_run</span><span> = </span><span class="phpdocumentor-signature__argument__default-value"><abbr title="\Fzb\false">false</abbr></span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$test_run</span>
+                : <span class="phpdocumentor-signature__argument__return-type">bool</span>
+                 = <span class="phpdocumentor-signature__argument__default-value"><abbr title="\Fzb\false">false</abbr></span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
 </article>
                     <article
         class="phpdocumentor-element
@@ -1129,7 +1066,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">269</span>
+    <span class="phpdocumentor-element-found-in__line">106</span>
 
     </aside>
 
@@ -1146,8 +1083,8 @@ and allows raw DB access for advanced use cases.</p>
     
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
@@ -1172,7 +1109,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">447</span>
+    <span class="phpdocumentor-element-found-in__line">243</span>
 
     </aside>
 
@@ -1198,8 +1135,8 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">string</span>
@@ -1220,7 +1157,7 @@ and allows raw DB access for advanced use cases.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/User.php"><a href="files/src-user.html"><abbr title="src/User.php">User.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">41</span>
+    <span class="phpdocumentor-element-found-in__line">47</span>
 
     </aside>
 
@@ -1246,8 +1183,8 @@ and allows raw DB access for advanced use cases.</p>
 
     
 
+        
     
-
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
@@ -1361,26 +1298,19 @@ and allows raw DB access for advanced use cases.</p>
             <li class="phpdocumentor-on-this-page-section__title">Table Of Contents</li>
             <li>
                 <ul class="phpdocumentor-list -clean">
-                                        <li><a href="classes/Fzb-User.html#toc-constants">Constants</a></li>
                                                             <li><a href="classes/Fzb-User.html#toc-properties">Properties</a></li>
                                                             <li><a href="classes/Fzb-User.html#toc-methods">Methods</a></li>
                                     </ul>
             </li>
-                            <li class="phpdocumentor-on-this-page-section__title">Constants</li>
-                <li>
-                    <ul class="phpdocumentor-list -clean">
-                                                    <li class=""><a href="classes/Fzb-Model.html#constant___primary_key__">__primary_key__</a></li>
-                                                    <li class=""><a href="classes/Fzb-User.html#constant___table__">__table__</a></li>
-                                            </ul>
-                </li>
             
                             <li class="phpdocumentor-on-this-page-section__title">Properties</li>
                 <li>
                     <ul class="phpdocumentor-list -clean">
-                                                    <li class=""><a href="classes/Fzb-Model.html#property_created_at">$created_at</a></li>
-                                                    <li class=""><a href="classes/Fzb-Model.html#property_id">$id</a></li>
+                                                    <li class=""><a href="classes/Fzb-Model-Base.html#property_created_at">$created_at</a></li>
+                                                    <li class=""><a href="classes/Fzb-Model.html#property_db">$db</a></li>
+                                                    <li class=""><a href="classes/Fzb-Model-Base.html#property_id">$id</a></li>
                                                     <li class=""><a href="classes/Fzb-User.html#property_password">$password</a></li>
-                                                    <li class=""><a href="classes/Fzb-Model.html#property_updated_at">$updated_at</a></li>
+                                                    <li class=""><a href="classes/Fzb-Model-Base.html#property_updated_at">$updated_at</a></li>
                                                     <li class=""><a href="classes/Fzb-User.html#property_username">$username</a></li>
                                             </ul>
                 </li>
@@ -1390,15 +1320,13 @@ and allows raw DB access for advanced use cases.</p>
                 <ul class="phpdocumentor-list -clean">
                                             <li class=""><a href="classes/Fzb-User.html#method___construct">__construct()</a></li>
                                             <li class=""><a href="classes/Fzb-User.html#method_change_password">change_password()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_db">db()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_delete">delete()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_from_sql">from_sql()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_get_all">get_all()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_get_by">get_by()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_get_count">get_count()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_get_count_by">get_count_by()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_get_sql_fields">get_sql_fields()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_load">load()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model.html#method_migrate">migrate()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_save">save()</a></li>
                                             <li class=""><a href="classes/Fzb-Model.html#method_select_fields">select_fields()</a></li>
                                             <li class=""><a href="classes/Fzb-User.html#method_verify_password">verify_password()</a></li>
