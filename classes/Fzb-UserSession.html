@@ -120,7 +120,7 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">15</span>
+    <span class="phpdocumentor-element-found-in__line">32</span>
 
     </aside>
 
@@ -244,7 +244,7 @@
     <span>
                                 &nbsp;: mixed    </span>
 </dt>
-<dd>Constructor</dd>
+<dd>Constructor - automatically generates auth token, CSRF token, and fingerprint</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model-Model.html#method_delete">delete()</a>
@@ -263,14 +263,16 @@
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-UserSession.html#method_generate_fingerprint">generate_fingerprint()</a>
     <span>
-                                &nbsp;: mixed    </span>
+                                &nbsp;: string    </span>
 </dt>
+<dd>Generates a client fingerprint hash based on browser characteristics</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-UserSession.html#method_generate_uuid">generate_uuid()</a>
     <span>
-                                &nbsp;: mixed    </span>
+                                &nbsp;: string    </span>
 </dt>
+<dd>Generates a RFC 4122 compliant UUID v4</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-Model-Model.html#method_get_by">get_by()</a>
@@ -324,8 +326,9 @@
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a class="" href="classes/Fzb-UserSession.html#method_validate_fingerprint">validate_fingerprint()</a>
     <span>
-                                &nbsp;: mixed    </span>
+                                &nbsp;: bool    </span>
 </dt>
+<dd>Validates that current client fingerprint matches stored fingerprint</dd>
 
     </dl>
 
@@ -357,7 +360,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">24</span>
+    <span class="phpdocumentor-element-found-in__line">50</span>
 
     </aside>
 
@@ -370,7 +373,9 @@
     </code>
 
     
-    
+        <section class="phpdocumentor-description"><p>Unique authentication token stored in cookies</p>
+</section>
+
     
 
         
@@ -470,7 +475,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">27</span>
+    <span class="phpdocumentor-element-found-in__line">56</span>
 
     </aside>
 
@@ -483,7 +488,9 @@
     </code>
 
     
-    
+        <section class="phpdocumentor-description"><p>CSRF token for form validation</p>
+</section>
+
     
 
         
@@ -561,7 +568,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">30</span>
+    <span class="phpdocumentor-element-found-in__line">62</span>
 
     </aside>
 
@@ -574,7 +581,9 @@
     </code>
 
     
-    
+        <section class="phpdocumentor-description"><p>Client fingerprint hash for session validation</p>
+</section>
+
     
 
         
@@ -682,7 +691,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">21</span>
+    <span class="phpdocumentor-element-found-in__line">44</span>
 
     </aside>
 
@@ -695,7 +704,9 @@
     </code>
 
     
-    
+        <section class="phpdocumentor-description"><p>Whether the session is currently logged in</p>
+</section>
+
     
 
         
@@ -736,7 +747,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">33</span>
+    <span class="phpdocumentor-element-found-in__line">69</span>
 
     </aside>
 
@@ -749,8 +760,26 @@
     </code>
 
     
+        <section class="phpdocumentor-description"><p>SMS 2FA verification code</p>
+</section>
+
     
-    
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/Fzb-UserSession.html#property_sms_2fa_code#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">todo</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>Implement SMS 2FA</p>
+</section>
+
+                                    </dd>
+                                            </dl>
 
         
             <section class="phpdocumentor-attributes">
@@ -793,7 +822,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">36</span>
+    <span class="phpdocumentor-element-found-in__line">76</span>
 
     </aside>
 
@@ -806,8 +835,26 @@
     </code>
 
     
+        <section class="phpdocumentor-description"><p>Expiration timestamp for SMS 2FA code</p>
+</section>
+
     
-    
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/Fzb-UserSession.html#property_sms_2fa_expires_at#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">todo</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>Implement SMS 2FA</p>
+</section>
+
+                                    </dd>
+                                            </dl>
 
         
             <section class="phpdocumentor-attributes">
@@ -912,7 +959,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">18</span>
+    <span class="phpdocumentor-element-found-in__line">38</span>
 
     </aside>
 
@@ -925,7 +972,9 @@
     </code>
 
     
-    
+        <section class="phpdocumentor-description"><p>ID of the user this session belongs to</p>
+</section>
+
     
 
         
@@ -968,11 +1017,11 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">39</span>
+    <span class="phpdocumentor-element-found-in__line">84</span>
 
     </aside>
 
-        <p class="phpdocumentor-summary">Constructor</p>
+        <p class="phpdocumentor-summary">Constructor - automatically generates auth token, CSRF token, and fingerprint</p>
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
@@ -989,7 +1038,7 @@
                 : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                    <section class="phpdocumentor-description"><p>values to set model members variables to upon creation</p>
+                    <section class="phpdocumentor-description"><p>session data including user_id</p>
 </section>
 
             </dd>
@@ -1122,14 +1171,15 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">58</span>
+    <span class="phpdocumentor-element-found-in__line">113</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Generates a client fingerprint hash based on browser characteristics</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">generate_fingerprint</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">generate_fingerprint</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">string</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -1140,7 +1190,15 @@
 
         
     
-    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">string</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>MD5 hash of user agent, encoding, language, DNT, and cookie support</p>
+</section>
+
+            </section>
+
 </article>
                     <article
         class="phpdocumentor-element
@@ -1156,14 +1214,15 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">48</span>
+    <span class="phpdocumentor-element-found-in__line">98</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Generates a RFC 4122 compliant UUID v4</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">generate_uuid</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">generate_uuid</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">string</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -1174,7 +1233,15 @@
 
         
     
-    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">string</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>UUID in format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx</p>
+</section>
+
+            </section>
+
 </article>
                     <article
         class="phpdocumentor-element
@@ -1540,14 +1607,15 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/UserSession.php"><a href="files/src-usersession.html"><abbr title="src/UserSession.php">UserSession.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">75</span>
+    <span class="phpdocumentor-element-found-in__line">135</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Validates that current client fingerprint matches stored fingerprint</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">validate_fingerprint</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">validate_fingerprint</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -1558,7 +1626,15 @@
 
         
     
-    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">bool</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>true if fingerprints match, false otherwise</p>
+</section>
+
+            </section>
+
 </article>
             </section>
 

@@ -96,10 +96,45 @@
     <article class="phpdocumentor-element -file">
         <h2 class="phpdocumentor-content__title">UserSession.php</h2>
 
+            <p class="phpdocumentor-summary">Class UserSession</p>
+
         
+            <section class="phpdocumentor-description"><p>Manages user authentication sessions with auth tokens, CSRF protection, and fingerprinting.
+Automatically generates unique tokens and validates client fingerprints for security.
+Extends Base model to include id, created_at, and updated_at fields.</p>
+<p>Typical usage is to extend this class to add custom session tracking fields:
+class MyUserSession extends Fzb\UserSession {
+#[Column(type: Type::VARCHAR, length: 45)]
+public string $ip_address;
+}</p>
+</section>
+
         
-        
-        
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="files/src-usersession.html#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">todo</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>Implement SMS 2FA functionality</p>
+</section>
+
+                                    </dd>
+                                                <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">author</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>Aaron Bishop (github.com/foozbat)</p>
+</section>
+
+                                    </dd>
+                        </dl>
 
 
         

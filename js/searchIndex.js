@@ -1,16 +1,6 @@
 Search.appendIndex(
     [
                 {
-            "fqsen": "\\Fzb\\AppException",
-            "name": "AppException",
-            "summary": "",
-            "url": "classes/Fzb-AppException.html"
-        },                {
-            "fqsen": "\\Fzb\\App",
-            "name": "App",
-            "summary": "",
-            "url": "classes/Fzb-App.html"
-        },                {
             "fqsen": "\\Fzb\\AuthException",
             "name": "AuthException",
             "summary": "",
@@ -23,7 +13,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003A__construct\u0028\u0029",
             "name": "__construct",
-            "summary": "Constructor",
+            "summary": "Constructor\u0020\u002D\u0020initializes\u0020authentication\u0020from\u0020cookies\u0020and\u0020validates\u0020existing\u0020sessions",
             "url": "classes/Fzb-Auth.html#method___construct"
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003Aget_instance\u0028\u0029",
@@ -43,7 +33,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003Aon_failure\u0028\u0029",
             "name": "on_failure",
-            "summary": "",
+            "summary": "Sets\u0020callback\u0020function\u0020to\u0020execute\u0020when\u0020authentication\u0020or\u0020CSRF\u0020validation\u0020fails",
             "url": "classes/Fzb-Auth.html#method_on_failure"
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024login_required",
@@ -53,7 +43,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003Acsrf_required\u0028\u0029",
             "name": "csrf_required",
-            "summary": "",
+            "summary": "Enforces\u0020CSRF\u0020token\u0020validation\u0020\u002D\u0020calls\u0020failure\u0020callback\u0020if\u0020token\u0020invalid",
             "url": "classes/Fzb-Auth.html#method_csrf_required"
         },                {
             "fqsen": "\\Fzb\\Auth\u003A\u003A\u0024user",
@@ -1853,17 +1843,17 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\User\u003A\u003A__construct\u0028\u0029",
             "name": "__construct",
-            "summary": "Constructor",
+            "summary": "Constructor\u0020\u002D\u0020automatically\u0020hashes\u0020plaintext\u0020passwords",
             "url": "classes/Fzb-User.html#method___construct"
         },                {
             "fqsen": "\\Fzb\\User\u003A\u003Achange_password\u0028\u0029",
             "name": "change_password",
-            "summary": "",
+            "summary": "Changes\u0020user\u0020password\u0020after\u0020verifying\u0020old\u0020password",
             "url": "classes/Fzb-User.html#method_change_password"
         },                {
             "fqsen": "\\Fzb\\User\u003A\u003Averify_password\u0028\u0029",
             "name": "verify_password",
-            "summary": "",
+            "summary": "Verifies\u0020a\u0020plaintext\u0020password\u0020against\u0020stored\u0020hash",
             "url": "classes/Fzb-User.html#method_verify_password"
         },                {
             "fqsen": "\\Fzb\\User\u003A\u003A\u0024username",
@@ -1888,22 +1878,22 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003A__construct\u0028\u0029",
             "name": "__construct",
-            "summary": "Constructor",
+            "summary": "Constructor\u0020\u002D\u0020automatically\u0020generates\u0020auth\u0020token,\u0020CSRF\u0020token,\u0020and\u0020fingerprint",
             "url": "classes/Fzb-UserSession.html#method___construct"
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003Agenerate_uuid\u0028\u0029",
             "name": "generate_uuid",
-            "summary": "",
+            "summary": "Generates\u0020a\u0020RFC\u00204122\u0020compliant\u0020UUID\u0020v4",
             "url": "classes/Fzb-UserSession.html#method_generate_uuid"
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003Agenerate_fingerprint\u0028\u0029",
             "name": "generate_fingerprint",
-            "summary": "",
+            "summary": "Generates\u0020a\u0020client\u0020fingerprint\u0020hash\u0020based\u0020on\u0020browser\u0020characteristics",
             "url": "classes/Fzb-UserSession.html#method_generate_fingerprint"
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003Avalidate_fingerprint\u0028\u0029",
             "name": "validate_fingerprint",
-            "summary": "",
+            "summary": "Validates\u0020that\u0020current\u0020client\u0020fingerprint\u0020matches\u0020stored\u0020fingerprint",
             "url": "classes/Fzb-UserSession.html#method_validate_fingerprint"
         },                {
             "fqsen": "\\Fzb\\UserSession\u003A\u003A\u0024user_id",

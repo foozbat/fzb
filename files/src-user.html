@@ -96,10 +96,36 @@
     <article class="phpdocumentor-element -file">
         <h2 class="phpdocumentor-content__title">User.php</h2>
 
+            <p class="phpdocumentor-summary">Class User</p>
+
         
+            <section class="phpdocumentor-description"><p>Base user model providing username/password authentication.
+Automatically hashes passwords using PHP's password_hash function.
+Extends Base model to include id, created_at, and updated_at fields.</p>
+<p>Typical usage is to extend this class to add custom user fields:
+class MyUser extends Fzb\User {
+#[Column(type: Type::VARCHAR, length: 100)]
+public string $my_column;
+}</p>
+</section>
+
         
-        
-        
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="files/src-user.html#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">author</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>Aaron Bishop (github.com/foozbat)</p>
+</section>
+
+                                    </dd>
+                        </dl>
 
 
         
