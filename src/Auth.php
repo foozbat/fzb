@@ -2,7 +2,13 @@
 /**
  * Class Auth
  * 
- * @todo implement class
+ * Singleton authentication manager handling user login, logout, and session management.
+ * Manages authentication tokens via cookies and validates CSRF tokens for protected operations.
+ * Supports custom User and UserSession classes for flexible authentication implementations.
+ * 
+ * Usage: $auth = new Fzb\Auth(); or $auth = Fzb\Auth::get_instance();
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
  */
 
 declare(strict_types=1);
@@ -15,25 +21,67 @@ class AuthException extends Exception { }
 
 class Auth
 {
+    /**
+     * @var User|null Currently authenticated user object
+     */
     public ?User $user = null;
+    
+    /**
+     * @var UserSession|null Current user session object
+     */
     public ?UserSession $user_session = null;
 
+    /**
+     * @var bool True if user is authenticated
+     */
     public bool $is_authenticated = false;
+    
+    /**
+     * @var bool Flag for requiring login
+     */
     public bool $login_required = false;
+    
+    /**
+     * @var bool True if CSRF token was validated
+     */
     public bool $csrf_validated = false;
 
+    /**
+     * @var string Fully qualified class name for User model
+     */
     private static string $user_cls;
+    
+    /**
+     * @var string Fully qualified class name for UserSession model
+     */
     private static string $user_session_cls;
 
+    /**
+     * @var string Cookie name for authentication token
+     */
     private static string $auth_token_name = (APP_NAME ?? 'fzb_app') . '_auth_token';
+    
+    /**
+     * @var string Cookie/POST name for CSRF token
+     */
     private static string $csrf_token_name = (APP_NAME ?? 'fzb_app') . '_csrf_token';
 
+    /**
+     * @var Auth|null Singleton instance
+     */
     private static $instance = null;
 
+    /**
+     * @var callable|null Callback function for authentication failures
+     */
     private $fail_callback;
 
     /**
-     * Constructor
+     * Constructor - initializes authentication from cookies and validates existing sessions
+     *
+     * @param string $user_cls Fully qualified class name for User model (default: Fzb\User)
+     * @param string $user_session_cls Fully qualified class name for UserSession model (default: Fzb\UserSession)
+     * @throws AuthException if Auth instance already exists (singleton)
      */
     public function __construct(string $user_cls = User::class, string $user_session_cls = UserSession::class)
     {
@@ -168,6 +216,13 @@ class Auth
         setcookie(self::$auth_token_name, $token, $cookie_options);
     }
 
+    /**
+     * Sets callback function to execute when authentication or CSRF validation fails
+     *
+     * @param callable $callback Callback function to execute on failure
+     * @return void
+     * @throws AuthException if callback is not callable
+     */
     public function on_failure(callable $callback)
     {
         if (!is_callable($callback)) {
@@ -177,6 +232,11 @@ class Auth
         $this->fail_callback = $callback;
     }
 
+    /**
+     * Enforces authentication requirement - calls failure callback if user not authenticated
+     *
+     * @return void
+     */
     public function login_required()
     {
         if (!$this->is_authenticated) {
@@ -184,6 +244,11 @@ class Auth
         }
     }
 
+    /**
+     * Enforces CSRF token validation - calls failure callback if token invalid
+     *
+     * @return void
+     */
     public function csrf_required()
     {
         if (!$this->csrf_validated) {
