@@ -1,4 +1,14 @@
 <?php
+/**
+ * Class Column
+ * 
+ * Attribute class for defining column properties.
+ * Applied to model properties to specify column type, constraints, defaults, and behavior.
+ * 
+ * Usage: #[Column(type: Type::VARCHAR, length: 255, null: false)]
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
 
 declare(strict_types=1);
 
@@ -21,6 +31,11 @@ class Column extends ModelAttribute
         public readonly ?string $column_name = null
     ) {}
 
+    /**
+     * Generates column definition SQL for CREATE TABLE
+     *
+     * @return string column definition with type, constraints, and defaults
+     */
     public function to_sql(): string
     {
         $type = strtoupper($this->type->value);
@@ -49,58 +64,23 @@ class Column extends ModelAttribute
         return $sql;
     }
 
+    /**
+     * Generates ADD COLUMN SQL for ALTER TABLE
+     *
+     * @return string ADD COLUMN statement
+     */
     public function to_add_sql(): string
     {
         return "ADD COLUMN " . $this->to_sql();
     }
 
+    /**
+     * Generates MODIFY COLUMN SQL for ALTER TABLE
+     *
+     * @return string MODIFY COLUMN statement
+     */
     public function to_modify_sql(): string
     {
         return "MODIFY COLUMN " . $this->to_sql();
     }
-}
-
-enum Time: string {
-    case CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
-    case NOW = 'NOW()';
-}
-
-enum Type: string {
-    // Numeric types
-    case TINYINT = 'tinyint';
-    case SMALLINT = 'smallint';
-    case MEDIUMINT = 'mediumint';
-    case INT = 'int';
-    case BIGINT = 'bigint';
-    case DECIMAL = 'decimal';
-    case FLOAT = 'float';
-    case DOUBLE = 'double';
-    case BIT = 'bit';
-    case BOOLEAN = 'boolean';
-    
-    // String types
-    case CHAR = 'char';
-    case VARCHAR = 'varchar';
-    case BINARY = 'binary';
-    case VARBINARY = 'varbinary';
-    case TINYBLOB = 'tinyblob';
-    case BLOB = 'blob';
-    case MEDIUMBLOB = 'mediumblob';
-    case LONGBLOB = 'longblob';
-    case TINYTEXT = 'tinytext';
-    case TEXT = 'text';
-    case MEDIUMTEXT = 'mediumtext';
-    case LONGTEXT = 'longtext';
-    case ENUM = 'enum';
-    case SET = 'set';
-    
-    // Date and time types
-    case DATE = 'date';
-    case TIME = 'time';
-    case DATETIME = 'datetime';
-    case TIMESTAMP = 'timestamp';
-    case YEAR = 'year';
-    
-    // JSON type
-    case JSON = 'json';
 }
