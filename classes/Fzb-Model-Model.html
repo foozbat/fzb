@@ -92,6 +92,7 @@
                                 <section>
                                         <ul class="phpdocumentor-breadcrumbs">
             <li class="phpdocumentor-breadcrumb"><a href="namespaces/fzb.html">Fzb</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/fzb-model.html">Model</a></li>
     </ul>
 
     <article class="phpdocumentor-element -class">
@@ -118,9 +119,9 @@
 </div>
 
         <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">16</span>
+    <span class="phpdocumentor-element-found-in__line">26</span>
 
     </aside>
 
@@ -133,7 +134,7 @@
     
 <h3 id="toc">
     Table of Contents
-    <a href="classes/Fzb-Model.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
+    <a href="classes/Fzb-Model-Model.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
 
 </h3>
 
@@ -141,7 +142,7 @@
 
     <h4 id="toc-interfaces">
         Interfaces
-        <a href="classes/Fzb-Model.html#toc-interfaces" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#toc-interfaces" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <dl class="phpdocumentor-table-of-contents">
@@ -154,12 +155,12 @@
 
 <h4 id="toc-properties">
     Properties
-    <a href="classes/Fzb-Model.html#toc-properties" class="headerlink"><i class="fas fa-link"></i></a>
+    <a href="classes/Fzb-Model-Model.html#toc-properties" class="headerlink"><i class="fas fa-link"></i></a>
 
 </h4>
 <dl class="phpdocumentor-table-of-contents">
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
-    <a class="" href="classes/Fzb-Model.html#property_db">$db</a>
+    <a class="" href="classes/Fzb-Model-Model.html#property_db">$db</a>
     <span>
                         &nbsp;: <a href="classes/Fzb-Database.html"><abbr title="\Fzb\Database">Database</abbr></a>|null            </span>
 </dt>
@@ -168,73 +169,79 @@
 
 <h4 id="toc-methods">
     Methods
-    <a href="classes/Fzb-Model.html#toc-methods" class="headerlink"><i class="fas fa-link"></i></a>
+    <a href="classes/Fzb-Model-Model.html#toc-methods" class="headerlink"><i class="fas fa-link"></i></a>
 
 </h4>
 <dl class="phpdocumentor-table-of-contents">
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method___construct">__construct()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method___construct">__construct()</a>
     <span>
                                 &nbsp;: mixed    </span>
 </dt>
 <dd>Constructor</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_delete">delete()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_delete">delete()</a>
     <span>
                                 &nbsp;: bool    </span>
 </dt>
+<dd>Deletes the current model from the database</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_from_sql">from_sql()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_from_sql">from_sql()</a>
     <span>
                                 &nbsp;: mixed    </span>
 </dt>
+<dd>Executes a custom SQL query and returns model instances</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_get_by">get_by()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_get_by">get_by()</a>
     <span>
                                 &nbsp;: mixed    </span>
 </dt>
 <dd>Gets model objects by where .. and clause of specified parameters</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_get_count">get_count()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_get_count">get_count()</a>
     <span>
                                 &nbsp;: int    </span>
 </dt>
+<dd>Gets the total count of records in the table</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_get_count_by">get_count_by()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_get_count_by">get_count_by()</a>
     <span>
                                 &nbsp;: int    </span>
 </dt>
+<dd>Gets the count of records matching the specified conditions</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_load">load()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_load">load()</a>
     <span>
                                 &nbsp;: bool    </span>
 </dt>
 <dd>Loads a model&#039;s data from the database</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_migrate">migrate()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_migrate">migrate()</a>
     <span>
                                 &nbsp;: void    </span>
 </dt>
+<dd>Runs database migrations to sync table schema with model definition</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_save">save()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_save">save()</a>
     <span>
                                 &nbsp;: bool    </span>
 </dt>
 <dd>Saves the model&#039;s current data to the database</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
-    <a class="" href="classes/Fzb-Model.html#method_select_fields">select_fields()</a>
+    <a class="" href="classes/Fzb-Model-Model.html#method_select_fields">select_fields()</a>
     <span>
                                 &nbsp;: string    </span>
 </dt>
+<dd>Builds the SELECT field list for queries including joined tables</dd>
 
     </dl>
 
@@ -246,7 +253,7 @@
     <section class="phpdocumentor-properties">
         <h3 class="phpdocumentor-elements__header" id="properties">
             Properties
-            <a href="classes/Fzb-Model.html#properties" class="headerlink"><i class="fas fa-link"></i></a>
+            <a href="classes/Fzb-Model-Model.html#properties" class="headerlink"><i class="fas fa-link"></i></a>
 
         </h3>
                     <article
@@ -258,15 +265,15 @@
 >
     <h4 class="phpdocumentor-element__name" id="property_db">
         $db
-        <a href="classes/Fzb-Model.html#property_db" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#property_db" class="headerlink"><i class="fas fa-link"></i></a>
 
         <span class="phpdocumentor-element__modifiers">
                                             </span>
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">18</span>
+    <span class="phpdocumentor-element-found-in__line">28</span>
 
     </aside>
 
@@ -291,7 +298,7 @@
             <section class="phpdocumentor-methods">
         <h3 class="phpdocumentor-elements__header" id="methods">
             Methods
-            <a href="classes/Fzb-Model.html#methods" class="headerlink"><i class="fas fa-link"></i></a>
+            <a href="classes/Fzb-Model-Model.html#methods" class="headerlink"><i class="fas fa-link"></i></a>
 
         </h3>
                     <article
@@ -302,13 +309,13 @@
 >
     <h4 class="phpdocumentor-element__name" id="method___construct">
         __construct()
-        <a href="classes/Fzb-Model.html#method___construct" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method___construct" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">28</span>
+    <span class="phpdocumentor-element-found-in__line">38</span>
 
     </aside>
 
@@ -316,7 +323,7 @@
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -325,8 +332,8 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                <span class="phpdocumentor-argument-list__argument__name">$params</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
                     <section class="phpdocumentor-description"><p>values to set model members variables to upon creation</p>
@@ -349,17 +356,18 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_delete">
         delete()
-        <a href="classes/Fzb-Model.html#method_delete" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_delete" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">143</span>
+    <span class="phpdocumentor-element-found-in__line">158</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Deletes the current model from the database</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
                     <span class="phpdocumentor-signature__name">delete</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
@@ -376,6 +384,10 @@
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">bool</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>true if deletion was successful, false otherwise</p>
+</section>
+
             </section>
 
 </article>
@@ -387,20 +399,21 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_from_sql">
         from_sql()
-        <a href="classes/Fzb-Model.html#method_from_sql" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_from_sql" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">218</span>
+    <span class="phpdocumentor-element-found-in__line">251</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Executes a custom SQL query and returns model instances</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">from_sql</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$query</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">from_sql</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$query</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -409,18 +422,22 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$query</span>
-                : <span class="phpdocumentor-signature__argument__return-type">string</span>
+                <span class="phpdocumentor-argument-list__argument__name">$query</span>
+                : <span class="phpdocumentor-argument-list__argument__type">string</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>SQL query to execute</p>
+</section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                <span class="phpdocumentor-argument-list__argument__name">$params</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>parameters for the query and optional _order_by, _page, _per_page</p>
+</section>
+
             </dd>
             </dl>
 
@@ -428,7 +445,15 @@
 
         
     
-    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">mixed</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>single model object, array of model objects, or null if no results</p>
+</section>
+
+            </section>
+
 </article>
                     <article
         class="phpdocumentor-element
@@ -438,13 +463,13 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_get_by">
         get_by()
-        <a href="classes/Fzb-Model.html#method_get_by" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_get_by" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">162</span>
+    <span class="phpdocumentor-element-found-in__line">177</span>
 
     </aside>
 
@@ -452,7 +477,7 @@
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_by</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_by</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -461,8 +486,8 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                <span class="phpdocumentor-argument-list__argument__name">$params</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
                     <section class="phpdocumentor-description"><p>variadic parameters to be checked</p>
@@ -493,17 +518,18 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_get_count">
         get_count()
-        <a href="classes/Fzb-Model.html#method_get_count" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_get_count" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">198</span>
+    <span class="phpdocumentor-element-found-in__line">218</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Gets the total count of records in the table</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
             <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_count</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
@@ -520,6 +546,10 @@
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">int</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>total number of records</p>
+</section>
+
             </section>
 
 </article>
@@ -531,20 +561,21 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_get_count_by">
         get_count_by()
-        <a href="classes/Fzb-Model.html#method_get_count_by" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_get_count_by" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">206</span>
+    <span class="phpdocumentor-element-found-in__line">232</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Gets the count of records matching the specified conditions</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_count_by</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">get_count_by</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__variadic-operator">...</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -553,11 +584,13 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                <span class="phpdocumentor-argument-list__argument__name">$params</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>field =&gt; value pairs to filter by</p>
+</section>
+
             </dd>
             </dl>
 
@@ -568,6 +601,10 @@
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">int</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>number of matching records</p>
+</section>
+
             </section>
 
 </article>
@@ -579,13 +616,13 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_load">
         load()
-        <a href="classes/Fzb-Model.html#method_load" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_load" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">126</span>
+    <span class="phpdocumentor-element-found-in__line">136</span>
 
     </aside>
 
@@ -622,20 +659,21 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_migrate">
         migrate()
-        <a href="classes/Fzb-Model.html#method_migrate" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_migrate" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">552</span>
+    <span class="phpdocumentor-element-found-in__line">613</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Runs database migrations to sync table schema with model definition</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">migrate</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$test_run</span><span> = </span><span class="phpdocumentor-signature__argument__default-value"><abbr title="\Fzb\false">false</abbr></span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">migrate</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$test_run</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">false</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$verbose</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">false</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -644,11 +682,22 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$test_run</span>
-                : <span class="phpdocumentor-signature__argument__return-type">bool</span>
-                 = <span class="phpdocumentor-signature__argument__default-value"><abbr title="\Fzb\false">false</abbr></span>            </dt>
+                <span class="phpdocumentor-argument-list__argument__name">$test_run</span>
+                : <span class="phpdocumentor-argument-list__argument__type">bool</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">false</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>if true, skips actual database execution</p>
+</section>
+
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$verbose</span>
+                : <span class="phpdocumentor-argument-list__argument__type">bool</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">false</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>if true, outputs SQL statements and migration info</p>
+</section>
+
             </dd>
             </dl>
 
@@ -666,13 +715,13 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_save">
         save()
-        <a href="classes/Fzb-Model.html#method_save" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_save" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">106</span>
+    <span class="phpdocumentor-element-found-in__line">116</span>
 
     </aside>
 
@@ -709,20 +758,21 @@
 >
     <h4 class="phpdocumentor-element__name" id="method_select_fields">
         select_fields()
-        <a href="classes/Fzb-Model.html#method_select_fields" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="classes/Fzb-Model-Model.html#method_select_fields" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <aside class="phpdocumentor-element-found-in">
-    <abbr class="phpdocumentor-element-found-in__file" title="src/Model.php"><a href="files/src-model.html"><abbr title="src/Model.php">Model.php</abbr></a></abbr>
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Model/Model.php"><a href="files/src-model-model.html"><abbr title="src/Model/Model.php">Model.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">243</span>
+    <span class="phpdocumentor-element-found-in__line">282</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">Builds the SELECT field list for queries including joined tables</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">select_fields</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">string</span></code>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">select_fields</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$params</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">string</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -731,11 +781,13 @@
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$params</span>
-                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                <span class="phpdocumentor-argument-list__argument__name">$params</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>query parameters including optional _left_join</p>
+</section>
+
             </dd>
             </dl>
 
@@ -746,6 +798,10 @@
             <section>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
         <span class="phpdocumentor-signature__response_type">string</span>
+                    &mdash;
+                <section class="phpdocumentor-description"><p>comma-separated field list with table aliases</p>
+</section>
+
             </section>
 
 </article>
@@ -755,7 +811,7 @@
     <div class="phpdocumentor-modal-bg" data-exit-button></div>
     <div class="phpdocumentor-modal-container">
         <div class="phpdocumentor-modal-content">
-            <pre style="max-height: 500px; overflow-y: scroll" data-src="files/src/Model.php.txt" class="language-php line-numbers linkable-line-numbers"></pre>
+            <pre style="max-height: 500px; overflow-y: scroll" data-src="files/src/Model/Model.php.txt" class="language-php line-numbers linkable-line-numbers"></pre>
         </div>
         <button data-exit-button class="phpdocumentor-modal__close">&times;</button>
     </div>
@@ -856,31 +912,31 @@
             <li class="phpdocumentor-on-this-page-section__title">Table Of Contents</li>
             <li>
                 <ul class="phpdocumentor-list -clean">
-                                                            <li><a href="classes/Fzb-Model.html#toc-properties">Properties</a></li>
-                                                            <li><a href="classes/Fzb-Model.html#toc-methods">Methods</a></li>
+                                                            <li><a href="classes/Fzb-Model-Model.html#toc-properties">Properties</a></li>
+                                                            <li><a href="classes/Fzb-Model-Model.html#toc-methods">Methods</a></li>
                                     </ul>
             </li>
             
                             <li class="phpdocumentor-on-this-page-section__title">Properties</li>
                 <li>
                     <ul class="phpdocumentor-list -clean">
-                                                    <li class=""><a href="classes/Fzb-Model.html#property_db">$db</a></li>
+                                                    <li class=""><a href="classes/Fzb-Model-Model.html#property_db">$db</a></li>
                                             </ul>
                 </li>
             
                         <li class="phpdocumentor-on-this-page-section__title">Methods</li>
             <li>
                 <ul class="phpdocumentor-list -clean">
-                                            <li class=""><a href="classes/Fzb-Model.html#method___construct">__construct()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_delete">delete()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_from_sql">from_sql()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_get_by">get_by()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_get_count">get_count()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_get_count_by">get_count_by()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_load">load()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_migrate">migrate()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_save">save()</a></li>
-                                            <li class=""><a href="classes/Fzb-Model.html#method_select_fields">select_fields()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method___construct">__construct()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_delete">delete()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_from_sql">from_sql()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_get_by">get_by()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_get_count">get_count()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_get_count_by">get_count_by()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_load">load()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_migrate">migrate()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_save">save()</a></li>
+                                            <li class=""><a href="classes/Fzb-Model-Model.html#method_select_fields">select_fields()</a></li>
                                     </ul>
             </li>
                     </ul>
@@ -900,7 +956,7 @@
     </section>
 </section>
         </div>
-        <a href="classes/Fzb-Model.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
+        <a href="classes/Fzb-Model-Model.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
 
     </main>
 

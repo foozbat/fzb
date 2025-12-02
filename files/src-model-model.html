@@ -94,19 +94,22 @@
     </ul>
 
     <article class="phpdocumentor-element -file">
-        <h2 class="phpdocumentor-content__title">ModelAttribute.php</h2>
+        <h2 class="phpdocumentor-content__title">Model.php</h2>
 
-            <p class="phpdocumentor-summary">Class ModelAttribute</p>
+            <p class="phpdocumentor-summary">Class Model</p>
 
         
-            <section class="phpdocumentor-description"><p>Base class for all model attribute classes.
-Provides __set_state for proper var_export/serialization support in metadata caching.</p>
+            <section class="phpdocumentor-description"><p>Base ORM model class providing attribute-based database mapping and CRUD operations.
+Uses PHP 8 attributes to define table structure, columns, indexes, and relationships.
+Supports automatic migrations, query building, pagination, and joins.</p>
+<p>Usage: Extend this class and use #[Table], #[Column], #[PrimaryKey], etc. attributes
+to define your model structure. Call Model::migrate() to sync database schema.</p>
 </section>
 
         
     <h5 class="phpdocumentor-tag-list__heading" id="tags">
         Tags
-        <a href="files/src-model-modelattribute.html#tags" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="files/src-model-model.html#tags" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h5>
     <dl class="phpdocumentor-tag-list">
@@ -125,7 +128,7 @@ Provides __set_state for proper var_export/serialization support in metadata cac
         
 <h3 id="toc">
     Table of Contents
-    <a href="files/src-model-modelattribute.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
+    <a href="files/src-model-model.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
 
 </h3>
 
@@ -134,11 +137,11 @@ Provides __set_state for proper var_export/serialization support in metadata cac
 
     <h4 id="toc-classes">
         Classes
-        <a href="files/src-model-modelattribute.html#toc-classes" class="headerlink"><i class="fas fa-link"></i></a>
+        <a href="files/src-model-model.html#toc-classes" class="headerlink"><i class="fas fa-link"></i></a>
 
     </h4>
     <dl class="phpdocumentor-table-of-contents">
-                    <dt class="phpdocumentor-table-of-contents__entry -class"><a href="classes/Fzb-Model-ModelAttribute.html"><abbr title="\Fzb\Model\ModelAttribute">ModelAttribute</abbr></a></dt>    </dl>
+                    <dt class="phpdocumentor-table-of-contents__entry -class"><a href="classes/Fzb-Model-ModelException.html"><abbr title="\Fzb\Model\ModelException">ModelException</abbr></a></dt>            <dt class="phpdocumentor-table-of-contents__entry -class"><a href="classes/Fzb-Model-Model.html"><abbr title="\Fzb\Model\Model">Model</abbr></a></dt>    </dl>
 
 
 
@@ -155,7 +158,7 @@ Provides __set_state for proper var_export/serialization support in metadata cac
     <div class="phpdocumentor-modal-bg" data-exit-button></div>
     <div class="phpdocumentor-modal-container">
         <div class="phpdocumentor-modal-content">
-            <pre style="max-height: 500px; overflow-y: scroll" data-src="files/src/Model/ModelAttribute.php.txt" class="language-php line-numbers linkable-line-numbers"></pre>
+            <pre style="max-height: 500px; overflow-y: scroll" data-src="files/src/Model/Model.php.txt" class="language-php line-numbers linkable-line-numbers"></pre>
         </div>
         <button data-exit-button class="phpdocumentor-modal__close">&times;</button>
     </div>
@@ -256,7 +259,7 @@ Provides __set_state for proper var_export/serialization support in metadata cac
             <li class="phpdocumentor-on-this-page-section__title">Table Of Contents</li>
             <li>
                 <ul class="phpdocumentor-list -clean">
-                                                                                                        <li><a href="files/src-model-modelattribute.html#toc-classes">Classes</a></li>
+                                                                                                        <li><a href="files/src-model-model.html#toc-classes">Classes</a></li>
                                                                                                                     </ul>
             </li>
 
@@ -278,7 +281,7 @@ Provides __set_state for proper var_export/serialization support in metadata cac
     </section>
 </section>
         </div>
-        <a href="files/src-model-modelattribute.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
+        <a href="files/src-model-model.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
 
     </main>
 
