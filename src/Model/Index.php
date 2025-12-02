@@ -1,4 +1,14 @@
 <?php
+/**
+ * Class Index
+ * 
+ * Attribute class for defining indexes on columns.
+ * Supports UNIQUE, FULLTEXT, and SPATIAL indexes with optional algorithms.
+ * 
+ * Usage: #[Index(type: IndexType::UNIQUE, algorithm: IndexAlgorithm::BTREE)]
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
 
 declare(strict_types=1);
 
@@ -18,6 +28,11 @@ class Index extends ModelAttribute
         public readonly ?string $column_name = null
     ) {}
 
+    /**
+     * Generates index definition SQL for CREATE TABLE
+     *
+     * @return string index definition with type, algorithm, and comment
+     */
     public function to_sql(): string
     {
         $sql = "";
@@ -40,16 +55,31 @@ class Index extends ModelAttribute
         return $sql;
     }
 
+    /**
+     * Generates ADD INDEX SQL for ALTER TABLE
+     *
+     * @return string ADD INDEX statement
+     */
     public function to_add_sql(): string
     {
         return "ADD " . $this->to_sql();
     }
 
+    /**
+     * Generates index modification SQL for ALTER TABLE
+     *
+     * @return string DROP and ADD INDEX statements
+     */
     public function to_modify_sql(): string
     {
         return $this->to_drop_sql() . ",\n  " . $this->to_add_sql();
     }
 
+    /**
+     * Generates DROP INDEX SQL for ALTER TABLE
+     *
+     * @return string DROP INDEX statement
+     */
     public function to_drop_sql(): string
     {
         return "DROP INDEX `idx_{$this->column_name}`";

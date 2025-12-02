@@ -1,4 +1,13 @@
 <?php
+/**
+ * Class ModelAttribute
+ * 
+ * Base class for all model attribute classes.
+ * Provides __set_state for proper var_export/serialization support in metadata caching.
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
+ */
+
 declare(strict_types=1);
 
 namespace Fzb\Model;

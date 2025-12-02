@@ -1,15 +1,25 @@
 <?php
 /**
+ * Class Model
  * 
+ * Base ORM model class providing attribute-based database mapping and CRUD operations.
+ * Uses PHP 8 attributes to define table structure, columns, indexes, and relationships.
+ * Supports automatic migrations, query building, pagination, and joins.
+ * 
+ * Usage: Extend this class and use #[Table], #[Column], #[PrimaryKey], etc. attributes
+ *        to define your model structure. Call Model::migrate() to sync database schema.
+ * 
+ * @author Aaron Bishop (github.com/foozbat)
  */
 
 declare(strict_types=1);
 
-namespace Fzb;
+namespace Fzb\Model;
 
 use Exception;
 use Iterator;
 use ReflectionClass;
+use Fzb\Database;
 
 class ModelException extends Exception {}
 
@@ -140,6 +150,11 @@ class Model implements Iterator
         return true;
     }
 
+    /**
+     * Deletes the current model from the database
+     *
+     * @return bool true if deletion was successful, false otherwise
+     */
     public function delete(): bool
     {
         $cls = self::init();
@@ -195,6 +210,11 @@ class Model implements Iterator
         }
     }
 
+    /**
+     * Gets the total count of records in the table
+     *
+     * @return int total number of records
+     */
     public static function get_count(): int
     {
         $cls = self::init();
@@ -203,6 +223,12 @@ class Model implements Iterator
         return (int) self::$db->selectcol_array("SELECT COUNT(*) FROM $table")[0];
     }
 
+    /**
+     * Gets the count of records matching the specified conditions
+     *
+     * @param mixed ...$params field => value pairs to filter by
+     * @return int number of matching records
+     */
     public static function get_count_by(mixed ...$params): int
     {
         $cls = self::init();
@@ -215,6 +241,13 @@ class Model implements Iterator
         return (int) self::$db->selectcol_array($query, ...$query_values)[0];
     }
 
+    /**
+     * Executes a custom SQL query and returns model instances
+     *
+     * @param string $query SQL query to execute
+     * @param mixed ...$params parameters for the query and optional _order_by, _page, _per_page
+     * @return mixed single model object, array of model objects, or null if no results
+     */
     public static function from_sql(string $query, mixed ...$params): mixed
     {
         $cls     = self::init();
@@ -240,6 +273,12 @@ class Model implements Iterator
         }
     }
 
+    /**
+     * Builds the SELECT field list for queries including joined tables
+     *
+     * @param mixed $params query parameters including optional _left_join
+     * @return string comma-separated field list with table aliases
+     */
     public static function select_fields(mixed $params): string
     {
         $cls    = self::init();
@@ -266,6 +305,13 @@ class Model implements Iterator
         return join(', ', $fields);
     }    
 
+    /**
+     * Parses database result row into model object(s)
+     *
+     * @param array $row database result row with aliased field names
+     * @param mixed $params query parameters including optional _left_join
+     * @return mixed model object or array of model objects if joining
+     */
     private static function parse_result_fields(array $row, mixed $params): mixed
     {
         $cls = self::init();
@@ -303,6 +349,12 @@ class Model implements Iterator
         return sizeof($ret_array) == 1 ? $ret_array[0] : $ret_array;
     }
 
+    /**
+     * Builds the WHERE clause for queries
+     *
+     * @param mixed $params field => value pairs to filter by
+     * @return array tuple of [where clause string, array of values]
+     */
     private static function where(mixed $params): array
     {
         $cls = self::init();
@@ -335,6 +387,12 @@ class Model implements Iterator
         return [$where, $query_values];
     }
 
+    /**
+     * Builds LEFT JOIN clause for queries
+     *
+     * @param mixed $params query parameters including _left_join configuration
+     * @return string LEFT JOIN SQL clause
+     */
     private static function left_join(mixed $params): string
     {
         $cls = self::init();
@@ -356,6 +414,13 @@ class Model implements Iterator
         return $left_join_str;
     }    
 
+    /**
+     * Builds LIMIT clause for pagination
+     *
+     * @param mixed $params query parameters including optional _page and _per_page
+     * @return string LIMIT SQL clause
+     * @throws ModelException if _limit is used with pagination
+     */
     private static function paginate(mixed $params): string
     {
         $paginate_str = "";
@@ -373,6 +438,13 @@ class Model implements Iterator
         return $paginate_str;
     }    
 
+    /**
+     * Builds ORDER BY clause for queries
+     *
+     * @param mixed $params query parameters including optional _order_by
+     * @return string ORDER BY SQL clause
+     * @throws ModelException if order direction is not ASC or DESC
+     */
     private static function order_by(mixed $params): string
     {
         $cls = self::init();
@@ -413,6 +485,12 @@ class Model implements Iterator
         return $order_by_str;
     }
 
+    /**
+     * Separates query parameters from reserved options
+     *
+     * @param mixed $params mixed array of parameters and options
+     * @return array tuple of [parameters, options]
+     */
     private static function get_options(mixed $params): array
     {
         $ret_arr = [[],[]];
@@ -428,6 +506,13 @@ class Model implements Iterator
         return $ret_arr;
     }
 
+    /**
+     * Initializes model metadata from attributes or cache
+     *
+     * @param bool $no_cache if true, bypasses cache and regenerates metadata
+     * @return string fully qualified class name
+     * @throws ModelException if database instance not found, attribute class doesn't exist, or no primary key defined
+     */
     private static function init(bool $no_cache = false): string
     {
         $cls = get_called_class();
@@ -452,7 +537,7 @@ class Model implements Iterator
 
         // generate metadata from ORM attributes
         self::$metadata[$cls] = [
-            'table' => new Model\Table(name: self::default_table_name()),
+            'table' => new Table(name: self::default_table_name()),
             'columns' => [],
             'primary_key' => null
         ];
@@ -463,23 +548,10 @@ class Model implements Iterator
         foreach ($heirarchy as $r) {
             // class level metadata
             foreach ($r->getAttributes() as $attr) {
-                $attr_name = $attr->getName();
-                
-                // Resolve the fully qualified class name
-                if (!class_exists($attr_name)) {
-                    // Try common namespace prefixes
-                    if (class_exists("Fzb\\Model\\$attr_name")) {
-                        $attr_name = "Fzb\\Model\\$attr_name";
-                    } elseif (class_exists("Fzb\\$attr_name")) {
-                        $attr_name = "Fzb\\$attr_name";
-                    }
-                }
-                
-                $attribute_cls = self::get_short_name($attr_name);
+                $attribute_cls = $attr->getName();
 
-                if ($attribute_cls === 'Table') {
-                    $args = $attr->getArguments();
-                    self::$metadata[$cls]['table'] = new \Fzb\Model\Table(...$args);
+                if ($attribute_cls == Table::class) {
+                    self::$metadata[$cls]['table'] = $attr->newInstance();
                 } else {
                     // other class-level attributes can be handled here
                 }
@@ -490,48 +562,33 @@ class Model implements Iterator
                 $property_name = $property->getName();
 
                 foreach ($property->getAttributes() as $attr) {
-                    $attr_name = $attr->getName();
-                    
-                    // Resolve the fully qualified class name
-                    if (!class_exists($attr_name)) {
-                        // Try common namespace patterns
-                        $possible_names = [
-                            "Fzb\\Model\\$attr_name",
-                            "Fzb\\$attr_name"
-                        ];
-                        
-                        foreach ($possible_names as $possible) {
-                            if (class_exists($possible)) {
-                                $attr_name = $possible;
-                                break;
-                            }
-                        }
-                        
-                        if (!class_exists($attr_name)) {
-                            throw new ModelException("Model attribute class " . $attr->getName() . " does not exist.  Don't forget use statement.");
-                        }
+                    $attr_cls = $attr->getName();
+                    $attr_args = $attr->getArguments();
+
+                    if (!class_exists($attr->getName())) {
+                        throw new ModelException("Model attribute class " . $attr->getName() . " does not exist.  Don't forget use statement.");
                     }
 
-                    $attribute_cls = self::get_short_name($attr_name);
-
-                    if ($attribute_cls === 'Column') {
+                    if ($attr_cls == Column::class) {
                         if (in_array($property_name, self::$__reserved_names__)) {
                             throw new ModelException("Property name '$property_name' is reserved for ORM operations. Please rename the property.");
                         }
+
+                        $attr_args['null'] = $attr_args['null'] ?? $property->getType()?->allowsNull() ?? true;
 
                         self::$metadata[$cls]['columns'][$property_name] = [
                             'type' => $property->getType() ? $property->getType()->getName() : 'mixed',
                             'attributes' => []
                         ];
-                    } else if ($attribute_cls === 'PrimaryKey') {
+                    } else if ($attr_cls == PrimaryKey::class) {
                         self::$metadata[$cls]['primary_key'] = $property_name;
                     }   
 
                     if (!array_key_exists($property_name, self::$metadata[$cls]['columns'])) {
-                        throw new ModelException("ORM attribute '$attribute_cls' applied to property '$property_name' which is not defined as a Column.");
+                        throw new ModelException("ORM attribute '$attr_cls' applied to property '$property_name' which is not defined as a Column.");
                     }
 
-                    $attribute_instance = new $attr_name(...$attr->getArguments(), table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
+                    $attribute_instance = new $attr_cls(...$attr_args, table_name: self::$metadata[$cls]['table']->name, column_name: $property_name);
 
                     array_push(self::$metadata[$cls]['columns'][$property_name]['attributes'], $attribute_instance);
                 }
@@ -543,13 +600,17 @@ class Model implements Iterator
             throw new ModelException("No primary key defined for model class '$cls'.  A primary key must be defined using the PrimaryKey attribute.");
         }
         
-        //var_dump(self::$metadata[$cls]);
-
         return $cls;
     }
 
-
-    public static function migrate(bool $test_run = false): void
+    /**
+     * Runs database migrations to sync table schema with model definition
+     *
+     * @param bool $test_run if true, skips actual database execution
+     * @param bool $verbose if true, outputs SQL statements and migration info
+     * @return void
+     */
+    public static function migrate(bool $test_run = false, bool $verbose = false): void
     {
         $cls = self::init();
 
@@ -562,16 +623,19 @@ class Model implements Iterator
 
         // if table doesn't exist, create a new one
         if(!$table_exists) {
-            echo "Creating table '{$new_metadata['table']->name}'...\n";
+            if ($verbose) {
+                echo "Creating table '{$new_metadata['table']->name}'...\n";
+            }
+
             $sql = "CREATE TABLE IF NOT EXISTS `{$new_metadata['table']->name}` (\n";
             $columns = [];
             $table_keys = [];
 
             foreach ($new_metadata['columns'] as $column_name => $column_meta) {
                 foreach ($column_meta['attributes'] as $attr) {
-                    if ($attr instanceof Model\Column) {
+                    if ($attr instanceof Column) {
                         $columns[] = $attr->to_sql();
-                    } else if ($attr instanceof Model\PrimaryKey || $attr instanceof Model\ForeignKey || $attr instanceof Model\Index) {
+                    } else if ($attr instanceof PrimaryKey || $attr instanceof ForeignKey || $attr instanceof Index) {
                         $table_keys[] = $attr->to_sql();
                     }
                 }
@@ -587,15 +651,15 @@ class Model implements Iterator
 
             $sql .= "\n) " . $new_metadata['table']->to_sql();
 
-            echo $sql . "\n";
-        
             if ($test_run) {
                 return;
             }
 
+            if ($verbose) {
+                echo $sql . "\n";
+            }
             self::$db->query($sql);
         } else {
-            echo "Altering table '{$new_metadata['table']->name}'...\n";
             $table_changed = false;
  
             $to_add = [];
@@ -643,15 +707,15 @@ class Model implements Iterator
 
                 // add new attributes
                 foreach ($to_add as $attr) {
-                    if ($attr instanceof Model\Column) {
-                        echo "Adding column '{$attr->name}'...\n";
+                    if ($attr instanceof Column) {
                         $column_exists = self::$db->selectrow_array("SHOW COLUMNS FROM `{$new_metadata['table']->name}` LIKE '{$column_name}'")[0] ?? false;
+
                         if ($column_exists) {
                             continue;
                         } else {
                             self::$db->query($alter_sql . $attr->to_add_sql());
                         }
-                    } else if ($attr instanceof Model\ForeignKey) {
+                    } else if ($attr instanceof ForeignKey) {
                         self::$db->query($alter_sql . $attr->to_add_index_sql());
                         self::$db->query($alter_sql . $attr->to_add_fk_sql());
                     } else {
@@ -661,7 +725,7 @@ class Model implements Iterator
 
                 // modify existing attributes
                 foreach ($to_modify as $attr) {
-                    if ($attr instanceof Model\ForeignKey) {
+                    if ($attr instanceof ForeignKey) {
                         self::$db->query($alter_sql . $attr->to_drop_fk_sql());
                         self::$db->query($alter_sql . $attr->to_drop_index_sql());
                         self::$db->query($alter_sql . $attr->to_add_index_sql());
@@ -673,9 +737,9 @@ class Model implements Iterator
 
                 // drop removed attributes
                 foreach ($to_drop as $attr) {
-                    if ($attr instanceof Model\Column) {
+                    if ($attr instanceof Column) {
                         continue; // columns are not dropped automatically
-                    } else if ($attr instanceof Model\ForeignKey) {
+                    } else if ($attr instanceof ForeignKey) {
                         self::$db->query($alter_sql . $attr->to_drop_fk_sql());
                         self::$db->query($alter_sql . $attr->to_drop_index_sql());
                     } else {
@@ -697,6 +761,11 @@ class Model implements Iterator
      * Static Helper Methods
      */
 
+    /**
+     * Gets reflection hierarchy from base class to derived class
+     *
+     * @return array array of ReflectionClass objects in inheritance order
+     */
     private static function get_reverse_reflection(): array
     {
         $cls = get_called_class();
@@ -709,12 +778,23 @@ class Model implements Iterator
         return $ret;
     }
 
+    /**
+     * Generates default table name from class name
+     *
+     * @return string lowercase class name without namespace
+     */
     private static function default_table_name(): string
     {
         $cls = get_called_class();
         return strtolower(self::get_short_name($cls));
     }
 
+    /**
+     * Extracts short class name from fully qualified class name
+     *
+     * @param string $cls fully qualified class name
+     * @return string class name without namespace
+     */
     private static function get_short_name(string $cls): string
     {
         $class_parts = explode('\\', $cls);
