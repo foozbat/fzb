@@ -546,6 +546,46 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-InputObject.html#property_is_invalid"
         },                {
+            "fqsen": "\\Fzb\\JWT",
+            "name": "JWT",
+            "summary": "",
+            "url": "classes/Fzb-JWT.html"
+        },                {
+            "fqsen": "\\Fzb\\JWT\u003A\u003Aencode\u0028\u0029",
+            "name": "encode",
+            "summary": "",
+            "url": "classes/Fzb-JWT.html#method_encode"
+        },                {
+            "fqsen": "\\Fzb\\JWT\u003A\u003Adecode\u0028\u0029",
+            "name": "decode",
+            "summary": "",
+            "url": "classes/Fzb-JWT.html#method_decode"
+        },                {
+            "fqsen": "\\Fzb\\JWTAlg",
+            "name": "JWTAlg",
+            "summary": "",
+            "url": "classes/Fzb-JWTAlg.html"
+        },                {
+            "fqsen": "\\Fzb\\JWTAlg\u003A\u003Ahash_algo\u0028\u0029",
+            "name": "hash_algo",
+            "summary": "",
+            "url": "classes/Fzb-JWTAlg.html#method_hash_algo"
+        },                {
+            "fqsen": "\\Fzb\\JWTAlg\u003A\u003AHS256",
+            "name": "HS256",
+            "summary": "",
+            "url": "classes/Fzb-JWTAlg.html#enumcase_HS256"
+        },                {
+            "fqsen": "\\Fzb\\JWTAlg\u003A\u003AHS384",
+            "name": "HS384",
+            "summary": "",
+            "url": "classes/Fzb-JWTAlg.html#enumcase_HS384"
+        },                {
+            "fqsen": "\\Fzb\\JWTAlg\u003A\u003AHS512",
+            "name": "HS512",
+            "summary": "",
+            "url": "classes/Fzb-JWTAlg.html#enumcase_HS512"
+        },                {
             "fqsen": "\\Fzb\\Model\\Base",
             "name": "Base",
             "summary": "",
