@@ -62,7 +62,7 @@ class Redis
         // save myself in the array of instances
         if (isset($options['id'])) {
             if (isset(self::$instances[$options['id']])) {
-                throw new RedisException("Cannot redeclare a specified instance of Fzb\Databse");
+                throw new RedisException("Cannot redeclare a specified instance of Fzb\Redis.");
             }
             self::$instances[$options['id']] = $this;
             $this->instance_id = $options['id'];
@@ -80,7 +80,7 @@ class Redis
      */
     function __destruct()
     {
-        //$this->disconnect();
+        $this->disconnect();
     }
 
     /**
@@ -166,22 +166,94 @@ class Redis
      * should only be called after executing a command
      *
      * @return mixed response
+     * @throws RedisException on timeout or socket error
      */
     private function get_response(): mixed
     {
         $buf = '';
         $response = '';
+        $timeout = 5; // seconds
+        $start_time = time();
 
-        while ($response == '') { // might cause infinite loop, need to refactor
-            while (false !== ($bytes = socket_recv($this->socket, $buf, $this::CHUNK_SIZE, MSG_DONTWAIT))) {
-                $response .= $buf;
+        while (true) {
+            // Check for timeout
+            if (time() - $start_time > $timeout) {
+                throw new RedisException("Redis command timeout after {$timeout} seconds");
+            }
+
+            // Attempt to receive data
+            $bytes = socket_recv($this->socket, $buf, $this::CHUNK_SIZE, MSG_DONTWAIT);
+            
+            if ($bytes === false) {
+                $error = socket_last_error($this->socket);
+                // EAGAIN/EWOULDBLOCK means no data available yet (non-blocking)
+                if ($error !== SOCKET_EAGAIN && $error !== SOCKET_EWOULDBLOCK) {
+                    throw new RedisException("Socket error: " . socket_strerror($error));
+                }
+                // No data available, small sleep to prevent busy-waiting
+                usleep(10000); // 10ms
+                continue;
+            }
+            
+            if ($bytes === 0) {
+                throw new RedisException("Connection closed by Redis server");
+            }
+
+            $response .= $buf;
+
+            // Check if we have a complete response
+            if ($this->is_complete_response($response)) {
+                break;
             }
         }
 
-        //$ret_arr = $response;
         $ret_arr = $this->parse_response($response);
 
         return $ret_arr;        
+    }
+
+    /**
+     * Checks if a Redis response is complete
+     *
+     * @param string $response response string to check
+     * @return bool true if response is complete, false otherwise
+     */
+    private function is_complete_response(string $response): bool
+    {
+        if (empty($response)) {
+            return false;
+        }
+
+        $prefix = $response[0];
+
+        // Simple checks for common response types
+        switch ($prefix) {
+            case '+': // Simple string
+            case '-': // Error
+            case ':': // Integer
+                return strpos($response, "\r\n") !== false;
+            
+            case '$': // Bulk string
+                $crlf_pos = strpos($response, "\r\n");
+                if ($crlf_pos === false) {
+                    return false;
+                }
+                $length = (int)substr($response, 1, $crlf_pos - 1);
+                if ($length === -1) {
+                    return true; // Null bulk string
+                }
+                // Need: length prefix + \r\n + data + \r\n
+                $needed = $crlf_pos + 2 + $length + 2;
+                return strlen($response) >= $needed;
+            
+            case '*': // Array
+                // Simple heuristic: check if response ends with \r\n
+                // More robust parsing would require full protocol knowledge
+                return substr($response, -2) === "\r\n";
+            
+            default:
+                return false;
+        }
     }
 
     /**
