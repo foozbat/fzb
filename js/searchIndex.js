@@ -586,6 +586,26 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Fzb-JWTAlg.html#enumcase_HS512"
         },                {
+            "fqsen": "\\Fzb\\MercureException",
+            "name": "MercureException",
+            "summary": "",
+            "url": "classes/Fzb-MercureException.html"
+        },                {
+            "fqsen": "\\Fzb\\Mercure",
+            "name": "Mercure",
+            "summary": "",
+            "url": "classes/Fzb-Mercure.html"
+        },                {
+            "fqsen": "\\Fzb\\Mercure\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Fzb-Mercure.html#method___construct"
+        },                {
+            "fqsen": "\\Fzb\\Mercure\u003A\u003Apublish\u0028\u0029",
+            "name": "publish",
+            "summary": "",
+            "url": "classes/Fzb-Mercure.html#method_publish"
+        },                {
             "fqsen": "\\Fzb\\Model\\Base",
             "name": "Base",
             "summary": "",
