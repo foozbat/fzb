@@ -371,12 +371,26 @@ class Model implements Iterator
             $table_columns = array_keys(self::$metadata[$cls]['columns']);
 
             foreach ($params as $field => $value) {
+                $operator = '=';
+                $clean_value = $value;
+                
+                // Check if value starts with an operator (e.g., "> 5")
+                if (is_string($value) && preg_match('/^\s*(>=|<=|!=|<>|>|<)\s*(.*)$/', $value, $matches)) {
+                    $operator = $matches[1];
+                    $clean_value = $matches[2];
+                    
+                    // Normalize <> to !=
+                    if ($operator === '<>') {
+                        $operator = '!=';
+                    }
+                }
+                
                 if (!in_array($field, $table_columns)) {
                     throw new ModelException("Table column '$field' does not exist.");
                 }
 
-                array_push($query_fields, "$table.$field = ?");
-                array_push($query_values, $value);
+                array_push($query_fields, "$table.$field $operator ?");
+                array_push($query_values, $clean_value);
             }
 
             if (sizeof($query_values) > 0) {
